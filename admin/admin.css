@@ -1,0 +1,184 @@
+/* ----------------------- */
+/* GLOBAL SETTINGS */
+/* ----------------------- */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+:root {
+    --bleu-nuit: #0D1B2A;
+    --bleu-azur: #1B9AAA;
+    --gris-clair: #E0E1DD;
+    --gris-anthracite: #393E46;
+    --blanc: #FFFFFF;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Manrope', sans-serif;
+}
+
+body {
+    display: flex;
+    background: var(--gris-clair);
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 260px;
+    background: var(--bleu-nuit);
+    color: var(--blanc);
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.sidebar h2 {
+    font-family: 'Cormorant Garamond', sans-serif;
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+.sidebar a {
+    text-decoration: none;
+    color: var(--gris-clair);
+    font-size: 16px;
+    margin-bottom: 10px;
+    display: block;
+    transition: 0.2s;
+}
+
+.sidebar a:hover {
+    color: var(--bleu-azur);
+}
+
+/* ----------------------- */
+/* MAIN CONTENT */
+/* ----------------------- */
+
+.main {
+    padding-left: 24px;
+}
+
+.main h1 {
+    font-family: 'Cormorant Garamond', sans-serif;
+    font-size: 34px;
+    margin-bottom: 30px;
+    color: var(--bleu-nuit);
+}
+
+/* ----------------------- */
+/* BUTTONS */
+/* ----------------------- */
+
+.btn {
+    display: inline-block;
+    background-color: var(--bleu-azur);
+    padding: 12px 20px;
+    color: var(--blanc);
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 25px;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    background: #167e87;
+}
+
+/* ----------------------- */
+/* PROJECT GRID */
+/* ----------------------- */
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 25px;
+}
+
+.card {
+    background: var(--blanc);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding-bottom: 15px;
+}
+
+.card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: var(--gris-clair);
+}
+
+.card h3 {
+    font-size: 18px;
+    margin: 15px;
+    color: var(--bleu-nuit);
+}
+
+.card .actions {
+    display: flex;
+    gap: 10px;
+    padding: 0 15px;
+}
+
+.delete-btn {
+    color: #C40000;
+    font-weight: 600;
+}
+
+.delete-btn:hover {
+    color: #ff3838;
+}
+
+/* ---------------------------------- */
+/* ADD PAGE FORM */
+/* ---------------------------------- */
+
+.add-form {
+    background: var(--blanc);
+    padding: 30px;
+    max-width: 550px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.add-form label {
+    font-weight: 600;
+    color: var(--bleu-nuit);
+}
+
+.add-form input[type="text"],
+.add-form textarea,
+.add-form input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--gris-clair);
+    border-radius: 6px;
+    font-size: 15px;
+    background: var(--gris-clair);
+}
+
+.add-form textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.add-form input:focus,
+.add-form textarea:focus {
+    outline: none;
+    border-color: var(--bleu-azur);
+    background: #f7fafa;
+}
+
+.add-form .btn {
+    margin-top: 10px;
+    align-self: flex-start;
+}

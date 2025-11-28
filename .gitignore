@@ -1,0 +1,19 @@
+# Fichiers sensibles
+php/db.php
+
+# Uploads images admin
+admin/uploads/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environnement local
+.env
+
+# Cache éditeurs
+.vscode/
+.idea/

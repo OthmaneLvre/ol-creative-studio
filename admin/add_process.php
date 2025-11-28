@@ -1,0 +1,35 @@
+<?php
+session_start();
+if (!isset($_SESSION["admin_logged"])) {
+    header("Location: login.php");
+    exit;
+}
+
+require_once "../php/db.php";
+
+$titre = $_POST["titre"];
+$desc = $_POST["description"];
+
+// dossier upload
+$folder = "uploads/";
+if (!file_exists($folder)) {
+    mkdir($folder, 0777, true);
+}
+
+// upload image
+$filename = time() . "_" . basename($_FILES["image"]["name"]);
+$targetPath = $folder . $filename;
+
+move_uploaded_file($_FILES["image"]["tmp_name"], $targetPath);
+
+// insérer en DB
+$sql = "INSERT INTO portfolio (titre, description, image) VALUES (:t, :d, :i)";
+$stmt = $pdo->prepare($sql);
+$stmt->execute([
+    ":t" => $titre,
+    ":d" => $desc,
+    ":i" => $filename
+]);
+
+header("Location: dashboard.php");
+exit;
