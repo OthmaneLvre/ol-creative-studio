@@ -1,0 +1,136 @@
+/* ----------------------------- */ 
+/* STYLE GENERALE DU SITE OL CREATIVE STUDIO */ 
+/* ----------------------------- */ 
+
+:root {
+    --bleu-nuit: #0D1B2A;
+    --bleu-azur: #1B9AAA;
+    --gris-clair: #E0E1DD;
+    --gris-anthracite: #393E46;
+    --blanc: #FFFFFF;
+    --hover-primary: #138A95;
+    --hover-secondary: #F4FBFB;
+    --success: #3CB371;
+    --error: #E63946;
+}
+
+
+/* NAVBAR */ 
+
+.navbar{
+    background: var(--blanc);
+    width: 100%;
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    margin: 15px auto;
+}
+
+.logo img {
+    height: 35px;
+    width: auto;
+}
+
+/* MENU */ 
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--bleu-nuit);
+    font-weight: 500;
+}
+
+.sep {
+    width: 2px;
+    height: 20px;
+    background: var(--bleu-azur);
+    opacity: 0.5;
+    border-radius: 2px;
+}
+
+/* BOUTON PRIMARY */
+
+.btn-primary {
+    padding: 10px 22px;
+    background: var(--bleu-azur);
+    color: var(--blanc);
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(27, 154, 170, 0.3);
+    transition: 0.25s;
+}
+
+.btn-primary:hover {
+    background: var(--hover-primary);
+}
+
+/* FOOTER */
+
+.footer {
+    background: var(--blanc);
+    padding: 50px 20px;
+    margin-top: 60px;
+}
+
+.footer-cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--gris-clair);
+}
+
+.footer-col {
+    text-align: center;
+}
+
+.footer-logo {
+    height: 40px;
+    margin-bottom: 10px;
+}
+
+.footer-col a {
+    display: block;
+    text-decoration: none;
+    color: var(--bleu-nuit);
+    margin: 6px 0;
+}
+
+.footer-col a:hover {
+    color: var(--bleu-azur);
+}
+
+.footer-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    justify-content: center;
+}
+
+.footer-item img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    opacity: 0.85;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 25px;
+    color: var(--bleu-nuit);
+}
+
+.footer-bottom a {
+    text-decoration: none;
+    color: var(--bleu-azur);
+}
