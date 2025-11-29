@@ -126,6 +126,15 @@ body {
     padding: 0 15px;
 }
 
+.edit-btn {
+    color: var(--bleu-azur);
+    font-weight: 600;
+}
+
+.edit-btn:hover {
+    color: #0c7c85;
+}
+
 .delete-btn {
     color: #C40000;
     font-weight: 600;
@@ -134,6 +143,8 @@ body {
 .delete-btn:hover {
     color: #ff3838;
 }
+
+
 
 /* ---------------------------------- */
 /* ADD PAGE FORM */

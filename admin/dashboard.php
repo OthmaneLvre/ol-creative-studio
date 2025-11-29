@@ -33,6 +33,7 @@ $creations = $pdo->query("SELECT * FROM portfolio ORDER BY date_creation DESC")-
                     <img src="uploads/<?= $c['image'] ?>" alt="">
                     <h3><?= htmlspecialchars($c['titre']) ?></h3>
                     <div class="actions">
+                        <a class="edit-btn" href="edit.php?id=<?= $c['id'] ?>">Modifier</a>
                         <a class="delete-btn" href="delete.php?id=<?= $c['id'] ?>">Supprimer</a>
                     </div>
                 </div>
