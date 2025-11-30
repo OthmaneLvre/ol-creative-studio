@@ -1,0 +1,46 @@
+/* =========================================== */
+/*         GLOBAL RESPONSIVE ADJUSTMENTS       */
+/* =========================================== */
+
+/* TABLETTE & MOBILE */
+@media (max-width: 900px) {
+
+    /* NAVBAR */
+    .navbar {
+        padding: 16px;
+    }
+
+    .nav-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .nav-btn {
+        display: flex;
+        justify-content: center;
+    }
+
+    /* FOOTER */
+    .footer-cols {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 40px;
+    }
+}
+
+/* MOBILE STRICT */
+@media (max-width: 600px) {
+    .logo img {
+        height: 30px;
+    }
+
+    body {
+        font-size: 15px;
+    }
+}

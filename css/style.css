@@ -2,7 +2,13 @@
 /* STYLE GENERALE DU SITE OL CREATIVE STUDIO */ 
 /* ----------------------------- */ 
 
+/*        IMPORT POLICES         */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&display=swap');
+
+
 :root {
+    /* ---- Colors ---- */
     --bleu-nuit: #0D1B2A;
     --bleu-azur: #1B9AAA;
     --gris-clair: #E0E1DD;
@@ -12,6 +18,83 @@
     --hover-secondary: #F4FBFB;
     --success: #3CB371;
     --error: #E63946;
+
+    /* ---- Typography ---- */
+    --font-primary: 'Manrope', sans-serif;          /* Textes */
+    --font-secondary: 'Cormorant Garamond', serif;  /* Titres */
+
+    /* ---- Spacing ---- */
+    --section-padding: 80px;
+    --border-radius: 12px;
+
+    /* ---- Shadows ---- */
+    --shadow-light: 0 8px 24px rgba(0,0,0,0.08);
+    --shadow-btn: 0 4px 12px rgba(0,0,0,0.0.6);
+}
+
+
+/* ============================= */
+/*          GLOBAL RESET         */
+/* ============================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-primary);
+    background: var(--blanc);
+    color: var(--bleu-nuit);
+    line-height: 1.6;
+}
+
+/*          TITRES GLOBAUX       */
+h1, h2, h3, h4 {
+    font-family: var(--font-secondary);
+    font-weight: 600;
+    color: var(--bleu-nuit);
+}
+
+/*         CLASSE UTILITAIRE CONTAINER       */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/*         STYLE BOUTONS       */
+.btn-primary {
+    display: inline-block;
+    background: var(--bleu-azur);
+    color: var(--blanc);
+    padding: 12px 26px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: .25s;
+    box-shadow: var(--shadow-btn);
+}
+
+.btn-primary:hover {
+    background: var(--hover-primary);
+}
+
+.btn-secondary {
+    display: inline-block;
+    border: 2px solid var(--bleu-azur);
+    color: var(--bleu-azur);
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: .25s;
+}
+
+.btn-secondary:hover {
+    background: var(--bleu-azur);
+    color: var(--blanc);
 }
 
 
@@ -30,7 +113,7 @@
 }
 
 .logo img {
-    height: 35px;
+    height: 65px;
     width: auto;
 }
 
@@ -55,46 +138,46 @@
     border-radius: 2px;
 }
 
-/* BOUTON PRIMARY */
-
-.btn-primary {
-    padding: 10px 22px;
-    background: var(--bleu-azur);
-    color: var(--blanc);
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 600;
-    box-shadow: 0 4px 10px rgba(27, 154, 170, 0.3);
-    transition: 0.25s;
-}
-
-.btn-primary:hover {
-    background: var(--hover-primary);
-}
-
 /* FOOTER */
 
 .footer {
     background: var(--blanc);
-    padding: 50px 20px;
-    margin-top: 60px;
+}
+
+.footer-container {
+    margin: 0 auto;
+}
+
+.footer-contact {
+    display: inline-block;
+    text-align: left;
 }
 
 .footer-cols {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
-    max-width: 1100px;
-    margin: 0 auto;
-    border-bottom: 1px solid var(--gris-clair);
+    border-bottom: 1px solid var(--bleu-nuit);
+    border-top: 1px solid var(--bleu-nuit);
 }
 
 .footer-col {
     text-align: center;
+    border-right: 1px solid var(--bleu-nuit);
+    padding-top: 24px;
+    padding-bottom: 24px;
+}
+
+.footer-col:last-child {
+    border-right: none;
+}
+
+.footer-col h4 {
+    font-size: 20px;
+    font-family: var(--font-primary);
 }
 
 .footer-logo {
-    height: 40px;
+    height: 150px;
     margin-bottom: 10px;
 }
 
@@ -102,7 +185,7 @@
     display: block;
     text-decoration: none;
     color: var(--bleu-nuit);
-    margin: 6px 0;
+    margin: 16px 0;
 }
 
 .footer-col a:hover {
@@ -112,9 +195,8 @@
 .footer-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin: 8px 0;
-    justify-content: center;
+    gap: 16px;
+    margin: 24px 0;
 }
 
 .footer-item img {
@@ -122,6 +204,11 @@
     height: 20px;
     object-fit: contain;
     opacity: 0.85;
+}
+
+.footer-mail {
+    font-weight: 600;
+
 }
 
 .footer-bottom {
