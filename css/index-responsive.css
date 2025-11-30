@@ -1,0 +1,16 @@
+/* =========================================== */
+/*         HOME PAGE RESPONSIVE STYLES        */
+/* =========================================== */
+
+@media (max-width: 900px) {
+
+    .hero-container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .hero-image img {
+        max-width: 340px;
+    }
+}
+
