@@ -24,12 +24,19 @@ function updateTestimonial() {
     document.getElementById("clientText").textContent = "“" + testimonials[index].text + "”";
 }
 
-document.getElementById("nextTestimonial").addEventListener("click", () => {
-    index = (index + 1) % testimonials.length;
-    updateTestimonial();
-});
+// ==== SECURITE POUR EVITER LES ERREURS ==== 
 
-document.getElementById("prevTestimonial").addEventListener("click", () => {
-    index = (index - 1 + testimonials.length) % testimonials.length;
-    updateTestimonial();
-});
+const nextBtn = document.getElementById("nextTestimonial");
+const prevBtn = document.getElementById("prevTestimonial");
+
+if (nextBtn && prevBtn) {
+    nextBtn.addEventListener("click", () => {
+        index = (index+ 1) % testimonials.length;
+        updateTestimonial();
+    });
+
+    prevBtn.addEventListener("click", () => {
+        index = (index - 1 + testimonials.length) % testimonials.length;
+        updateTestimonial();
+    });
+}

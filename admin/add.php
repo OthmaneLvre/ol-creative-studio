@@ -24,8 +24,14 @@ if (!isset($_SESSION["admin_logged"])) {
         <label for="titre">Titre de la création</label>
         <input type="text" id="titre" name="titre" placeholder="Ex: Site Vitrine Moderne" required>
 
-        <label for="description">Description (optionnelle)</label>
-        <textarea id="description" name="description" placeholder="Décrivez rapidement votre création..."></textarea>
+        <label for="categorie">Catégorie</label>
+        <select id="categorie" name="categorie" required>
+            <option value="figma">Maquettes Figma</option>
+            <option value="vitrine">Sites vitrines</option>
+            <option value="boutique">Boutiques en ligne</option>
+            <option value="applications">Applications Web & Mobile</option>
+            <option value="identite">Logos & identités visuelles</option>
+        </select>
 
         <label for="image">Image</label>
         <input type="file" id="image" name="image" required>

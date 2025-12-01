@@ -50,6 +50,12 @@ body {
     line-height: 1.6;
 }
 
+main {
+    position: relative;
+    z-index: 0;      /* neutralise le stacking context implicite */
+    isolation: auto; /* supprime l’isolation automatique */
+}
+
 /*          TITRES GLOBAUX       */
 h1, h2, h3, h4 {
     font-family: var(--font-secondary);

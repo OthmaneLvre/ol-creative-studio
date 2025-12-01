@@ -1,0 +1,214 @@
+/* HERO Portfolio */
+
+.portfolio-hero {
+    background: url('../assets/images/illustration-hero.png') center/cover no-repeat;
+    padding: 140px 0 100px;
+    text-align: center;
+    color: var(--blanc);
+}
+
+.portfolio-hero h1 {
+    font-family: var(--font-primary);
+    color: var(--blanc);
+    font-size: 38px;
+    margin-bottom: 12px;
+}
+
+.portfolio-hero p {
+    font-size: 17px;
+    color: var(--gris-clair);
+    opacity: 0.9;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* SECITON Mes creéations */
+
+.portfolio-section-title {
+    text-align: center;
+    margin: 80px 0 40px;
+}
+
+.portfolio-section-title h2 {
+    font-family: var(--font-primary);
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+.portfolio-section-title p {
+    font-size: 16px;
+    color: var(--gris-anthracite);
+}
+
+
+
+/* GRID DES CATÉGORIES */
+
+.portfolio-categories {
+    margin-top: 40px;
+}
+
+.portfolio-cat-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px 120px;
+    justify-content: center;
+}
+
+.cat-card {
+    background: var(--bleu-nuit);
+    border-radius: 22px;
+    padding: 30px 20px;
+    width: 300px;
+    height: 299px;
+    text-align: center;
+    color: var(--blanc);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.cat-card img {
+    width: 250px;
+    height: 150px;
+    border-radius: 22px;
+    margin-bottom: 15px;
+    box-shadow: 0 8px 4px rgba(0,0,0,0.25);
+}
+
+.cat-card h3 {
+    font-family: var(--font-primary);
+    color: var(--bleu-azur);
+    font-size: 17px;
+    margin-bottom: 5px;
+}
+
+.cat-card p {
+    font-size: 14px;
+    opacity: 0.85;
+    line-height: 1.4;
+}
+
+
+/* FILTRES */
+
+.portfolio-filters {
+    margin: 50px 0 40px;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+.filter-btn {
+    background: var(--blanc);
+    border: 1px solid var(--bleu-azur);
+    color: var(--bleu-nuit);
+    padding: 5px 20px;
+    border-radius: 40px;
+    margin: 0 6px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    font-size: 20px;
+    font-weight: 600;
+    font-family: var(--font-primary);
+}
+
+.filter-btn:hover {
+    background: var(--bleu-azur);
+    color: var(--blanc);
+}
+
+.filter-btn.active {
+    background: var(--bleu-azur);
+    color: var(--blanc);
+}
+
+
+/* GRID DES PROJETS */
+
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    margin: 0 auto 80px;
+    position: relative;
+    z-index: 5;
+    max-width: 1200px;
+}
+
+.portfolio-card {
+    background: var(--bleu-nuit);
+    border-radius: 22px;
+    width: 360px;
+    height: 420px;
+    padding: 30px;
+    text-align: center;
+    color: var(--blanc);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+.card-image {
+    background: var(--blanc);
+    border-radius: 22px;
+    width: 100%;
+    height: 320px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.portfolio-card h3 {
+    font-size: 20px;
+    font-weight: 600;
+    font-family: var(--font-primary);
+    color: var(--bleu-azur);
+    margin-top: 16px;
+}
+
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* CTA */ 
+
+.portfolio-cta {
+    background: var(--bleu-nuit);
+    padding: 80px 0;
+    text-align: center;
+    color: var(--blanc);
+    border-radius: 25px 25px 0 0;
+    margin-top: 40px;
+}
+
+.portfolio-cta h2 {
+    font-size: 28px;
+    font-family: var(--font-primary);
+    color: var(--blanc);
+    margin-bottom: 10px;
+}
+
+.portfolio-cta p {
+    opacity: 0.9;
+    margin-bottom: 25px;
+}
+
+.portfolio-cta .btn-primary-light {
+    background: var(--bleu-azur);
+    color: var(--blanc);
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-size: 15px;
+    transition: 0.2s ease;
+}
+
+.portfolio-cta .btn-primary-light:hover {
+    background: var(--bleu-azur);
+}
