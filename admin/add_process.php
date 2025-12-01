@@ -8,7 +8,7 @@ if (!isset($_SESSION["admin_logged"])) {
 require_once "../php/db.php";
 
 $titre = $_POST["titre"];
-$desc = $_POST["description"];
+$categorie = $_POST["categorie"];
 
 // dossier upload
 $folder = "uploads/";
@@ -23,12 +23,14 @@ $targetPath = $folder . $filename;
 move_uploaded_file($_FILES["image"]["tmp_name"], $targetPath);
 
 // insérer en DB
-$sql = "INSERT INTO portfolio (titre, description, image) VALUES (:t, :d, :i)";
+$sql = "INSERT INTO portfolio (titre, image, categorie)
+        VALUES (:t, :i, :c)";
 $stmt = $pdo->prepare($sql);
 $stmt->execute([
     ":t" => $titre,
     ":d" => $desc,
-    ":i" => $filename
+    ":i" => $filename,
+    ":c" => $categorie
 ]);
 
 header("Location: dashboard.php");
