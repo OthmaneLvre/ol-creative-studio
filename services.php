@@ -13,7 +13,7 @@
 
     <!-- =========================== SERVICES 1 =========================== -->
     <section class="service-block">
-        <div class="container block-container">
+        <div class="container block-container reverse">
 
             <div class="block-text">
                 <div class="service-icon">
@@ -76,7 +76,7 @@
     <!-- =========================== SERVICES 3 =========================== -->
 
     <section class="service-block">
-        <div class="container block-container">
+        <div class="container block-container reverse">
 
             <div class="block-text">
                 <div class="service-icon">

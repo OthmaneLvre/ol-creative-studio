@@ -124,6 +124,14 @@ h1, h2, h3, h4 {
 }
 
 /* MENU */ 
+
+/* Cacher le menu mobile sur desktop */
+@media (min-width: 769px) {
+    .mobile-menu {
+        display: none !important;
+    }
+}
+
 .nav-links {
     display: flex;
     align-items: center;
