@@ -1,3 +1,19 @@
+/*********************************/
+/*          BURGER MENU          */
+/*********************************/
+
+const burger = document.getElementById("burger");
+const mobileMenu = document.getElementById("mobileMenu");
+
+burger.addEventListener("click", () => {
+    burger.classList.toggle("open");
+    mobileMenu.classList.toggle("open");
+});
+
+/*********************************/
+/*    AVIS CLIENTS (ACCUEIL)     */
+/*********************************/
+
 const testimonials = [
     {
         name: "Client 1",
@@ -16,7 +32,7 @@ const testimonials = [
     }
 ];
 
-let index = 0;
+let testimonialIndex = 0;
 
 function updateTestimonial() {
     document.getElementById("clientName").textContent = testimonials[index].name;
@@ -40,3 +56,41 @@ if (nextBtn && prevBtn) {
         updateTestimonial();
     });
 }
+
+/*********************************/
+/*    SERVICES CAROUSEL MOBILE   */
+/*********************************/
+document.addEventListener('DOMContentLoaded', () => {
+
+    const container = document.querySelector('.services-grid');
+    const dots = document.querySelectorAll('.services-pagination .dot');
+
+    if (!container) return;
+
+    // === Afficher CARD DU MILIEU AU CHARGEMENT ===
+    const cards = document.querySelectorAll('.service-card');
+
+    if (cards.length > 1) {
+        const middleIndex = Math.floor(cards.length / 2);
+        const cardWidth = cards[0].offsetWidth + 20; // width + gap
+
+        const scrollTo = middleIndex * cardWidth - (window.innerWidth / 2) + (cardWidth / 2);
+
+        container.scrollTo({
+            left: scrollTo,
+            behavior: "instant"
+        });
+
+        dots[middleIndex]?.classList.add('active');
+    }
+
+    // === Mise à jour des dots ===
+    container.addEventListener('scroll', () => {
+        const cardWidth = cards[0].offsetWidth + 20;
+        const slideIndex = Math.round(container.scrollLeft / cardWidth);
+
+        dots.forEach(dot => dot.classList.remove('active'));
+        dots[slideIndex]?.classList.add('active');
+    });
+});
+

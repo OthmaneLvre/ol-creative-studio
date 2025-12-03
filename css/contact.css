@@ -103,13 +103,8 @@ textarea {
 .btn-submit {
     display: block;
     margin: 18px auto 0;
-    background: var(--primary);
-    color: var(--blanc);
-    padding: 10px 35px;
-    border-radius: 30px;
     cursor: pointer;
     border: none;
-    font-size: 15px;
 }
 
 .btn-submit:hover {

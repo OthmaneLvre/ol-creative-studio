@@ -12,9 +12,10 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/OLCreativeStudio/assets/logo/favicon_olCreativeStudio.png">
 
-    <!-- Global CSS -->
+    <!-- Global DESKTOP CSS -->
     <link rel="stylesheet" href="/OLCreativeStudio/css/style.css">
     <link rel="stylesheet" href="/OLCreativeStudio/css/style-responsive.css">
+    
 
     <!-- Page-Specific CSS (chargé uniquement si présent) -->
     <?php
@@ -50,7 +51,7 @@
             </a>
         </div>
 
-        <!-- MENU CENTRÉ -->
+        <!-- MENU CENTRÉ (desktop) -->
         <nav class="nav-links">
             <a href="index.php">Accueil</a>
             <span class="sep"></span>
@@ -61,9 +62,26 @@
             <a href="contact.php">Contact</a>
         </nav>
 
-        <!-- BOUTON A DROITE -->
-        <a href="contact.php" class="btn-primary">Me contacter</a>
+        <!-- BOUTON A DROITE (desktop only) -->
+        <a href="contact.php" class="btn-primary btn-nav">Me contacter</a>
+
+        <!-- MENU BURGER (mobile only) -->
+        <div class="burger" id="burger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="/OLCreativeStudio/index.php">Accueil</a>
+            <a href="/OLCreativeStudio/services.php">Services</a>
+            <a href="/OLCreativeStudio/portfolio.php">Portfolio</a>
+            <a href="/OLCreativeStudio/contact.php">Contact</a>
+        </div>
+
 
 </header>
+
 
 <main>

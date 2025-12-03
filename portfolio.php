@@ -14,39 +14,57 @@
 
     <!-- =========================== CATÉGORIES (avec icônes) =========================== -->
     <section class="portfolio-categories">
-        <div class="container portfolio-cat-grid">
 
-            <div class="cat-card">
-                <img src="assets/icons/figma.png" alt="">
-                <h3>Maquettes Figma</h3>
-                <p>UI/UX modernes et responsives.</p>
-            </div>
-
-            <div class="cat-card">
-                <img src="assets/icons/vitrine.png" alt="">
-                <h3>Site vitrine moderne</h3>
-                <p>Des sites rapides, stylés et adaptés.</p>
-            </div>
-
-            <div class="cat-card">
-                <img src="assets/icons/ecommerce.png" alt="">
-                <h3>Boutiques en ligne</h3>
-                <p>Création de boutiques performantes.</p>
-            </div>
-
-            <div class="cat-card">
-                <img src="assets/icons/app.png" alt="">
-                <h3>Applications Web & Mobile</h3>
-                <p>Développement d’apps complètes.</p>
-            </div>
-
-            <div class="cat-card">
-                <img src="assets/icons/logo.png" alt="">
-                <h3>Logos & identités visuelles</h3>
-                <p>Identités uniques & personnalisées.</p>
-            </div>
-
+        <div class="portfolio-section-title">
+            <h2>Mes Créations</h3>
+            <p>Un aperçu de mes différents domaines de création.</p>
         </div>
+
+        <div class="container">
+            <div class="portfolio-cat-wrapper">
+                <div class="portfolio-cat-grid">
+
+                    <div class="cat-card">
+                        <img src="assets/icons/figma.png" alt="">
+                        <h3>Maquettes Figma</h3>
+                        <p>UI/UX modernes et responsives.</p>
+                    </div>
+
+                    <div class="cat-card">
+                        <img src="assets/icons/vitrine.png" alt="">
+                        <h3>Site vitrine moderne</h3>
+                        <p>Des sites rapides, stylés et adaptés.</p>
+                    </div>
+
+                    <div class="cat-card">
+                        <img src="assets/icons/ecommerce.png" alt="">
+                        <h3>Boutiques en ligne</h3>
+                        <p>Création de boutiques performantes.</p>
+                    </div>
+
+                    <div class="cat-card">
+                        <img src="assets/icons/app.png" alt="">
+                        <h3>Applications Web & Mobile</h3>
+                        <p>Développement d’apps complètes.</p>
+                    </div>
+
+                    <div class="cat-card">
+                        <img src="assets/icons/logo.png" alt="">
+                        <h3>Logos & identités visuelles</h3>
+                        <p>Identités uniques & personnalisées.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="portfolio-cat-pagination">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+
     </section>
 
     <!-- =========================== CHARGEMENT DES CATEGORIES AVANT LES FILTRES =========================== -->

@@ -57,11 +57,18 @@
                     <p>Suivi technique, mises à jour, optimisation des performances et accompagnement pour un site sécurisé et rapide.</p>
                 </div>
             </div>
-
-            <div class="services-btn-container">
-                <a href="services.php" class="btn-primary">Voir tous mes services</a>
-            </div>
         
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="services-pagination">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+
+        <div class="services-btn-container">
+            <a href="services.php" class="btn-primary">Voir tous mes services</a>
         </div>
     </section>
 
@@ -135,7 +142,7 @@
             </div>
 
             <div class="portfolio-btn-container">
-                <a href="portfolio.php" class="btn-primary">Voir toutes les créations</a>
+                <a href="portfolio.php" class="btn-primary">Voir mes créations</a>
             </div>
 
         </div>

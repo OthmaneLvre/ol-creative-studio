@@ -1,4 +1,182 @@
 /* =========================================== */
-/*         GLOBAL RESPONSIVE ADJUSTMENTS       */
+/*         GLOBAL RESPONSIVE ADJUSTMENTS (<768px)    */
 /* =========================================== */
 
+@media (max-width: 768px) {
+
+    /* ==================================== */
+    /*                GLOBAL                */
+    /* ==================================== */   
+
+    .container {
+        width: 92%;
+        padding: 0 10px;
+    }
+
+    h1, h2, h3 {
+        line-height: 1.3;
+    }
+
+    /* ==================================== */
+    /*                NAVBAR                */
+    /* ==================================== */ 
+
+    .navbar {
+        padding: 14px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--blanc);
+        border-bottom: 1px solid rgba(0,0,0,0.08);
+        position: relative;
+        z-index: 300;
+    }
+
+    .logo img {
+        height: 42px; 
+        width: auto;
+    }
+
+    /* Masquer le menu desktop */
+    .nav-links,
+    .btn-nav {
+        display: none;
+    }
+
+    /* Bouton burger */
+    .burger {
+        display: block;
+        width: 28px;
+        height: 22px;
+        position: relative;
+        cursor: pointer;
+        z-index: 400;
+    }
+
+    .burger span {
+        position: absolute;
+        width: 100%;
+        height: 3px;
+        background: var(--bleu-nuit);
+        left: 0;
+        border-radius: 3px;
+        transition: 0.3s;
+    }
+
+    .burger span:nth-child(1) { top: 0; }
+    .burger span:nth-child(2) { top: 9px; }
+    .burger span:nth-child(3) { top: 18px; }
+
+    /* Animation burger open */ 
+    .burger.open span:nth-child(1) {
+        transform: translateY(9px) rotate(45deg);
+    }
+
+    .burger.open span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .burger.open span:nth-child(3) {
+        transform: translateY(-9px) rotate(-45deg);
+    }
+
+/* ------------------------------- */
+/*             MENU MOBILE         */
+/* ------------------------------- */
+
+    .mobile-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: var(--blanc);
+        padding: 20px;
+        border-bottom: 1px solid rgba(0,0,0,0.06);
+
+        /* HIDDEN STATE */
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: 0.25s ease;
+        z-index: 500;
+        }
+
+/* STATE: OPEN */
+   .mobile-menu.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        z-index: 500;
+    }
+
+    .mobile-menu a {
+        display: block;
+        padding: 16px 0;
+        color: var(--bleu-nuit);
+        text-decoration: none;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+    }
+
+    /* ==================================== */
+    /*                FOOTER                */
+    /* ==================================== */
+
+    .footer-cols {
+        grid-template-columns: 1fr;
+        text-align: center;
+        border-top: none;
+        border-bottom: none;
+    }
+
+    .footer-col {
+        padding: 30px 0;
+        border-right: none;
+        border-bottom: 1px solid var(--bleu-nuit);
+    }
+
+    .footer-col:last-child {
+        border-bottom: none;
+    }
+
+    .footer-col h4 {
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+
+    .footer-item {
+        justify-content: left;
+        gap: 12px;
+    }
+
+    .footer-bottom {
+        margin-top: 25px;
+        text-align: center;
+        font-size: 14px;
+        border-top: 1px solid var(--gris-clair) ;
+    }
+
+    .footer-logo {
+        height: 110px;
+    }
+
+    .footer-mail {
+        font-size: 14px;
+    }
+
+    /* ========================================================= */
+    /*                BOUTONS & ELEMENTS GLOBALS                 */
+    /* ========================================================= */
+
+    .btn-primary,
+    .btn-secondary {
+        width: 75%;
+        text-align: center;
+        padding: 12px 0;
+        border-radius: 10px;
+    }
+}

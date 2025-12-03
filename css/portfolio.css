@@ -31,13 +31,15 @@
 }
 
 .portfolio-section-title h2 {
-    font-family: var(--font-primary);
-    font-size: 30px;
+    font-family: var(--font-secondary);
+    font-size: 40px;
+    color: var(--bleu-nuit);
     margin-bottom: 8px;
 }
 
 .portfolio-section-title p {
-    font-size: 16px;
+    font-size: 20px;
+    font-weight: 500;
     color: var(--gris-anthracite);
 }
 

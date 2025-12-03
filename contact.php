@@ -70,7 +70,7 @@
                     <textarea id="message" name="message" required></textarea>
                 </div>
 
-                <button type="submit" class="btn-primary">Envoyer</button>
+                <button type="submit" class="btn-primary btn-submit">Envoyer</button>
 
             </form>
 
