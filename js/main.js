@@ -14,47 +14,43 @@ burger.addEventListener("click", () => {
 /*    AVIS CLIENTS (ACCUEIL)     */
 /*********************************/
 
-const testimonials = [
-    {
-        name: "Client 1",
-        type: "Création d’un site vitrine",
-        text: "Othmane a fait un travail exceptionnel pour mon site vitrine. Rapidité, qualité, écoute... Je recommande à 200 % !"
-    },
-    {
-        name: "Client 2",
-        type: "Refonte visuelle complète",
-        text: "Professionnel, à l'écoute, et force de proposition. Le résultat dépasse mes attentes !"
-    },
-    {
-        name: "Client 3",
-        type: "Identité visuelle + site",
-        text: "Une superbe collaboration, je recommande vivement OL Creative Studio !"
+// si PHP a bien fourni les avis dans "testimonials"
+if (typeof testimonials !== "undefined" && testimonials.length > 0) {
+
+    let testimonialIndex = 0;
+
+    const nameEl = document.getElementById("clientName");
+    const typeEl = document.getElementById("clientType");
+    const textEl = document.getElementById("clientText");
+
+    function updateTestimonial() {
+        const t = testimonials[testimonialIndex];
+
+        nameEl.textContent = t.nom;
+        typeEl.textContent = t.categorie;
+        textEl.textContent = `"${t.commentaire}"`;
     }
-];
 
-let testimonialIndex = 0;
+    // Initial load 
+    updateTestimonial();
 
-function updateTestimonial() {
-    document.getElementById("clientName").textContent = testimonials[index].name;
-    document.getElementById("clientType").textContent = testimonials[index].type;
-    document.getElementById("clientText").textContent = "“" + testimonials[index].text + "”";
-}
+    // ==== SECURITE POUR EVITER LES ERREURS ==== 
 
-// ==== SECURITE POUR EVITER LES ERREURS ==== 
+    const nextBtn = document.getElementById("nextTestimonial");
+    const prevBtn = document.getElementById("prevTestimonial");
 
-const nextBtn = document.getElementById("nextTestimonial");
-const prevBtn = document.getElementById("prevTestimonial");
+    if (nextBtn && prevBtn) {
 
-if (nextBtn && prevBtn) {
-    nextBtn.addEventListener("click", () => {
-        index = (index+ 1) % testimonials.length;
-        updateTestimonial();
-    });
+        nextBtn.addEventListener("click", () => {
+            testimonialIndex = (testimonialIndex+ 1) % testimonials.length;
+            updateTestimonial();
+        });
 
-    prevBtn.addEventListener("click", () => {
-        index = (index - 1 + testimonials.length) % testimonials.length;
-        updateTestimonial();
-    });
+        prevBtn.addEventListener("click", () => {
+            testimonialIndex = (testimonialIndex - 1 + testimonials.length) % testimonials.length;
+            updateTestimonial();
+        });
+    }
 }
 
 /*********************************/

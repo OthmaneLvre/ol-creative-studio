@@ -123,16 +123,27 @@
                 $query = $pdo->query("SELECT * FROM portfolio ORDER BY id DESC LIMIT 3");
                 $projects = $query->fetchAll(PDO::FETCH_ASSOC);
 
+                // 🟦 Table de correspondance CATEGORIE -> LIBELLÉ propre
+                $categories = [
+                    "figma" => "Maquettes Figma",
+                    "vitrine" => "Site vitrine",
+                    "identite" => "Identité visuelle",
+                    "ecommerce" => "Boutique en ligne",
+                    "app" => "Application Web & Mobile"
+                ];
+
                 foreach ($projects as $project):
                 ?>
 
                 <div class="portfolio-card">
 
                     <h3><?=  htmlspecialchars($project["titre"]); ?></h3>
-                    <span class="project-type">Site vitrine</span>
+                    <span class="project-type">
+                        <?= htmlspecialchars($categories[$project["categorie"]] ?? $project["categorie"]); ?>
+                    </span>
 
                     <div class="project-frame">
-                        <img src="admin/uploads/<?= htmlspecialchars($project["image"]); ?>" alt="<?= htmlspecialchars($project["titre"]); ?>">
+                        <img src="admin/uploads/creation/<?= htmlspecialchars($project["image"]); ?>" alt="<?= htmlspecialchars($project["titre"]); ?>">
                     </div>
 
                 </div>
@@ -152,6 +163,15 @@
 
         <!-- =========================== TESTIMONIALS =========================== -->
 
+
+    <?php
+    require_once "php/db.php";
+
+    $sql = "SELECT * FROM avis WHERE statut = 'validé' ORDER BY id DESC";
+    $stmt = $pdo->query($sql);
+    $avis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    ?>
+
     <section class="testimonials">
         <div class="container">
 
@@ -167,7 +187,7 @@
                 </button>
 
                 <div class="testimonial-content">
-                    <div class="testimonial-avatar"></div>
+                    <img src="ass" alt="">
 
                     <h3 class="testimonial-name" id="clientName">Client</h3>
                     <p class="testimonial-type" id="clientType">Création d’un site vitrine</p>
@@ -185,6 +205,11 @@
             </div>
 
         </div>
+
+        <script>
+            const testimonials = <?= json_encode($avis); ?>;
+        </script>
+
     </section>
 
         <!-- =========================== CTA SECTION =========================== -->

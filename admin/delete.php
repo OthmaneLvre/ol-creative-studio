@@ -12,14 +12,20 @@ $id = $_GET["id"];
 // récupérer l'image
 $stmt = $pdo->prepare("SELECT image FROM portfolio WHERE id = :id");
 $stmt->execute([":id" => $id]);
-$creation = $stmt->fetch();
+$creation = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($creation) {
-    unlink("uploads/" . $creation["image"]);
+if ($creation && !empty($creation["image"])) {
+
+    $filePath = "uploads/creation/" . $creation["image"];
+
+    if (file_exists($filePath)) {
+        unlink($filePath);
+    }
 }
 
 // supprimer en DB
-$pdo->prepare("DELETE FROM portfolio WHERE id = :id")->execute([":id" => $id]);
+$stmt = $pdo->prepare("DELETE FROM portfolio WHERE id = :id");
+$stmt->execute([":id" => $id]);
 
-header("Location: dashboard.php");
+header("Location: dashboard.php?deleted=1");
 exit;
