@@ -115,15 +115,22 @@
 
             <?php foreach ($projects as $p): ?>
 
-            <div class="portfolio-card" data-category="<?= htmlspecialchars($p['categorie'] ?? 'all') ?>">
+            <a href="portfolio-details.php?id=<?= $p['id'] ?>"
+                class="portfolio-card"
+                data-category="<?= htmlspecialchars($p['categorie'] ?? 'all') ?>">
 
                 <div class="card-image">
-                    <img src="admin/uploads/<?= htmlspecialchars($p['image']) ?>" alt="<?= htmlspecialchars($p['titre']) ?>">
+                    <img src="admin/uploads/creation/<?= htmlspecialchars($p['image']) ?>"
+                         alt="<?= htmlspecialchars($p['titre']) ?>">
+                
+                    <div class="overlay">
+                        Voir les détails du projet
+                    </div>
                 </div>
 
                 <h3><?= htmlspecialchars($p['titre']) ?></h3>
 
-            </div>
+            </a>
 
             <?php endforeach; ?>
 

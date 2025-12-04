@@ -1,0 +1,153 @@
+/* ============================= */
+/* PAGE DETAILS PROJET */
+/* ============================= */
+
+.project-details {
+    width: 90%;
+    max-width: 1100px;
+    margin: 120px auto 80px auto;
+}
+
+.details-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.details-header h1 {
+    font-family: var(--font-secondary);
+    font-size: 2.4rem;
+    color: var(--bleu-nuit);
+}
+
+.details-header .category {
+    color: var(--bleu-azur);
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+/* IMAGE PRINCIPALE */
+.details-image img {
+    width: 100%;
+    max-height: 550px;
+    object-fit: cover;
+    border-radius: 18px;
+    box-shadow: 0 6px 28px rgba(0,0,0,0.15);
+    margin: 40px 0;
+}
+
+/* DESCRIPTION */
+.details-description {
+    margin-top: 30px;
+    line-height: 1.6;
+}
+
+.details-description h2 {
+    color: var(--bleu-nuit);
+    margin-bottom: 10px;
+    font-size: 32px;
+    text-align: center;
+}
+
+.details-description p {
+    color: var(--bleu-nuit);
+    opacity: 0.9;
+    font-size: 1.12rem;
+    margin-bottom: 50px;
+}
+
+/* TECHNOLOGIES */
+.details-tech {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.details-tech h2 {
+    color: var(--bleu-nuit);
+    margin-bottom: 10px;
+    font-size: 32px;
+    text-align: center;
+}
+
+.details-tech p {
+    color: var(--bleu-azur);
+    margin-bottom: 10px;
+    font-size: 20px;
+    text-align: center;
+}
+
+.tech-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.tech-tag {
+    padding: 6px 14px;
+    background: rgba(5, 133, 159, 0.15);
+    border: 1px solid rgba(5, 133, 159, 0.3);
+    color: var(--bleu-nuit);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    backdrop-filter: blur(6px);
+    transition: 0.2s ease;
+}
+
+.tech-tag:hover {
+    background: var(--bleu-azur);
+    color: white;
+    border-color: var(--bleu-azur);
+    transform: translateY(-2px);
+}
+
+/* ======== GALERIE PROJET ======== */
+
+.project-gallery {
+    margin-top: 50px;
+    padding: 20px 0;
+}
+
+.project-gallery h2 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.gallery-item {
+    overflow: hidden;
+    border-radius: 12px;
+    background: var(--blanc);
+    display: block;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+/* Effet hover premium */
+.gallery-item:hover img {
+    transform: scale(1.08);
+}
+
+
+/* BOUTON RETOUR */
+.details-buttons {
+    text-align: center;
+    margin-top: 40px;
+}
+
+

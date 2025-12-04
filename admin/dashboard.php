@@ -6,38 +6,70 @@ if (!isset($_SESSION["admin_logged"])) {
 }
 
 require_once "../php/db.php";
-$creations = $pdo->query("SELECT * FROM portfolio ORDER BY date_creation DESC")->fetchAll();
+$creations = $pdo->query("SELECT * FROM portfolio ORDER BY date_creation DESC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Admin - OL Creative Studio</title>
+    <!-- Favicon -->
+        <link rel="icon" type="image/x-icon" href="/olcreativestudio/assets/logo/favicon_olCreativeStudio.png">
+    
+    <!-- CSS -->
+        <link rel="stylesheet" href="admin.css">
 
-<link rel="stylesheet" href="admin.css">
+</head>
+<body>
 
-<div class="sidebar">
-    <h2>OL Creative Studio</h2>
+<div class="admin-wrapper">
+    <div class="sidebar">
+        <h2>OL Creative Studio</h2>
 
-    <a href="dashboard.php">Dashboard</a>
-    <a href="add.php">Ajouter une création</a>
-    <a href="logout.php">Déconnexion</a>
-</div>
+        <a href="dashboard.php" class="active">📂 Dashboard</a>
+        <a href="avis.php">💬 Avis clients</a>
+        <a href="logout.php">Déconnexion</a>
+    </div>
 
-<div class="main">
-    <h1>Bienvenue, <?= $_SESSION["admin_name"] ?></h1>
+    <div class="main">
+        <h1>Bienvenue, <?= htmlspecialchars($_SESSION["admin_name"]) ?></h1>
 
-    <a class="btn" href="add.php">➕ Ajouter une création</a>
-
-    <?php if (empty($creations)): ?>
-        <p>Aucune création pour le moment.</p>
-    <?php else: ?>
-        <div class="grid">
-            <?php foreach($creations as $c): ?>
-                <div class="card">
-                    <img src="uploads/<?= $c['image'] ?>" alt="">
-                    <h3><?= htmlspecialchars($c['titre']) ?></h3>
-                    <div class="actions">
-                        <a class="edit-btn" href="edit.php?id=<?= $c['id'] ?>">Modifier</a>
-                        <a class="delete-btn" href="delete.php?id=<?= $c['id'] ?>">Supprimer</a>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+        <div class="top-bar">
+            <a class="btn" href="add.php">➕ Ajouter une création</a>
         </div>
-    <?php endif; ?>
+
+        <?php if (empty($creations)): ?>
+            <p>Aucune création enregistrée pour le moment.</p>
+
+        <?php else: ?>
+            <div class="grid">
+                <?php foreach($creations as $c): ?>
+
+                    <div class="card">
+                        
+                        <?php
+                        $imgPath = "uploads/creation/" . $c["image"];
+                        ?>
+
+                        <img src="<?= $imgPath ?>" alt="<?= htmlspecialchars($c["titre"]) ?>">
+
+                        <div class="card-body">
+                            <h3><?= htmlspecialchars($c['titre']) ?></h3>
+                        </div>
+
+                        <div class="actions">
+                            <a class="edit-btn" href="edit.php?id=<?= $c['id'] ?>">Modifier</a>
+                            <a class="delete-btn" href="delete.php?id=<?= $c['id'] ?>">Supprimer</a>
+                        </div>
+                        
+                    </div>
+
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+
 </div>
+
+</body>
+</html>

@@ -139,6 +139,7 @@
 
 .portfolio-card {
     background: var(--bleu-nuit);
+    text-decoration: none;
     border-radius: 22px;
     width: 360px;
     height: 420px;
@@ -154,6 +155,7 @@
     width: 100%;
     height: 320px;
     overflow: hidden;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -163,6 +165,38 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+/* === OVERLAY TEXTE === */ 
+.card-image .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 28, 44, 0.7);
+    border-radius: 22px;
+    color: var(--blanc);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    font-size: 20px;
+
+    opacity: 0;
+    transform: translateY(15px);
+    transition: 0.1s ease;
+}
+
+/* === ANIMATION AU SURVOL === */ 
+.portfolio-card:hover .overlay {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.portfolio-card:hover img {
+    transform: scale(1.08);
 }
 
 .portfolio-card h3 {

@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="/OLCreativeStudio/css/style.css">
     <link rel="stylesheet" href="/OLCreativeStudio/css/style-responsive.css">
     
-
     <!-- Page-Specific CSS (chargé uniquement si présent) -->
     <?php
         // Charger automatiquement le CSS spécifique si un fichier existe
