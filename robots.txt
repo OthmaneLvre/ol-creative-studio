@@ -1,5 +1,6 @@
 User-agent: *
-Allow: /
+Allow: /docs/mentions-legales.php
+Allow: /docs/politique-confidentialite.php
 
 # Blocage des dossiers internes (pas utiles pour Google)
 Disallow: /admin/
