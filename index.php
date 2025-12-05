@@ -1,7 +1,7 @@
 <?php include 'partials/header.php'; ?>
 
 
-<main>
+<main class="page-content">
     <!-- =========================== HERO SECTION =========================== -->
 
     <section class="hero">
@@ -18,7 +18,7 @@
             </div>
 
             <div class="hero-image">
-                <img src="assets/images/hero.jpg" alt="Développeur freelance">
+                <img src="assets/images/hero.jpg" loading="lazy" alt="Développeur web freelance créant des sites modernes">
             </div>
 
         </div>
@@ -31,20 +31,20 @@
     <section class="services">
         <div class="container">
 
-            <h2 class="section-title">Des services pensés pour booster votre présence en ligne</h2>
+            <h2 class="section-title">Création de sites internet modernes pour les entreprises et indépendants</h2>
 
             <div class="services-grid">
 
                 <!-- CARD 1 -->
                 <div class="service-card">
-                    <img src="assets/icons/computer.svg" alt="Site vitrine moderne">
+                    <img src="assets/icons/computer.svg" loading="lazy" alt="Site vitrine moderne">
                     <h3>Site vitrine moderne</h3>
                     <p>Création de sites modernes, optimisés, responsives et élégants  adaptés à votre activité.</p>
                 </div>
 
                 <!-- CARD 2 -->
                 <div class="service-card">
-                    <img src="assets/icons/palette.svg" alt="Identité visuelle">
+                    <img src="assets/icons/palette.svg" loading="lazy" alt="Identité visuelle">
                     <h3>Identité visuelle & Graphisme</h3>
                     <p>Création d’identités visuelles uniques : logos, chartes graphiques, supports web et print adaptés à votre marque.</p>
                 </div>
@@ -52,7 +52,7 @@
                 
                 <!-- CARD 1 -->
                 <div class="service-card">
-                    <img src="assets/icons/maintenance.svg" alt="Maintenance & Optimisation">
+                    <img src="assets/icons/maintenance.svg" loading="lazy" alt="Maintenance & Optimisation">
                     <h3>Maintenance & optimisation</h3>
                     <p>Suivi technique, mises à jour, optimisation des performances et accompagnement pour un site sécurisé et rapide.</p>
                 </div>
@@ -82,7 +82,7 @@
 
             <!-- Illustration -->
             <div class="about-image">
-                <img src="assets/images/about-illustration.png" alt="Développeur freelance illustration">
+                <img src="assets/images/about-illustration.png" loading="lazy" alt="Développeur freelance illustration">
             </div>
 
             <!-- Contenu texte -->
@@ -111,7 +111,7 @@
     <section class="portfolio">
         <div class="container">
 
-            <h2 class="section-title">Mes réalisations</h2>
+            <h2 class="section-title">Créations Web – Mes réalisations</h2>
             <p class="section-subtitle">Une sélection de projets conçus avec soin pour mes clients.</p>
 
             <div class="portfolio-grid">
@@ -143,7 +143,7 @@
                     </span>
 
                     <div class="project-frame">
-                        <img src="admin/uploads/creation/<?= htmlspecialchars($project["image"]); ?>" alt="<?= htmlspecialchars($project["titre"]); ?>">
+                        <img src="admin/uploads/creation/<?= htmlspecialchars($project["image"]); ?>" loading="lazy" alt="<?= htmlspecialchars($project["titre"]); ?>">
                     </div>
 
                 </div>
@@ -183,11 +183,11 @@
             <div class="testimonial-card">
 
                 <button class="arrow arrow-left" id="prevTestimonial">
-                    <img src="assets/icons/arrow-left.svg" alt="Précédent">
+                    <img src="assets/icons/arrow-left.svg" alt="Précédent" aria-label="Avis précédent">
                 </button>
 
                 <div class="testimonial-content">
-                    <img src="ass" alt="">
+                    <img src="assets/images/default-avatar.svg" alt="Avis client">
 
                     <h3 class="testimonial-name" id="clientName">Client</h3>
                     <p class="testimonial-type" id="clientType">Création d’un site vitrine</p>
@@ -199,7 +199,7 @@
                 </div>
 
                 <button class="arrow arrow-right" id="nextTestimonial">
-                    <img src="assets/icons/arrow-right.svg" alt="Suivant">
+                    <img src="assets/icons/arrow-right.svg" alt="Suivant" aria-label="Avis suivant">
                 </button>
 
             </div>
@@ -226,5 +226,6 @@
     </section>
 
 </main>
+
 
 <?php include 'partials/footer.php'; ?>

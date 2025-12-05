@@ -44,6 +44,9 @@ if (isset($_POST["ajouter"])) {
         ":avatar"     => $avatarName
     ]);
 
+    // 🔥 Notifier Google qu'un nouveau contenu est disponible
+    file_get_contents("https://www.google.com/ping?sitemap=https://olcreativestudio.fr/sitemap.xml");
+
     header("Location: avis.php?success=1");
     exit;
 }

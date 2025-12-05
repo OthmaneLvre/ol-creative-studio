@@ -1,12 +1,16 @@
-<?php include 'partials/header.php'; ?>
+<?php
+$pageTitle = "Services en création web & identité visuelle";
+$pageDescription = "Découvrez mes services de création de sites internet, identité visuelle, graphisme et maintenance web pour entreprises et indépendants.";
+include 'partials/header.php';
+?>
 
-<main>
+<main class="page-content">
 
     <!-- =========================== HERO SECTION =========================== -->
 
     <section class="services-hero">
         <div class="container">
-            <h1>Mes Services</h1>
+            <h1>Prestations web & design</h1>
             <p>Des solutions digitales adaptées à vos besoins — design, performance et créativité.</p>
         </div>
     </section>
@@ -17,11 +21,11 @@
 
             <div class="block-text">
                 <div class="service-icon">
-                    <img src="assets/icons/computer.svg" alt="Site vitrine moderne">
+                    <img src="assets/icons/computer.svg" loading="lazy" alt="Site vitrine moderne">
                 </div>
                 
-                <h2>Création de site vitrine</h2>
-                <p>Création de sites modernes, rapides, sécurisés, responsives et adaptés à votre activité.</p>
+                <h2>Création de site vitrine sur-mesure</h2>
+                <p>Création de sites internet modernes, rapides, sécurisés, responsives et adaptés à votre activité.</p>
 
                 <ul>
                     <li>Site responsive mobile</li>
@@ -34,7 +38,7 @@
             </div>
 
             <div class="block-image">
-                <img src="assets/images/illustration_services1.png" alt="Site vitrine">
+                <img src="assets/images/illustration_services1.png" loading="lazy" alt="Illustration création site vitrine">
             </div>
 
         </div>
@@ -47,14 +51,14 @@
             <div class="block-container">
 
                 <div class="block-image">
-                    <img src="assets/images/illustration_services2.png" alt="Identité visuelle">
+                    <img src="assets/images/illustration_services2.png" loading="lazy" alt="Illustration identité visuelle">
                 </div>
 
                 <div class="block-text">
                     <div class="service-icon">
-                        <img src="assets/icons/palette.svg" alt="Identité visuelle">
+                        <img src="assets/icons/palette.svg" loading="lazy" alt="Identité visuelle">
                     </div>
-                    <h2>Identité visuelle & Graphisme</h2>
+                    <h2>Identité visuelle & design graphique</h2>
                     <p>
                         Création d’identités visuelles uniques, logos, chartes graphiques,
                         supports web et print adaptés à votre marque.
@@ -82,7 +86,7 @@
                 <div class="service-icon">
                     <img src="assets/icons/maintenance.svg" alt="Maintenance & Optimisation">
                 </div>
-                <h2>Maintenance & optimisation</h2>
+                <h2>Maintenance & optimisation de site web</h2>
                 <p>
                     Suivi technique, mises à jour régulières, optimisation des performances,
                     sécurité et accompagnement personnalisé.
@@ -99,14 +103,53 @@
             </div>
 
             <div class="block-image">
-                <img src="assets/images/illustration_services3.png" alt="Maintenance web">
+                <img src="assets/images/illustration_services3.png" alt="Illustration maintenance site web">
             </div>
 
         </div>
     </section>
 
+    <section class="seo-text">
+    <div class="container">
+        <h2>Pourquoi faire appel à un freelance pour votre projet web ?</h2>
+        <p>
+            En tant que développeur web et graphiste freelance, j’accompagne les entrepreneurs,
+            artisans, associations et indépendants dans la création de solutions digitales modernes
+            et performantes. <strong>Mon objectif est simple :</strong> concevoir pour vous un site internet qui
+            reflète votre identité, renforce votre crédibilité et attire davantage de clients.
+        </p>
 
+        <br>
+        
+        <p>
+            Contrairement aux agences traditionnelles, je propose un <strong>accompagnement personnalisé</strong>,
+            transparent et humain. Chaque projet est construit sur-mesure : analyse de vos besoins,
+            création graphique adaptée, optimisation SEO, développement propre et évolutif,
+            puis mise en ligne accompagnée. Vous avez un interlocuteur unique, disponible et
+            réactif, capable de gérer à la fois le design, le développement et l’optimisation.
+        </p>
 
+        <br>
+        
+        <p>
+            Que vous ayez besoin d’un <strong>site vitrine</strong>, d’une
+            <strong>identité visuelle complète</strong> ou d’une
+            <strong>refonte professionnelle</strong>, je vous propose des solutions durables,
+            sécurisées et pensées pour la performance. Votre site est conçu pour être rapide,
+            responsive, facile à administrer et optimisé pour un bon référencement naturel.
+        </p>
+
+        <br>
+
+        <p>
+            Basé dans les <strong>Pyrénées-Orientales</strong>, j’accompagne des clients partout en France :
+            commerçants, auto-entrepreneurs, professions libérales, associations, startups
+            et petites entreprises souhaitant améliorer leur présence en ligne.
+            Si vous souhaitez lancer un projet ou simplement échanger sur vos besoins,
+            je serai ravi de vous conseiller.
+        </p>
+    </div>
+</section>
 
 </main>
 

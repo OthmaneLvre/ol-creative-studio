@@ -89,5 +89,14 @@ $stmt->execute([
     ":url" => $url_demo
 ]);
 
+// =========================
+// 🔥 REGENERATION SITEMAP
+// =========================
+require_once "../php/generate_sitemap.php";
+regenerateSitemap();
+
+// 🔥 Notification Google du nouveau sitemap
+file_get_contents("http://www.google.com/ping?sitemap=https://olcreativestudio.fr/sitemap.xml");
+
 header("Location: dashboard.php?added=1");
 exit;

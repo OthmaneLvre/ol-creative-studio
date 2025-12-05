@@ -33,5 +33,8 @@ if ($avis && !empty($avis["avatar"])) {
 $stmt = $pdo->prepare("DELETE FROM avis WHERE id = :id");
 $stmt->execute([":id" => $id]);
 
+// 🔥 Notifier Google qu'un nouveau contenu est disponible
+file_get_contents("https://www.google.com/ping?sitemap=https://olcreativestudio.fr/sitemap.xml");
+
 header("Location: avis.php?deleted=1");
 exit;

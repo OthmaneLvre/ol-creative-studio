@@ -1,23 +1,57 @@
-<?php include 'partials/header.php'; ?>
-<?php require_once 'php/db.php'; ?>
+<?php
+$pageTitle = "Portfolio – Créateur de sites web & identités visuelles";
+$pageDescription = "Découvrez mes créations : sites vitrines, boutiques en ligne, maquettes Figma, applications web & mobiles et identités visuelles. Travaux professionnels réalisés pour entreprises et indépendants.";
+include 'partials/header.php';
+require_once 'php/db.php'; ?>
 
-<main>
+<main class="page-content">
 
     <!-- =========================== HERO =========================== -->
     <section class="portfolio-hero">
         <div class="container">
-            <h1>Mon Portfolio</h1>
-            <p>Découvrez une sélection de mes projets web & graphiques — maquettes Figma, sites vitrines, e-commerces, applications et identités visuelles.</p>
+            <h1>Portfolio – Créations Web & Identités Visuelles</h1>
+            <p>Découvrez une sélection de projets en design, développement web, maquettes Figma et créations graphiques.</p>
         </div>
     </section>
 
+    <!-- =========================== HERO =========================== -->
+    <section class="seo-text">
+    <div class="container">
+        <h2>Un portfolio dédié à la création web et au design graphique</h2>
+        <p>
+            À travers ce portfolio, je présente une sélection de projets réalisés en
+            <strong>développement web</strong>, <strong>création de sites vitrines</strong>,
+            <strong>identités visuelles</strong>, <strong>maquettes Figma</strong> et
+            <strong>applications web & mobiles</strong>. Mon travail repose sur une approche
+            centrée utilisateur : design clair, expérience intuitive et performances optimisées.
+        </p>
+
+        <br>
+
+        <p>
+            Chaque projet présenté a été conçu <strong>sur-mesure</strong> pour répondre aux besoins de mes clients :
+            <strong>artisans</strong>, <strong>entrepreneurs</strong>, <strong>entreprises locales</strong>, <strong>associations</strong> ou <strong>projets personnels</strong>.
+            Que ce soit pour un site vitrine moderne, une boutique en ligne performante, un logo professionnel
+            ou une interface mobile, j’accorde une attention particulière à la cohérence visuelle, à la
+            qualité du code et aux bonnes pratiques SEO.
+        </p>
+
+        <br>
+
+        <p>
+            Mon objectif est de proposer des créations esthétiques, efficaces et durables, capables
+            d’améliorer la visibilité en ligne de chaque client. Si vous souhaitez discuter de votre
+            projet ou obtenir un devis, je reste entièrement disponible pour échanger et vous accompagner.
+        </p>
+    </div>
+    </section>
 
     <!-- =========================== CATÉGORIES (avec icônes) =========================== -->
     <section class="portfolio-categories">
 
         <div class="portfolio-section-title">
-            <h2>Mes Créations</h3>
-            <p>Un aperçu de mes différents domaines de création.</p>
+            <h2>Mes Créations</h2>
+            <p>Un aperçu de mes différents domaines d'expertise.</p>
         </div>
 
         <div class="container">
@@ -25,31 +59,31 @@
                 <div class="portfolio-cat-grid">
 
                     <div class="cat-card">
-                        <img src="assets/icons/figma.png" alt="">
+                        <img src="assets/icons/figma.png" alt="Catégorie Maquettes Figma">
                         <h3>Maquettes Figma</h3>
                         <p>UI/UX modernes et responsives.</p>
                     </div>
 
                     <div class="cat-card">
-                        <img src="assets/icons/vitrine.png" alt="">
+                        <img src="assets/icons/vitrine.png" alt="Catégorie Site vitrine moderne">
                         <h3>Site vitrine moderne</h3>
                         <p>Des sites rapides, stylés et adaptés.</p>
                     </div>
 
                     <div class="cat-card">
-                        <img src="assets/icons/ecommerce.png" alt="">
+                        <img src="assets/icons/ecommerce.png" alt="Catégorie Boutique en ligne">
                         <h3>Boutiques en ligne</h3>
                         <p>Création de boutiques performantes.</p>
                     </div>
 
                     <div class="cat-card">
-                        <img src="assets/icons/app.png" alt="">
+                        <img src="assets/icons/app.png" alt="Catégorie Application Web et Mobile">
                         <h3>Applications Web & Mobile</h3>
                         <p>Développement d’apps complètes.</p>
                     </div>
 
                     <div class="cat-card">
-                        <img src="assets/icons/logo.png" alt="">
+                        <img src="assets/icons/logo.png" alt="Catégorie Logos et identités visuelles">
                         <h3>Logos & identités visuelles</h3>
                         <p>Identités uniques & personnalisées.</p>
                     </div>
@@ -121,7 +155,9 @@
 
                 <div class="card-image">
                     <img src="admin/uploads/creation/<?= htmlspecialchars($p['image']) ?>"
-                         alt="<?= htmlspecialchars($p['titre']) ?>">
+                         alt="<?= htmlspecialchars($p['titre']) ?>"
+                        loading="lazy"
+                    >
                 
                     <div class="overlay">
                         Voir les détails du projet
