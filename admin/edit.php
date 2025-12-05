@@ -44,7 +44,8 @@ if (!empty($creation["images_gallery"])) {
     <title>Modifier la création</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/olcreativestudio/assets/logo/favicon_olCreativeStudio.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" href="/favicon.ico">
     
     <link rel="stylesheet" href="admin.css">
 </head>

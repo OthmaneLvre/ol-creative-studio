@@ -58,7 +58,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <title>Connexion administrateur - OL Creative Studio</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/olcreativestudio/assets/logo/favicon_olCreativeStudio.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" href="/favicon.ico">
     
 
     <link rel="stylesheet" href="login.css">

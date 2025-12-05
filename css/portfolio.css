@@ -1,16 +1,27 @@
 /* HERO Portfolio */
 
 .portfolio-hero {
-    background: url('../assets/images/illustration-hero.png') center/cover no-repeat;
+    position: relative;
     padding: 140px 0 100px;
     text-align: center;
     color: var(--blanc);
+    overflow: hidden;
+}
+
+.portfolio-hero .hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
 }
 
 .portfolio-hero h1 {
-    font-family: var(--font-primary);
+    font-family: var(--font-secondary);
     color: var(--blanc);
-    font-size: 38px;
+    font-size: 42px;
     margin-bottom: 12px;
 }
 

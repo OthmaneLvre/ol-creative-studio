@@ -8,6 +8,12 @@ require_once 'php/db.php'; ?>
 
     <!-- =========================== HERO =========================== -->
     <section class="portfolio-hero">
+            <img src="/assets/images/illustration-hero.webp"
+            alt="Illustration portfolio"
+            width="1200"
+            height="1200"
+            class="hero-bg"
+            loading="eager">
         <div class="container">
             <h1>Portfolio – Créations Web & Identités Visuelles</h1>
             <p>Découvrez une sélection de projets en design, développement web, maquettes Figma et créations graphiques.</p>
@@ -59,31 +65,31 @@ require_once 'php/db.php'; ?>
                 <div class="portfolio-cat-grid">
 
                     <div class="cat-card">
-                        <img src="assets/icons/figma.png" alt="Catégorie Maquettes Figma">
+                        <img src="/assets/icons/figma.svg" alt="Icône Maquettes Figma">
                         <h3>Maquettes Figma</h3>
                         <p>UI/UX modernes et responsives.</p>
                     </div>
 
                     <div class="cat-card">
-                        <img src="assets/icons/vitrine.png" alt="Catégorie Site vitrine moderne">
+                        <img src="/assets/icons/vitrine.svg" alt="Icône Site vitrine moderne">
                         <h3>Site vitrine moderne</h3>
                         <p>Des sites rapides, stylés et adaptés.</p>
                     </div>
 
                     <div class="cat-card">
-                        <img src="assets/icons/ecommerce.png" alt="Catégorie Boutique en ligne">
+                        <img src="/assets/icons/ecommerce.svg" alt="Icône Boutique en ligne">
                         <h3>Boutiques en ligne</h3>
                         <p>Création de boutiques performantes.</p>
                     </div>
 
                     <div class="cat-card">
-                        <img src="assets/icons/app.png" alt="Catégorie Application Web et Mobile">
+                        <img src="/assets/icons/app.svg" alt="Icône Application Web et Mobile">
                         <h3>Applications Web & Mobile</h3>
                         <p>Développement d’apps complètes.</p>
                     </div>
 
                     <div class="cat-card">
-                        <img src="assets/icons/logo.png" alt="Catégorie Logos et identités visuelles">
+                        <img src="/assets/icons/logo.svg" alt="Icône Logos et identités visuelles">
                         <h3>Logos & identités visuelles</h3>
                         <p>Identités uniques & personnalisées.</p>
                     </div>
@@ -114,7 +120,7 @@ require_once 'php/db.php'; ?>
         "vitrine"  => "Sites vitrines",
         "ecom"     => "Boutiques en ligne",
         "app"      => "Applications",
-        "identite" => "Logos & identités visuelles"
+        "logo" => "Logos & identités visuelles"
     ];
 
     // Récupérer toutes les catégories existantes dans la BDD
@@ -154,7 +160,7 @@ require_once 'php/db.php'; ?>
                 data-category="<?= htmlspecialchars($p['categorie'] ?? 'all') ?>">
 
                 <div class="card-image">
-                    <img src="admin/uploads/creation/<?= htmlspecialchars($p['image']) ?>"
+                    <img src="/admin/uploads/creation/<?= htmlspecialchars($p['image']) ?>"
                          alt="<?= htmlspecialchars($p['titre']) ?>"
                         loading="lazy"
                     >
@@ -177,8 +183,7 @@ require_once 'php/db.php'; ?>
     <!-- =========================== CTA =========================== -->
     <section class="portfolio-cta">
         <div class="container">
-            <h2>Vous avez un projet ?</h2>
-            <h2>Discutons-en.</h2>
+            <h2>Vous avez un projet ? Discutons-en.</h2>
             <p>Je suis disponible pour créer votre site, votre identité visuelle ou votre application web.</p>
             <a href="contact.php" class="btn-primary">Me contacter</a>
         </div>

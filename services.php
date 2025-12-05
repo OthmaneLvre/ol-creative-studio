@@ -9,6 +9,12 @@ include 'partials/header.php';
     <!-- =========================== HERO SECTION =========================== -->
 
     <section class="services-hero">
+        <img src="/assets/images/illustration-hero.webp"
+            alt="Illustration portfolio"
+            width="1200"
+            height="1200"
+            class="hero-bg"
+            loading="eager">
         <div class="container">
             <h1>Prestations web & design</h1>
             <p>Des solutions digitales adaptées à vos besoins — design, performance et créativité.</p>
@@ -21,7 +27,7 @@ include 'partials/header.php';
 
             <div class="block-text">
                 <div class="service-icon">
-                    <img src="assets/icons/computer.svg" loading="lazy" alt="Site vitrine moderne">
+                    <img src="/assets/icons/computer.svg" loading="lazy" alt="Site vitrine moderne">
                 </div>
                 
                 <h2>Création de site vitrine sur-mesure</h2>
@@ -38,7 +44,12 @@ include 'partials/header.php';
             </div>
 
             <div class="block-image">
-                <img src="assets/images/illustration_services1.png" loading="lazy" alt="Illustration création site vitrine">
+                <img src="/assets/images/illustration_services1.webp"
+                    loading="lazy"
+                    alt="Illustration création site vitrine"
+                    width="600"
+                    height="600"
+                >
             </div>
 
         </div>
@@ -51,12 +62,17 @@ include 'partials/header.php';
             <div class="block-container">
 
                 <div class="block-image">
-                    <img src="assets/images/illustration_services2.png" loading="lazy" alt="Illustration identité visuelle">
+                    <img src="/assets/images/illustration_services2.webp"
+                        loading="lazy"
+                        alt="Illustration identité visuelle"
+                        width="600"
+                        height="600"
+                    >
                 </div>
 
                 <div class="block-text">
                     <div class="service-icon">
-                        <img src="assets/icons/palette.svg" loading="lazy" alt="Identité visuelle">
+                        <img src="/assets/icons/palette.svg" loading="lazy" alt="Identité visuelle">
                     </div>
                     <h2>Identité visuelle & design graphique</h2>
                     <p>
@@ -84,7 +100,7 @@ include 'partials/header.php';
 
             <div class="block-text">
                 <div class="service-icon">
-                    <img src="assets/icons/maintenance.svg" alt="Maintenance & Optimisation">
+                    <img src="/assets/icons/maintenance.svg" alt="Maintenance & Optimisation">
                 </div>
                 <h2>Maintenance & optimisation de site web</h2>
                 <p>
@@ -103,7 +119,12 @@ include 'partials/header.php';
             </div>
 
             <div class="block-image">
-                <img src="assets/images/illustration_services3.png" alt="Illustration maintenance site web">
+                <img src="/assets/images/illustration_services3.webp"
+                    alt="Illustration maintenance site web"
+                    loading="lazy"
+                    width="600"
+                    height="600"
+                >
             </div>
 
         </div>

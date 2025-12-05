@@ -14,7 +14,8 @@ $creations = $pdo->query("SELECT * FROM portfolio ORDER BY date_creation DESC")-
     <meta charset="UTF-8">
     <title>Dashboard Admin - OL Creative Studio</title>
     <!-- Favicon -->
-        <link rel="icon" type="image/x-icon" href="/olcreativestudio/assets/logo/favicon_olCreativeStudio.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" href="/favicon.ico">
     
     <!-- CSS -->
         <link rel="stylesheet" href="admin.css">

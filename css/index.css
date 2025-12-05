@@ -51,6 +51,7 @@
     border-radius: 12px;
     box-shadow: var(--shadow-light);
     display: block;
+    height: fit-content;
 }
 
 /* ========= Trait  ========= */
@@ -156,6 +157,8 @@
     border-radius: 12px;
     box-shadow: var(--shadow-light);
     display: block;
+    height: fit-content;
+
 }
 
 /* Texte */ 

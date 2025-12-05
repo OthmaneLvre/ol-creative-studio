@@ -1,4 +1,9 @@
-<?php include 'partials/header.php'; ?>
+<?php
+$pageTitle = "Développeur Web Freelance – Création de Sites Modernes";
+$pageDescription = "Développeur web & graphiste freelance. Sites vitrines, boutiques en ligne, identité visuelle et design professionnel dans les Pyrénées-Orientales.";
+
+include 'partials/header.php';
+?>
 
 
 <main class="page-content">
@@ -18,7 +23,12 @@
             </div>
 
             <div class="hero-image">
-                <img src="assets/images/hero.jpg" loading="lazy" alt="Développeur web freelance créant des sites modernes">
+                <img src="assets/images/hero.webp"
+                    alt="Développeur web freelance créant des sites modernes"
+                    width="800"
+                    height="600"
+                    loading="eager"
+                >
             </div>
 
         </div>
@@ -37,14 +47,14 @@
 
                 <!-- CARD 1 -->
                 <div class="service-card">
-                    <img src="assets/icons/computer.svg" loading="lazy" alt="Site vitrine moderne">
+                    <img src="/assets/icons/computer.svg" loading="lazy" alt="Site vitrine moderne">
                     <h3>Site vitrine moderne</h3>
                     <p>Création de sites modernes, optimisés, responsives et élégants  adaptés à votre activité.</p>
                 </div>
 
                 <!-- CARD 2 -->
                 <div class="service-card">
-                    <img src="assets/icons/palette.svg" loading="lazy" alt="Identité visuelle">
+                    <img src="/assets/icons/palette.svg" loading="lazy" alt="Identité visuelle">
                     <h3>Identité visuelle & Graphisme</h3>
                     <p>Création d’identités visuelles uniques : logos, chartes graphiques, supports web et print adaptés à votre marque.</p>
                 </div>
@@ -52,7 +62,7 @@
                 
                 <!-- CARD 1 -->
                 <div class="service-card">
-                    <img src="assets/icons/maintenance.svg" loading="lazy" alt="Maintenance & Optimisation">
+                    <img src="/assets/icons/maintenance.svg" loading="lazy" alt="Maintenance & Optimisation">
                     <h3>Maintenance & optimisation</h3>
                     <p>Suivi technique, mises à jour, optimisation des performances et accompagnement pour un site sécurisé et rapide.</p>
                 </div>
@@ -82,7 +92,12 @@
 
             <!-- Illustration -->
             <div class="about-image">
-                <img src="assets/images/about-illustration.png" loading="lazy" alt="Développeur freelance illustration">
+                <img src="/assets/images/about-illustration.webp"
+                    loading="lazy"
+                    alt="Développeur freelance illustration"
+                    width="900"
+                    height="600"
+                >
             </div>
 
             <!-- Contenu texte -->

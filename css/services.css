@@ -1,15 +1,26 @@
 /* HERO Services */
 
 .services-hero {
-    background: url('../assets/images/illustration-hero.png') center/cover no-repeat;
-    padding: 120px 0;
+    position: relative;
+    padding: 140px 0 100px;
     text-align: center;
     color: var(--blanc);
+    overflow: hidden;
+}
+
+.services-hero .hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
 }
 
 .services-hero h1 {
-    font-size: 40px;
-    font-family: var(--font-primary);
+    font-size: 42px;
+    font-family: var(--font-secondary);
     margin-bottom: 10px;
     color: var(--blanc);
 }
@@ -89,6 +100,7 @@
     max-width: 480px;
     border-radius: 20px;
     box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+    height: fit-content;
 }
 
 /* Bouton */

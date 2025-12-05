@@ -14,7 +14,7 @@ $allCategories = [
     "vitrine"  => "Sites vitrines",
     "ecom"     => "Boutiques en ligne",
     "app"      => "Applications",
-    "identite" => "Logos & identités visuelles"
+    "logo" => "Logos & identités visuelles"
 ];
 
 
@@ -29,7 +29,7 @@ if (!$project) {
 }
 
 // Détection projet type "logo"
-$isLogo = ($project["categorie"] === "identite");
+$isLogo = ($project["categorie"] === "logo");
 
 // Décodage de la galerie JSON
 $gallery = [];
@@ -63,7 +63,7 @@ include "partials/header.php";
 
     <h2>Aperçu du projet</h2>
     <div class="details-image">
-        <img src="admin/uploads/creation/<?= htmlspecialchars($project['image']) ?>"
+        <img src="/admin/uploads/creation/<?= htmlspecialchars($project['image']) ?>"
              alt="<?= htmlspecialchars($project['titre']) ?>"
              class="<?= $isLogo ? 'logo-protection' : '' ?>"
              loading="lazy"
@@ -84,7 +84,7 @@ include "partials/header.php";
         <div class="gallery-grid">
             <?php foreach ($gallery as $img): ?>
                 <div class="gallery-item">
-                    <img src="admin/uploads/creation/<?= htmlspecialchars($img) ?>" 
+                    <img src="/admin/uploads/creation/<?= htmlspecialchars($img) ?>" 
                         alt="Image du project"
                         loading="lazy"
                     >
@@ -135,5 +135,9 @@ include "partials/header.php";
     </div>
 
 </main>
+
+<script>
+document.addEventListener('contextmenu', event => event.preventDefault());
+</script>
 
 <?php include "partials/footer.php"; ?>
