@@ -22,6 +22,7 @@ if (typeof testimonials !== "undefined" && testimonials.length > 0) {
     const nameEl = document.getElementById("clientName");
     const typeEl = document.getElementById("clientType");
     const textEl = document.getElementById("clientText");
+    const avatarEl = document.getElementById("clientAvatar");
 
     function updateTestimonial() {
         const t = testimonials[testimonialIndex];
@@ -29,7 +30,15 @@ if (typeof testimonials !== "undefined" && testimonials.length > 0) {
         nameEl.textContent = t.nom;
         typeEl.textContent = t.categorie;
         textEl.textContent = `"${t.commentaire}"`;
+
+         // Affichage avatar
+        if (t.avatar && t.avatar !== "") {
+            avatarEl.src = "admin/uploads/avatars/" + t.avatar;
+        } else {
+            avatarEl.src = "assets/images/default-avatar.svg";
+        }
     }
+}
 
     // Initial load 
     updateTestimonial();

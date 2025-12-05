@@ -178,7 +178,6 @@ h1, h2, h3, h4 {
     text-align: center;
     border-right: 1px solid var(--bleu-nuit);
     padding-top: 24px;
-    padding-bottom: 24px;
 }
 
 .footer-col:last-child {
@@ -200,6 +199,10 @@ h1, h2, h3, h4 {
     text-decoration: none;
     color: var(--bleu-nuit);
     margin: 16px 0;
+}
+
+.footer-col nav {
+    padding-top: 30px;
 }
 
 .footer-col a:hover {
@@ -234,4 +237,57 @@ h1, h2, h3, h4 {
 .footer-bottom a {
     text-decoration: none;
     color: var(--bleu-azur);
+}
+
+/* ----- FOOTER SOCIAL ICONS ----- */
+
+.footer-socials {
+    display: flex;
+    gap: 14px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.footer-socials a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+}
+
+.footer-socials a img {
+    width: 20px;
+    height: 20px;
+    opacity: 0.85;
+    transition: 0.25s ease;
+}
+
+
+.cookie-banner {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    padding: 15px 20px;
+    background-color: #0f1a28;
+    color: white;
+    border-radius: 12px;
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    font-size: 14px;
+    z-index: 9999;
+}
+
+.cookie-banner button {
+    background-color: #0aa8b8;
+    border: none;
+    padding: 8px 14px;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
 }

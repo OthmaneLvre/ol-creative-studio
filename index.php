@@ -187,7 +187,7 @@
                 </button>
 
                 <div class="testimonial-content">
-                    <img src="assets/images/default-avatar.svg" alt="Avis client">
+                    <img src="assets/images/default-avatar.svg" id="clientAvatar" loading="lazy" alt="Avis client">
 
                     <h3 class="testimonial-name" id="clientName">Client</h3>
                     <p class="testimonial-type" id="clientType">Création d’un site vitrine</p>
