@@ -57,5 +57,8 @@ $stmt->execute([
     ":id" => $id
 ]);
 
+// 🔥 Notifier Google qu'un nouveau contenu est disponible
+file_get_contents("https://www.google.com/ping?sitemap=https://olcreativestudio.fr/sitemap.xml");
+
 header("Location: avis.php?updated=1");
 exit;

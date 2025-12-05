@@ -97,3 +97,15 @@
     display: flex;
     justify-content: center;
 }
+
+.seo-text {
+    padding-bottom: 40px;
+}
+
+.seo-text h2 {
+    padding-bottom: 24px;
+}
+
+.seo-text p {
+text-align: justify;
+}

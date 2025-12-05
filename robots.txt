@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Blocage des dossiers internes (pas utiles pour Google)
+Disallow: /admin/
+Disallow: /php/
+Disallow: /assets/icons/
+Disallow: /assets/fonts/
+
+# Sitemap principal
+Sitemap: https://olcreativestudio.fr/sitemap.xml

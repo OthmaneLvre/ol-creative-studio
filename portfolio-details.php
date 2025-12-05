@@ -38,21 +38,12 @@ if (!empty($project["images_gallery"])) {
 }
 
 
+$pageTitle = $project['titre'] . " – Portfolio OL Creative Studio";
+$pageDescription = "Détails du projet « {$project['titre']} » : technologies utilisées, galerie, description et aperçu.";
+
+include "partials/header.php";
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title><?= htmlspecialchars($project['titre']) ?> — OL Creative Studio</title>
 
-     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/OLCreativeStudio/assets/logo/favicon_olCreativeStudio.png">
-
-</head>
-
-<body>
-
-<?php include "partials/header.php"; ?>
 
 <main class="project-details container">
 
@@ -70,11 +61,12 @@ if (!empty($project["images_gallery"])) {
         <p class="category"><?= htmlspecialchars($catLabel) ?></p>
     </div>
 
-
+    <h2>Aperçu du projet</h2>
     <div class="details-image">
-        <img src="admin/uploads/creation/<?= htmlspecialchars($project['image']) ?>" 
+        <img src="admin/uploads/creation/<?= htmlspecialchars($project['image']) ?>"
              alt="<?= htmlspecialchars($project['titre']) ?>"
              class="<?= $isLogo ? 'logo-protection' : '' ?>"
+             loading="lazy"
         >
     </div>
 
@@ -93,7 +85,9 @@ if (!empty($project["images_gallery"])) {
             <?php foreach ($gallery as $img): ?>
                 <div class="gallery-item">
                     <img src="admin/uploads/creation/<?= htmlspecialchars($img) ?>" 
-                        alt="Image du project">
+                        alt="Image du project"
+                        loading="lazy"
+                    >
                 </div>
             <?php endforeach; ?>
         </div>
@@ -143,6 +137,3 @@ if (!empty($project["images_gallery"])) {
 </main>
 
 <?php include "partials/footer.php"; ?>
-
-</body>
-</html>

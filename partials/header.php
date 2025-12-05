@@ -3,8 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OL Creative Studio</title>
+    
+    <!-- Titre dynamique -->
+    <title>
+        <?php
+            echo isset($pageTitle) ? $pageTitle . " | OL Creative Studio" : "OL Creative Studio – Création de sites web à Céret";
+        ?>
+    </title>
 
+    <!-- Meta Description dynamique -->
+    <meta name="description" content="<?php
+        echo isset($pageDescription)
+        ? $pageDescription
+        : 'Création de sites web vitrines, e-commerce et identités visuelles à Céret et dans les Pyrénées-Orientales. Freelance réactif, moderne et professionnel.'; 
+    ?>">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://olcreativestudio.fr<?php echo $_SERVER['REQUEST_URI']; ?>">
+
+    <!-- Preload des fonts (amélioration performance SEO) -->
+    <link rel="preload" href="/OLCreativeStudio/assets/fonts/Manrope-Medium.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/OLCreativeStudio/assets/fonts/Manrope-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/OLCreativeStudio/assets/fonts/Manrope-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="preload" href="/OLCreativeStudio/assets/fonts/CormorantGaramond-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/OLCreativeStudio/assets/fonts/CormorantGaramond-Regular.woff2" as="font" type="font/woff2" crossorigin>
+
+    <!-- Google fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;700&display=swap" rel="stylesheet">
@@ -13,6 +38,7 @@
     <link rel="icon" type="image/png" href="/OLCreativeStudio/assets/logo/favicon_olCreativeStudio.png">
 
     <!-- Global DESKTOP CSS -->
+    <link rel="stylesheet" href="/OLCreativeStudio/css/fonts.css">
     <link rel="stylesheet" href="/OLCreativeStudio/css/style.css">
     <link rel="stylesheet" href="/OLCreativeStudio/css/style-responsive.css">
     
@@ -37,6 +63,25 @@
             echo '<link rel="stylesheet" href="' . $urlPath . $page . '-responsive.css">';
         }
     ?>
+
+    <!-- Schema LocalBusiness (boost SEO local) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "OL Creative Studio",
+      "image": "https://olcreativestudio.fr/OLCreativeStudio/assets/logo/logo_olCreativeStudio.png",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Céret",
+        "addressRegion": "Pyrénées-Orientales",
+        "addressCountry": "FR"
+      },
+      "areaServed": "Pyrénées-Orientales",
+      "url": "https://olcreativestudio.fr",
+      "telephone": "+33767841013"
+    }
+    </script>
 </head>
 
 <body>
@@ -46,7 +91,8 @@
         <!-- LOGO -->
         <div class="logo">
             <a href="/OLCreativeStudio/index.php">
-                <img src="/OLCreativeStudio/assets/logo/logo_olCreativeStudio.png" alt="OL Creative Studio">
+                <img src="/OLCreativeStudio/assets/logo/logo_olCreativeStudio.png"
+                    alt="OL Creative Studio - Développeur web à Céret">
             </a>
         </div>
 
