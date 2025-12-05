@@ -38,7 +38,7 @@ if (typeof testimonials !== "undefined" && testimonials.length > 0) {
             avatarEl.src = "assets/images/default-avatar.svg";
         }
     }
-}
+
 
     // Initial load 
     updateTestimonial();
