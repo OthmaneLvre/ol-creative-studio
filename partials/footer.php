@@ -8,9 +8,12 @@
 
             <!-- COLONNE 1 -->
             <div class="footer-col">
-                <img src="assets/logo/logo_olCreativeStudio.png"
+                <img src="/assets/logo/logo_olCreativeStudio_1600.webp"
                     class="footer-logo"
-                    alt="OL Creative Studio - Concepteur web à Céret">
+                    alt="OL Creative Studio - Concepteur web à Céret"
+                    width="150"
+                    height="150"
+                    >
                 <p itemprop="description">
                     "Développeur Web & Graphiste Freelance à Céret et dans les Pyrénées-Orientales."
                 </p>
@@ -31,7 +34,7 @@
         
             <!-- COLONNE 2 -->
             <div class="footer-col">
-                <h4>Navigation</h4>
+                <h2>Navigation</h2>
                 <nav>
                     <a href="index.php">Accueil</a>
                     <a href="services.php">Services</a>
@@ -42,7 +45,7 @@
         
             <!-- COLONNE 3 -->
             <div class="footer-col">
-                <h4>Contact</h4>
+                <h2>Contact</h2>
 
                 <address class="footer-contact" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
                     
@@ -83,7 +86,7 @@
 
 <div id="cookie-banner" class="cookie-banner">
     <p>
-        Ce site utilise des cookies pour améliorer votre expérience et mesurer l’audience. 
+        Ce site utilise des cookies pour améliorer votre expérience et mesurer l’audience.
         Vous pouvez accepter, refuser ou personnaliser vos choix.
     </p>
 
@@ -111,11 +114,26 @@
     </div>
 </div>
 
+<script src="/js/main.js" defer></script>
+<script src="/js/portfolio.js" defer></script>
 
-<script src="/js/cookies.js"></script>
+<script>
+function loadGoogleAnalytics() {
+    // Charger dynamiquement le script GA
+    const s = document.createElement("script");
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-SVKMC2KRPX";
+    s.async = true;
+    s.defer = true;
+    document.head.appendChild(s);
 
-<script src="/js/main.js"></script>
-<script src="/js/portfolio.js"></script>
+    // Activer GA
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    
+    gtag('js', new Date());
+    gtag('config', 'G-SVKMC2KRPX');
+}
+</script>
 
 </body>
 </html>

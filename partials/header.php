@@ -24,13 +24,13 @@
     <meta property="og:description" content="<?= isset($pageDescription) ? $pageDescription : 'Création de sites web, design et identité visuelle à Céret.' ?>">
     <meta property="og:url" content="<?= $canonical ?>">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio.png">
+    <meta property="og:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="<?= isset($pageTitle) ? $pageTitle : 'OL Creative Studio' ?>">
     <meta name="twitter:description" content="<?= isset($pageDescription) ? $pageDescription : 'Création de sites web, design et identité visuelle à Céret.' ?>">
-    <meta name="twitter:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio.png">
+    <meta name="twitter:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp">
 
     <!-- Canonical -->
     <?php
@@ -57,30 +57,21 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="shortcut icon" href="/favicon.ico">
 
-    <!-- Global DESKTOP CSS -->
-    <link rel="stylesheet" href="/css/fonts.css">
+    <!-- GLOBAL CSS (minifié et combiné) -->
+    <link rel="preload" href="/css/style.css" as="style">
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/style-responsive.css">
-    
-    <!-- Page-Specific CSS (chargé uniquement si présent) -->
+
+    <!-- Preload des images (amélioration performance SEO) -->
+    <link rel="preload" as="image" href="/assets/images/hero.webp" fetchpriority="high">
+
+
+    <!-- PAGE-SPECIFIC CSS (AVEC VERSIONING) -->
     <?php
-        // Charger automatiquement le CSS spécifique si un fichier existe
-        $page = basename($_SERVER['PHP_SELF'], ".php");
+        $page = basename($_SERVER["PHP_SELF"], ".php");
+        $file = $_SERVER["DOCUMENT_ROOT"] . "/css/$page.css";
 
-        // Chemin serveur (pour file_exists)
-        $serverPath = $_SERVER['DOCUMENT_ROOT'] . "/css/";
-
-        // Chemin URL (pour <link>)
-        $urlPath = "/css/";
-
-        //CSS principal
-        if (file_exists($serverPath . "$page.css")) {
-            echo '<link rel="stylesheet" href="' . $urlPath . $page . '.css">';
-        }
-
-        //CSS responsive
-        if (file_exists($serverPath . "{$page}-responsive.css")) {
-            echo '<link rel="stylesheet" href="' . $urlPath . $page . '-responsive.css">';
+        if (file_exists($file)) {
+            echo '<link rel="stylesheet" href="/css/' . $page . '.css?v=' . time() . '">';
         }
     ?>
 
@@ -90,8 +81,8 @@
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
         "name": "OL Creative Studio",
-        "image": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio.png",
-        "logo": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio.png",
+        "image": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
+        "logo": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
         "url": "https://olcreativestudio.fr",
         "telephone": "+33767841013",
         "description": "OL Creative Studio vous accompagne pour la création de sites web modernes, designs professionnels, identités visuelles et solutions digitales sur mesure à Céret et dans les Pyrénées-Orientales.",
@@ -128,30 +119,12 @@
     }
     </script>
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SVKMC2KRPX"></script>
-    <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-SVKMC2KRPX');
-    </script>
+    <!-- cookies.js -->
+    <script src="/js/cookies.js" defer></script>
 
     <script>
-    // Consent default : tout refusé tant que l'utilisateur n'accepte pas
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-
-    gtag('consent', 'default', {
-        'ad_storage': 'denied',
-        'analytics_storage': 'denied'
-    });
-    </script>
-
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SVKMC2KRPX"></script>
-    <script>
-    gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){ dataLayer.push(arguments); }
     </script>
 
 </head>
@@ -163,8 +136,11 @@
         <!-- LOGO -->
         <div class="logo">
             <a href="/index.php">
-                <img src="/assets/logo/logo_olCreativeStudio.png"
-                    alt="OL Creative Studio - Développeur web à Céret">
+                <img src="/assets/logo/logo_olCreativeStudio_1600.webp"
+                    alt="OL Creative Studio - Développeur web à Céret"
+                    width="150"
+                    height="150"
+                >
             </a>
         </div>
 

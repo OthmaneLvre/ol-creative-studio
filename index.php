@@ -28,6 +28,8 @@ include 'partials/header.php';
                     width="800"
                     height="600"
                     loading="eager"
+                    fetchpriority="high"
+                    decoding="async"
                 >
             </div>
 
@@ -95,8 +97,8 @@ include 'partials/header.php';
                 <img src="/assets/images/about-illustration.webp"
                     loading="lazy"
                     alt="Développeur freelance illustration"
-                    width="900"
-                    height="600"
+                    width="480"
+                    height="320"
                 >
             </div>
 
@@ -142,7 +144,7 @@ include 'partials/header.php';
                 $categories = [
                     "figma" => "Maquettes Figma",
                     "vitrine" => "Site vitrine",
-                    "identite" => "Identité visuelle",
+                    "logo" => "Identité visuelle",
                     "ecommerce" => "Boutique en ligne",
                     "app" => "Application Web & Mobile"
                 ];
@@ -158,7 +160,7 @@ include 'partials/header.php';
                     </span>
 
                     <div class="project-frame">
-                        <img src="admin/uploads/creation/<?= htmlspecialchars($project["image"]); ?>" loading="lazy" alt="<?= htmlspecialchars($project["titre"]); ?>">
+                        <img src="admin/uploads/creation/<?= htmlspecialchars($project["image"]); ?>" width="320px" height="320px" loading="lazy" alt="<?= htmlspecialchars($project["titre"]); ?>">
                     </div>
 
                 </div>

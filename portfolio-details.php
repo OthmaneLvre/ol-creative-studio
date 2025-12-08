@@ -64,9 +64,11 @@ include "partials/header.php";
     <h2>Aperçu du projet</h2>
     <div class="details-image">
         <img src="/admin/uploads/creation/<?= htmlspecialchars($project['image']) ?>"
-             alt="<?= htmlspecialchars($project['titre']) ?>"
-             class="<?= $isLogo ? 'logo-protection' : '' ?>"
-             loading="lazy"
+            alt="<?= htmlspecialchars($project['titre']) ?>"
+            width="1200"
+            height="800"
+            loading="lazy"
+            class="<?= $isLogo ? 'logo-protection' : '' ?>"
         >
     </div>
 
@@ -87,6 +89,8 @@ include "partials/header.php";
                     <img src="/admin/uploads/creation/<?= htmlspecialchars($img) ?>" 
                         alt="Image du project"
                         loading="lazy"
+                        width="1200"
+                        height="800"
                     >
                 </div>
             <?php endforeach; ?>
