@@ -53,9 +53,12 @@
     <link rel="preload" href="/assets/fonts/CormorantGaramond-Bold.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/assets/fonts/CormorantGaramond-Regular.woff2" as="font" type="font/woff2" crossorigin>
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="shortcut icon" href="/favicon.ico">
+    <!-- FAVICONS -->
+    <link rel="icon" href="/assets/logo/favicon/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/logo/favicon/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/logo/favicon/favicon-16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/favicon/apple-touch-icon.png">
+    <meta name="theme-color" content="#0D1B2A">
 
     <!-- GLOBAL CSS (minifié et combiné) -->
     <link rel="preload" href="/css/style.css" as="style">
@@ -136,10 +139,15 @@
         <!-- LOGO -->
         <div class="logo">
             <a href="/index.php">
-                <img src="/assets/logo/logo_olCreativeStudio_1600.webp"
+                <img src="/assets/logo/OL-logo@1x.webp"
+                    srcset="
+                        /assets/logo/OL-logo@1x.webp 65w,
+                        /assets/logo/OL-logo@2x.webp 130w,
+                        /assets/logo/OL-logo@3x.webp 195w,
+                        /assets/logo/OL-logo@4x.webp 260w
+                    "
+                    sizes="(max-width: 768px) 42px, 65px"
                     alt="OL Creative Studio - Développeur web à Céret"
-                    width="150"
-                    height="150"
                 >
             </a>
         </div>

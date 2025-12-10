@@ -8,11 +8,16 @@
 
             <!-- COLONNE 1 -->
             <div class="footer-col">
-                <img src="/assets/logo/logo_olCreativeStudio_1600.webp"
+                <img src="/assets/logo/OL-logo@1x.webp"
                     class="footer-logo"
+                    srcset="
+                        /assets/logo/OL-logo@1x.webp 65w,
+                        /assets/logo/OL-logo@2x.webp 130w,
+                        /assets/logo/OL-logo@3x.webp 195w,
+                        /assets/logo/OL-logo@4x.webp 260w
+                    "
+                    sizes="(max-width: 768px) 42px, 65px"
                     alt="OL Creative Studio - Concepteur web à Céret"
-                    width="150"
-                    height="150"
                     >
                 <p itemprop="description">
                     "Développeur Web & Graphiste Freelance à Céret et dans les Pyrénées-Orientales."
