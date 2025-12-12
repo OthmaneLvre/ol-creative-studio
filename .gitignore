@@ -17,3 +17,8 @@ Thumbs.db
 # Cache éditeurs
 .vscode/
 .idea/
+
+# Documentation interne
+/docs/backend.md
+/docs/backend.pdf
+/docs/*.sql

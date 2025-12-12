@@ -8,39 +8,39 @@ Le site présente mes services, mes créations, mes informations de contact, ain
 ## 🚀 Fonctionnalités
 
 ### 🌐 Site public
-- Page d’accueil moderne
-- Présentation des services
-- Portfolio dynamique (chargé depuis une base de données)
-- Page contact avec formulaire (PHP & PDO)
-- Responsive Design (mobile, tablette, desktop)
-- Charte graphique 100% personnalisée
+- Page d’accueil moderne  
+- Présentation des services  
+- Portfolio dynamique (chargé depuis une base de données)  
+- Page contact avec formulaire (PHP & PDO)  
+- Responsive Design (mobile, tablette, desktop)  
+- Charte graphique 100% personnalisée  
 
 ### 🔐 Espace administrateur
-- Connexion sécurisée (mot de passe hashé)
-- Ajouter une création (titre + description + image)
-- Supprimer une création
-- Modifier une création
-- Upload d’images sécurisé
-- Dashboard moderne et intuitif
+- Connexion sécurisée (mot de passe hashé)  
+- Ajouter une création (titre + description + image)  
+- Supprimer une création  
+- Modifier une création  
+- Upload d’images sécurisé  
+- Dashboard moderne et intuitif  
 
 ---
 
-## 🛠 Technologie utilisées
+## 🛠 Technologies utilisées
 
 **Frontend**
-- HTML5 / CSS3
-- JavaScript ES6
-- Bootstrap
+- HTML5 / CSS3  
+- JavaScript ES6  
+- Bootstrap  
 
 **Backend**
-- PHP 8
-- PDO
-- SQL (MariaDB / MySQL)
+- PHP 8  
+- PDO  
+- SQL (MariaDB / MySQL)  
 
 **Outils**
-- XAMPP
-- Figma
-- Git & GitHub
+- XAMPP  
+- Figma  
+- Git & GitHub  
 
 ---
 
@@ -51,8 +51,23 @@ ol-creative-studio/
 ├── assets/
 ├── css/
 ├── js/
+├── partials/
 ├── php/
 └── docs/
+
+
+---
+
+## 📘 Documentation technique
+
+Une documentation complète sur l’installation, la base de données,  
+la configuration serveur et le déploiement est disponible ici :
+
+👉 **[Documentation Back-end (/docs/backend.md)](docs/backend.md)**
+
+# Documentation interne
+
+Certaines documentations techniques ne sont pas publiées pour des raisons de sécurité et sont conservées en interne.
 
 ---
 
@@ -61,7 +76,7 @@ ol-creative-studio/
 **Othmane Lecoeuvre**  
 Développeur Web Full Stack  
 Fondateur de OL Creative Studio  
-Céret – France
+Céret – France  
 
 ---
 
