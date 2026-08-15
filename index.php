@@ -1,6 +1,6 @@
 <?php
-$pageTitle = "Développeur Web Freelance – Création de Sites Modernes";
-$pageDescription = "Développeur web & graphiste freelance. Sites vitrines, boutiques en ligne, identité visuelle et design professionnel dans les Pyrénées-Orientales.";
+$pageTitle = "Développeur Web Freelance à Céret";
+$pageDescription = "Développeur web freelance à Céret dans les Pyrénées-Orientales. Création de sites vitrines, boutiques en ligne, référencement naturel SEO et identité visuelle pour artisans, indépendants et associations.";
 
 include 'partials/header.php';
 ?>
@@ -13,7 +13,7 @@ include 'partials/header.php';
         <div class="container hero-container">
 
             <div class="hero-text">
-                <h1>Développeur Web & Graphiste Freelance</h1>
+                <h1>Développeur Web Freelance à Céret</h1>
                 <p>Sites vitrines modernes, optimisés et élégants — adaptés à votre activité.</p>
             
                 <div class="hero-buttons">
@@ -108,8 +108,8 @@ include 'partials/header.php';
                 <h3>Développeur Web Freelance basé à Céret</h3>
 
                 <p>
-                    Passionné par le web et le design, j’accompagne les entreprises et indépendants
-                    dans la création de sites modernes, élégants et performants.
+                    Basé à Céret dans les Pyrénées-Orientales, j'accompagne les artisans, commerçants, associations et
+                    entreprises dans la création de sites internet modernes, rapides et optimisés pour le référencement naturel.
                     <br><br>
                     <strong>Mon objectif :</strong> transformer votre présence en ligne en un véritable atout professionnel.
                 </p>

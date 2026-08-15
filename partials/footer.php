@@ -119,8 +119,7 @@
     </div>
 </div>
 
-<script src="/js/main.js" defer></script>
-<script src="/js/portfolio.js" defer></script>
+<script type="module" src="/assets/js/main.js"></script>
 
 <script>
 function loadGoogleAnalytics() {

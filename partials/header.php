@@ -4,46 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="GkyABtAfCI_8wSUZlN3rEMBB67Bm_3_idi40Jrqe2mU" />
-    
-    <!-- Titre dynamique -->
-    <title>
-        <?php
-            echo isset($pageTitle) ? $pageTitle . " | OL Creative Studio" : "OL Creative Studio – Création de sites web à Céret";
-        ?>
-    </title>
 
-    <!-- Meta Description dynamique -->
-    <meta name="description" content="<?php
-        echo isset($pageDescription)
-        ? $pageDescription
-        : 'Création de sites web vitrines, e-commerce et identités visuelles à Céret et dans les Pyrénées-Orientales. Freelance réactif, moderne et professionnel.';
-    ?>">
+    <?php
+        // Canonical propre
+        $canonical = "https://olcreativestudio.fr";
+        $uri = strtok($_SERVER["REQUEST_URI"], "?");
 
-    <!-- OpenGraph (SEO réseaux sociaux) -->
-    <meta property="og:title" content="<?= isset($pageTitle) ? $pageTitle : 'OL Creative Studio' ?>">
-    <meta property="og:description" content="<?= isset($pageDescription) ? $pageDescription : 'Création de sites web, design et identité visuelle à Céret.' ?>">
-    <meta property="og:url" content="<?= $canonical ?>">
+        if ($uri !== "/" && $uri !== "/index.php") {
+            $canonical .= $uri;
+        }
+
+        // Titre et description par défaut optimisés SEO local
+        $defaultTitle = "Développeur Web Freelance à Céret | OL Creative Studio";
+        $defaultDescription = "Développeur web freelance à Céret dans les Pyrénées-Orientales. Création de sites vitrines, boutiques en ligne, référencement SEO et identité visuelle pour professionnels et associations.";
+
+        $finalTitle = isset($pageTitle) ? $pageTitle . " | OL Creative Studio" : $defaultTitle;
+        $finalDescription = isset($pageDescription) ? $pageDescription : $defaultDescription;
+    ?>
+
+    <title><?= htmlspecialchars($finalTitle) ?></title>
+
+    <meta name="description" content="<?= htmlspecialchars($finalDescription) ?>">
+
+    <link rel="canonical" href="<?= htmlspecialchars($canonical) ?>">
+
+    <!-- OpenGraph -->
+    <meta property="og:title" content="<?= htmlspecialchars($finalTitle) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($finalDescription) ?>">
+    <meta property="og:url" content="<?= htmlspecialchars($canonical) ?>">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?= isset($pageTitle) ? $pageTitle : 'OL Creative Studio' ?>">
-    <meta name="twitter:description" content="<?= isset($pageDescription) ? $pageDescription : 'Création de sites web, design et identité visuelle à Céret.' ?>">
+    <meta name="twitter:title" content="<?= htmlspecialchars($finalTitle) ?>">
+    <meta name="twitter:description" content="<?= htmlspecialchars($finalDescription) ?>">
     <meta name="twitter:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp">
-
-    <!-- Canonical -->
-    <?php
-    $canonical = "https://olcreativestudio.fr";
-    $uri = $_SERVER["REQUEST_URI"];
-
-    // Si la page demandée est /index.php → canonical = /
-    if ($uri !== "/index.php") {
-        $canonical .= $uri;
-    }
-    ?>
-    <link rel="canonical" href="<?= $canonical ?>">
-
 
     <!-- Preload des fonts (amélioration performance SEO) -->
     <link rel="preload" href="/assets/fonts/Manrope-Medium.woff2" as="font" type="font/woff2" crossorigin>
@@ -61,8 +57,8 @@
     <meta name="theme-color" content="#0D1B2A">
 
     <!-- GLOBAL CSS (minifié et combiné) -->
-    <link rel="preload" href="/css/style.css" as="style">
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preload" href="/assets/css/main.css" as="style">
+    <link rel="stylesheet" href="/assets/css/main.css">
 
     <!-- Preload des images (amélioration performance SEO) -->
     <link rel="preload" as="image" href="/assets/images/hero.webp" fetchpriority="high">
@@ -71,10 +67,30 @@
     <!-- PAGE-SPECIFIC CSS (AVEC VERSIONING) -->
     <?php
         $page = basename($_SERVER["PHP_SELF"], ".php");
-        $file = $_SERVER["DOCUMENT_ROOT"] . "/css/$page.css";
+        
+        $pageCssMap = [
+            'index' => 'home',
+            'services' => 'services',
+            'portfolio' => 'portfolio',
+            'portfolio-details' => 'portfolio-details',
+            'contact' => 'contact',
+            'mentions-legales' => 'legal',
+            'politique-confidentialite' => 'legal',
+            'cgv' => 'legal',
+            'cgu' => 'legal',
+        ];
 
-        if (file_exists($file)) {
-            echo '<link rel="stylesheet" href="/css/' . $page . '.css?v=' . time() . '">';
+        if (isset($pageCssMap[$page])) {
+            $cssName = $pageCssMap[$page];
+            $cssFile = $_SERVER['DOCUMENT_ROOT'] . "/assets/css/pages/{$cssName}.css";
+
+            if (file_exists($cssFile)) {
+                echo '<link rel="stylesheet" href="assets/css/pages'
+                    . htmlspecialchars($cssName)
+                    . '.css?v='
+                    . filemtime($cssFile)
+                    . '">';
+            }
         }
     ?>
 
@@ -183,6 +199,3 @@
 
 
 </header>
-
-
-<main>
