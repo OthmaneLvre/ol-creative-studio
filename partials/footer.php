@@ -8,13 +8,11 @@
 
             <!-- COLONNE 1 -->
             <div class="footer-col">
-                <img src="/assets/logo/OL-logo@1x.webp"
+                <img src="/assets/logo/logo@1x.webp"
                     class="footer-logo"
                     srcset="
-                        /assets/logo/OL-logo@1x.webp 65w,
-                        /assets/logo/OL-logo@2x.webp 130w,
-                        /assets/logo/OL-logo@3x.webp 195w,
-                        /assets/logo/OL-logo@4x.webp 260w
+                        /assets/logo/dark/logo-dark@1x.webp 65w,
+                        /assets/logo/dark/logo-dark@2x.webp 130w,
                     "
                     sizes="(max-width: 768px) 42px, 65px"
                     alt="OL Creative Studio - Concepteur web à Céret"
@@ -26,13 +24,13 @@
                 <!-- Réseaux & Plateformes -->
                 <div class="footer-socials">
                     <a href="https://github.com/OthmaneLvre" target="_blank" aria-label="GitHub OL Creative Studio">
-                        <img src="assets/icons/github.svg" alt="">
+                        <img src="/assets/icons/github.svg" alt="">
                     </a>
                     <a href="https://linkedin.com/in/olcreativestudio" target="_blank" aria-label="LinkedIn OL Creative Studio">
-                        <img src="assets/icons/linkedin.svg" alt="">
+                        <img src="/assets/icons/linkedin.svg" alt="">
                     </a>
                     <a href="https://www.upwork.com/freelancers/~012bfcf401f6a63a9c?mp_source=share" target="_blank" aria-label="Profil Upwork OL Creative Studio">
-                        <img src="assets/icons/upwork.svg" alt="">
+                        <img src="/assets/icons/upwork.svg" alt="">
                     </a>
                 </div>
             </div>
@@ -119,7 +117,10 @@
     </div>
 </div>
 
-<script type="module" src="/assets/js/main.js"></script>
+<script
+    type="module"
+    src="/assets/js/main.js"
+></script>
 
 <script>
 function loadGoogleAnalytics() {

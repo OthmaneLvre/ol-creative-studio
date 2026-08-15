@@ -1,79 +1,193 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+    /* =========================================
+       ELEMENTS
+       ========================================= */
+
     const banner = document.getElementById("cookie-banner");
     const modal = document.getElementById("cookie-modal");
-    const analyticsCheckbox = document.getElementById("analytics-consent");
 
-    // Vérifier si un choix existe déjà
+    const acceptButton = document.getElementById("cookie-accept");
+    const refuseButton = document.getElementById("cookie-refuse");
+    const customizeButton = document.getElementById("cookie-customize");
+    const cancelButton = document.getElementById("cookie-cancel");
+    const saveButton = document.getElementById("cookie-save");
+
+    const analyticsCheckbox =
+        document.getElementById("analytics-consent");
+
+
+    /* =========================================
+       GUARD
+       ========================================= */
+
+    if (
+        !banner ||
+        !modal ||
+        !acceptButton ||
+        !refuseButton ||
+        !customizeButton ||
+        !cancelButton ||
+        !saveButton ||
+        !analyticsCheckbox
+    ) {
+        return;
+    }
+
+
+    /* =========================================
+       CONSENT STATE
+       ========================================= */
+
     const choice = localStorage.getItem("cookieConsent");
 
+
+    /* =========================================
+       INITIAL STATE
+       ========================================= */
+
     if (!choice) {
+
         banner.style.display = "flex";
-    } else if (choice === "accepted" || choice === "custom-accepted") {
-        // Charger GA automatiquement si déjà accepté
-        loadGoogleAnalytics();
+
+        if (typeof gtag === "function") {
+
+            gtag("consent", "default", {
+                ad_storage: "denied",
+                analytics_storage: "denied"
+            });
+
+        }
+
+    } else if (
+        choice === "accepted" ||
+        choice === "custom-accepted"
+    ) {
+
+        if (typeof loadGoogleAnalytics === "function") {
+            loadGoogleAnalytics();
+        }
+
     }
 
-    // CONSENT MODE PAR DÉFAUT
-    if (!choice) {
-        gtag('consent', 'default', {
-            'ad_storage': 'denied',
-            'analytics_storage': 'denied'
-        });
-    }
 
-    // --- BOUTON ACCEPTER ---
-    document.getElementById("cookie-accept").addEventListener("click", () => {
-        localStorage.setItem("cookieConsent", "accepted");
+    /* =========================================
+       ACCEPT
+       ========================================= */
 
-        gtag('consent', 'update', {
-            'ad_storage': 'granted',
-            'analytics_storage': 'granted'
-        });
+    acceptButton.addEventListener("click", () => {
 
-        loadGoogleAnalytics(); // ← CHARGEMENT DE GA ICI
+        localStorage.setItem(
+            "cookieConsent",
+            "accepted"
+        );
 
-        banner.style.display = "none";
-    });
+        if (typeof gtag === "function") {
 
-    // --- BOUTON REFUSER ---
-    document.getElementById("cookie-refuse").addEventListener("click", () => {
-        localStorage.setItem("cookieConsent", "refused");
+            gtag("consent", "update", {
+                ad_storage: "granted",
+                analytics_storage: "granted"
+            });
 
-        gtag('consent', 'update', {
-            'ad_storage': 'denied',
-            'analytics_storage': 'denied'
-        });
+        }
+
+        if (typeof loadGoogleAnalytics === "function") {
+            loadGoogleAnalytics();
+        }
 
         banner.style.display = "none";
+
     });
 
-    // --- PERSONNALISER ---
-    document.getElementById("cookie-customize").addEventListener("click", () => {
+
+    /* =========================================
+       REFUSE
+       ========================================= */
+
+    refuseButton.addEventListener("click", () => {
+
+        localStorage.setItem(
+            "cookieConsent",
+            "refused"
+        );
+
+        if (typeof gtag === "function") {
+
+            gtag("consent", "update", {
+                ad_storage: "denied",
+                analytics_storage: "denied"
+            });
+
+        }
+
+        banner.style.display = "none";
+
+    });
+
+
+    /* =========================================
+       CUSTOMIZE
+       ========================================= */
+
+    customizeButton.addEventListener("click", () => {
+
         modal.style.display = "flex";
+
     });
 
-    // --- ANNULER ---
-    document.getElementById("cookie-cancel").addEventListener("click", () => {
+
+    /* =========================================
+       CANCEL
+       ========================================= */
+
+    cancelButton.addEventListener("click", () => {
+
         modal.style.display = "none";
+
     });
 
-    // --- ENREGISTRER ---
-    document.getElementById("cookie-save").addEventListener("click", () => {
-        const allowAnalytics = analyticsCheckbox.checked;
 
-        localStorage.setItem("cookieConsent", allowAnalytics ? "custom-accepted" : "custom-refused");
+    /* =========================================
+       SAVE CUSTOM CHOICE
+       ========================================= */
 
-        gtag('consent', 'update', {
-            'analytics_storage': allowAnalytics ? 'granted' : 'denied',
-            'ad_storage': 'denied'
-        });
+    saveButton.addEventListener("click", () => {
 
-        if (allowAnalytics) {
-            loadGoogleAnalytics(); // ← Chargement uniquement si accepté
+        const allowAnalytics =
+            analyticsCheckbox.checked;
+
+        const consentValue = allowAnalytics
+            ? "custom-accepted"
+            : "custom-refused";
+
+        localStorage.setItem(
+            "cookieConsent",
+            consentValue
+        );
+
+        if (typeof gtag === "function") {
+
+            gtag("consent", "update", {
+                analytics_storage:
+                    allowAnalytics
+                        ? "granted"
+                        : "denied",
+
+                ad_storage: "denied"
+            });
+
+        }
+
+        if (
+            allowAnalytics &&
+            typeof loadGoogleAnalytics === "function"
+        ) {
+            loadGoogleAnalytics();
         }
 
         modal.style.display = "none";
         banner.style.display = "none";
+
     });
+
 });

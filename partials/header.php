@@ -85,7 +85,7 @@
             $cssFile = $_SERVER['DOCUMENT_ROOT'] . "/assets/css/pages/{$cssName}.css";
 
             if (file_exists($cssFile)) {
-                echo '<link rel="stylesheet" href="assets/css/pages'
+                echo '<link rel="stylesheet" href="/assets/css/pages/'
                     . htmlspecialchars($cssName)
                     . '.css?v='
                     . filemtime($cssFile)
@@ -139,7 +139,7 @@
     </script>
 
     <!-- cookies.js -->
-    <script src="/js/cookies.js" defer></script>
+    <script src="/assets/js/cookies.js" defer></script>
 
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -149,53 +149,181 @@
 </head>
 
 <body>
-    
-<header class="navbar">
 
-        <!-- LOGO -->
-        <div class="logo">
-            <a href="/index.php">
-                <img src="/assets/logo/OL-logo@1x.webp"
+<?php
+$currentPage = basename($_SERVER['PHP_SELF']);
+
+function isActivePage(string $page, string $currentPage): string
+{
+    return $page === $currentPage
+        ? ' is-active'
+        : '';
+}
+?>
+
+<header class="site-header" data-header>
+
+    <div class="container">
+        <div class="site-header__inner">
+
+            <!-- BRAND -->
+            <a
+                href="/index.php"
+                class="site-header__brand"
+                aria-label="OL Creative Studio - Accueil"
+            >
+                <!-- LOGO DARK -->
+                <img
+                    src="/assets/logo/dark/logo-dark@1x.webp"
                     srcset="
-                        /assets/logo/OL-logo@1x.webp 65w,
-                        /assets/logo/OL-logo@2x.webp 130w,
-                        /assets/logo/OL-logo@3x.webp 195w,
-                        /assets/logo/OL-logo@4x.webp 260w
+                        /assets/logo/dark/logo-dark@1x.webp 65w,
+                        /assets/logo/dark/logo-dark@2x.webp 130w,
                     "
-                    sizes="(max-width: 768px) 42px, 65px"
-                    alt="OL Creative Studio - Développeur web à Céret"
+                    alt=""
+                    class="site-header__logo site-header__logo--dark"
                 >
+
+                <!-- LOGO LIGHT -->
+                <img
+                    src="/assets/logo/light/logo-light@1x.webp"
+                    srcset="
+                        /assets//logo/light/logo-light@1x.webp 65w,
+                        /assets/logo/light/logo-light@2x.webp 130w,
+                    "
+                    alt=""
+                    class="site-header__logo site-header__logo--light"
+                >
+            </a>
+
+            <!-- NAVIGATION DESKTOP -->
+            <nav
+                class="site-nav"
+                aria-label="Navigation principale"
+            >
+                <a
+                    href="/index.php"
+                    class="site-nav__link<?= isActivePage('index.php', $currentPage) ?>"
+                >
+                    Accueil
+                </a>
+
+                <a
+                    href="/services.php"
+                    class="site-nav__link<?= isActivePage('services.php', $currentPage) ?>"
+                >
+                    Services
+                </a>
+
+                <a
+                    href="/portfolio.php"
+                    class="site-nav__link<?= isActivePage('portfolio.php', $currentPage) ?>"
+                >
+                    Portfolio
+                </a>
+
+                <a
+                    href="/contact.php"
+                    class="site-nav__link<?= isActivePage('contact.php', $currentPage) ?>"
+                >
+                    Contact
+                </a>
+            </nav>
+
+            <!-- ACTIONS -->
+            <div class="site-header__actions">
+
+                <a
+                    href="/contact.php"
+                    class="button button--primary site-header__cta"
+                >
+                    <span>Parler de votre projet</span>
+
+                    <span
+                        class="button__icon"
+                        aria-hidden="true"
+                    >
+                        ↗
+                    </span>
+                </a>
+
+                <!-- MOBILE TOGGLE -->
+                <button
+                    class="menu-toggle"
+                    type="button"
+                    aria-label="Ouvrir le menu"
+                    aria-expanded="false"
+                    aria-controls="mobile-navigation"
+                    data-menu-toggle
+                >
+                    <span class="menu-toggle__line"></span>
+                    <span class="menu-toggle__line"></span>
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+    
+
+    <!-- MOBILE NAVIGATION -->
+    <div
+        class="mobile-navigation"
+        id="mobile-navigation"
+        data-mobile-navigation
+        aria-hidden="true"
+    >
+        <nav
+            class="mobile-navigation__nav"
+            aria-label="Navigation mobile"
+        >
+            <a
+                href="/index.php"
+                class="mobile-navigation__link<?= isActivePage('index.php', $currentPage) ?>"
+            >
+                <span class="mobile-navigation__index">01</span>
+                <span>Accueil</span>
+            </a>
+
+            <a
+                href="/services.php"
+                class="mobile-navigation__link<?= isActivePage('services.php', $currentPage) ?>"
+            >
+                <span class="mobile-navigation__index">02</span>
+                <span>Services</span>
+            </a>
+
+            <a
+                href="/portfolio.php"
+                class="mobile-navigation__link<?= isActivePage('portfolio.php', $currentPage) ?>"
+            >
+                <span class="mobile-navigation__index">03</span>
+                <span>Portfolio</span>
+            </a>
+
+            <a
+                href="/contact.php"
+                class="mobile-navigation__link<?= isActivePage('contact.php', $currentPage) ?>"
+            >
+                <span class="mobile-navigation__index">04</span>
+                <span>Contact</span>
+            </a>
+
+        </nav>
+
+        <div class="mobile-navigation__actions">
+            <a
+                href="/contact.php"
+                class="button button--primary button--full"
+            >
+                Démarrer un projet
             </a>
         </div>
 
-        <!-- MENU CENTRÉ (desktop) -->
-        <nav class="nav-links">
-            <a href="index.php">Accueil</a>
-            <span class="sep"></span>
-            <a href="services.php">Services</a>
-            <span class="sep"></span>
-            <a href="portfolio.php">Portfolio</a>
-            <span class="sep"></span>
-            <a href="contact.php">Contact</a>
-        </nav>
-
-        <!-- BOUTON A DROITE (desktop only) -->
-        <a href="contact.php" class="btn-primary btn-nav">Me contacter</a>
-
-        <!-- MENU BURGER (mobile only) -->
-        <div class="burger" id="burger">
-            <span></span>
-            <span></span>
-            <span></span>
+        <div class="mobile-navigation__footer">
+            <span>OL Creative Studio</span>
+            <span>Céret · France</span>
         </div>
 
-        <!-- MENU MOBILE -->
-        <div class="mobile-menu" id="mobileMenu">
-            <a href="/index.php">Accueil</a>
-            <a href="/services.php">Services</a>
-            <a href="/portfolio.php">Portfolio</a>
-            <a href="/contact.php">Contact</a>
-        </div>
-
+    </div>
 
 </header>

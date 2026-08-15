@@ -1,13 +1,11 @@
-/*********************************/
-/*          BURGER MENU          */
-/*********************************/
+import { initNavigation } from './modules/navigation.js';
 
-const burger = document.getElementById("burger");
-const mobileMenu = document.getElementById("mobileMenu");
+/* =========================================
+   INITIALISATION
+   ========================================= */
 
-burger.addEventListener("click", () => {
-    burger.classList.toggle("open");
-    mobileMenu.classList.toggle("open");
+document.addEventListener('DOMContentLoaded', () => {
+    initNavigation();
 });
 
 /*********************************/

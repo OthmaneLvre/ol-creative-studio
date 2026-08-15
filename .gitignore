@@ -1,5 +1,6 @@
 # Fichiers sensibles
 php/db.php
+php/db.local.php
 
 # Uploads images admin
 admin/uploads/
