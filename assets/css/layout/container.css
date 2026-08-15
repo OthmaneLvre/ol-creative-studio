@@ -1,0 +1,68 @@
+/* =========================================
+   CONTAINER
+   ========================================= */
+
+.container {
+    width: min(
+        100% - (var(--container-padding) * 2),
+        var(--container-width)
+    );
+
+    margin-inline: auto;
+}
+
+
+/* ==================================================
+   CONTAINER VARIANTS
+================================================== */
+
+.container--sm {
+    max-width: 960px;
+}
+
+.container--md {
+    max-width: 1200px;
+}
+
+.container--lg {
+    max-width: var(--container-width);
+}
+
+.container--full {
+    width: 100%;
+    max-width: none;
+}
+
+
+/* ==================================================
+   CONTENT WIDTH
+================================================== */
+
+.content-width {
+    width: min(100%, 70ch);
+}
+
+.content-width--sm {
+    width: min(100%, 55ch);
+}
+
+.content-width--lg {
+    width: min(100%, 85ch);
+}
+
+
+/* ==================================================
+   ALIGNMENT
+================================================== */
+
+.container-center {
+    margin-inline: auto;
+}
+
+.container-left {
+    margin-right: auto;
+}
+
+.container-right {
+    margin-left: auto;
+}
