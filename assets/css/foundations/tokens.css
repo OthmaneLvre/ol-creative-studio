@@ -35,6 +35,7 @@
     ================================================== */
 
     --color-background: var(--color-white);
+    --color-background-alt: var(--color-off-white);
     --color-background-dark: var(--color-navy-950);
 
     --color-surface: var(--color-white);

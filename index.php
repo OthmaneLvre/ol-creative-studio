@@ -127,52 +127,201 @@ include 'partials/header.php';
 
         <!-- =========================== SERVICES SECTION =========================== -->
 
-    <section class="services">
+    <section class="home-services" id="home-services">
+
         <div class="container">
 
-            <h2 class="section-title">Création de sites internet modernes pour les entreprises et indépendants</h2>
+            <div class="home-services__header">
 
-            <div class="services-grid">
+                <div class="home-services-heading">
 
-                <!-- CARD 1 -->
-                <div class="service-card">
-                    <img src="/assets/icons/computer.svg" loading="lazy" alt="Site vitrine moderne">
-                    <h3>Site vitrine moderne</h3>
-                    <p>Création de sites modernes, optimisés, responsives et élégants  adaptés à votre activité.</p>
+                    <span class="homes-services__eyebrow">
+                        Ce que je fais
+                    </span>
+
+                    <h2 class="home-services__title">
+                        Des solutions digitales
+                        <em>pensées pour votre image.</em>
+                    </h2>
+
                 </div>
 
-                <!-- CARD 2 -->
-                <div class="service-card">
-                    <img src="/assets/icons/palette.svg" loading="lazy" alt="Identité visuelle">
-                    <h3>Identité visuelle & Graphisme</h3>
-                    <p>Création d’identités visuelles uniques : logos, chartes graphiques, supports web et print adaptés à votre marque.</p>
-                </div>
+                <p class="home-services__intro">
+                    De la conception à la mise en ligne, je crée des expériences
+                    digitales sur mesure, pensées pour être belles, rapides
+                    et efficaces.
+                </p>
 
-                
-                <!-- CARD 1 -->
-                <div class="service-card">
-                    <img src="/assets/icons/maintenance.svg" loading="lazy" alt="Maintenance & Optimisation">
-                    <h3>Maintenance & optimisation</h3>
-                    <p>Suivi technique, mises à jour, optimisation des performances et accompagnement pour un site sécurisé et rapide.</p>
-                </div>
             </div>
-        
-        </div>
 
-        <!-- PAGINATION -->
-        <div class="services-pagination">
-            <span class="dot active"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-        </div>
+            <div class="home-services__list">
 
-        <div class="services-btn-container">
-            <a href="services.php" class="btn-primary">Voir tous mes services</a>
+                <!-- SERVICE 01 -->
+                <article class="home-service">
+
+                    <div class="home-service__number">
+                        01
+                    </div>
+
+                    <div class="home-service__main">
+
+                        <h3>
+                            Sites web
+                        </h3>
+
+                        <p>
+                            Sites vitrines modernes, rapides et responsives,
+                            conçus sur mesure pour présenter votre activité
+                            avec une identité forte.
+                        </p>
+
+                    </div>
+
+                    <div class="home-service__meta">
+
+                        <span>
+                            UX / UI
+                        </span>
+
+                        <span>
+                            Développement
+                        </span>
+
+                        <span>
+                            Responsive
+                        </span>
+
+                    </div>
+
+                    <a
+                        href="/services.php"
+                        class="home-service__link"
+                        aria-label="Découvrir le service création de sites web"
+                    >
+                        <span aria-hidden="true">↗</span>
+                    </a>
+
+                </article>
+
+
+                <!-- SERVICE 02 -->
+                <article class="home-service">
+
+                    <div class="home-service__number">
+                        02
+                    </div>
+
+                    <div class="home-service__main">
+
+                        <h3>
+                            E-commerce
+                        </h3>
+
+                        <p>
+                            Boutiques en ligne performantes et pensées pour
+                            convertir, avec paiement sécurisé, gestion des
+                            produits et parcours client optimisé.
+                        </p>
+
+                    </div>
+
+                    <div class="home-service__meta">
+
+                        <span>
+                            Stripe
+                        </span>
+
+                        <span>
+                            Catalogue
+                        </span>
+
+                        <span>
+                            Conversion
+                        </span>
+
+                    </div>
+
+                    <a
+                        href="/services.php"
+                        class="home-service__link"
+                        aria-label="Découvrir le service e-commerce"
+                    >
+                        <span aria-hidden="true">↗</span>
+                    </a>
+
+                </article>
+
+
+                <!-- SERVICE 03 -->
+                <article class="home-service">
+
+                    <div class="home-service__number">
+                        03
+                    </div>
+
+                    <div class="home-service__main">
+
+                        <h3>
+                            Identité visuelle
+                        </h3>
+
+                        <p>
+                            Logos, univers graphiques et supports visuels
+                            cohérents pour construire une marque identifiable,
+                            professionnelle et mémorable.
+                        </p>
+
+                    </div>
+
+                    <div class="home-service__meta">
+
+                        <span>
+                            Branding
+                        </span>
+
+                        <span>
+                            Logo
+                        </span>
+
+                        <span>
+                            Print & digital
+                        </span>
+
+                    </div>
+
+                    <a
+                        href="/services.php"
+                        class="home-service__link"
+                        aria-label="Découvrir le service identité visuelle"
+                    >
+                        <span aria-hidden="true">↗</span>
+                    </a>
+
+                </article>
+
+            </div>
+
+
+            <div class="home-services__footer">
+
+                <a
+                    href="/services.php"
+                    class="button button--secondary"
+                >
+                    <span>Découvrir tous les services</span>
+
+                    <span
+                        class="button__icon"
+                        aria-hidden="true"
+                    >
+                        ↗
+                    </span>
+                </a>
+
+            </div>
+
         </div>
     </section>
-
-    <div class="section-divider"></div>
-
 
         <!-- =========================== ABOUT SECTION =========================== -->
 
