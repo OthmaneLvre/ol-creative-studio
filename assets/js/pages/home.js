@@ -431,4 +431,229 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HOME PORTFOLIO — REVEAL
+    |--------------------------------------------------------------------------
+    */
+
+    const portfolioSection = document.querySelector('.home-portfolio');
+
+    if (portfolioSection) {
+
+        const portfolioHeader = portfolioSection.querySelector(
+            '.home-portfolio__header'
+        );
+
+        const portfolioProjects = portfolioSection.querySelectorAll(
+            '.home-project'
+        );
+
+        const portfolioFooter = portfolioSection.querySelector(
+            '.home-portfolio__footer'
+        );
+
+        const prefersReducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | REVEAL
+        |--------------------------------------------------------------------------
+        */
+
+        const revealElements = [
+            portfolioHeader,
+            ...portfolioProjects,
+            portfolioFooter
+        ].filter(Boolean);
+
+        if (prefersReducedMotion) {
+
+            revealElements.forEach((element) => {
+                element.classList.add('is-visible');
+            });
+
+        } else {
+
+            const portfolioObserver = new IntersectionObserver(
+                (entries, observer) => {
+
+                    entries.forEach((entry) => {
+
+                        if (!entry.isIntersecting) {
+                            return;
+                        }
+
+                        entry.target.classList.add('is-visible');
+
+                        observer.unobserve(entry.target);
+
+                    });
+
+                },
+                {
+                    threshold: 0.12,
+                    rootMargin: '0px 0px -70px 0px'
+                }
+            );
+
+            if (portfolioHeader) {
+                portfolioObserver.observe(portfolioHeader);
+            }
+
+            portfolioProjects.forEach((project, index) => {
+
+                project.style.setProperty(
+                    '--portfolio-delay',
+                    `${index * 120}ms`
+                );
+
+                portfolioObserver.observe(project);
+
+            });
+
+            if (portfolioFooter) {
+                portfolioObserver.observe(portfolioFooter);
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SCREENSHOTS — PARALLAX AU SCROLL
+        |--------------------------------------------------------------------------
+        */
+
+        const canUseParallax =
+            !prefersReducedMotion &&
+            window.matchMedia('(min-width: 769px)').matches;
+
+        if (canUseParallax) {
+
+            const projectMedia = portfolioSection.querySelectorAll(
+                '.home-project__media'
+            );
+
+            let ticking = false;
+
+            const updatePortfolioParallax = () => {
+
+                const viewportHeight = window.innerHeight;
+
+                projectMedia.forEach((media) => {
+
+                    const image = media.querySelector('img');
+
+                    if (!image) {
+                        return;
+                    }
+
+                    const rect = media.getBoundingClientRect();
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | On ignore les projets complètement hors écran
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        rect.bottom < 0 ||
+                        rect.top > viewportHeight
+                    ) {
+                        return;
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Progression dans le viewport
+                    | 0 = entre par le bas
+                    | 1 = sort par le haut
+                    |--------------------------------------------------------------------------
+                    */
+
+                    const progress =
+                        (viewportHeight - rect.top) /
+                        (viewportHeight + rect.height);
+
+                    const normalizedProgress = Math.max(
+                        0,
+                        Math.min(1, progress)
+                    );
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Distance réellement disponible dans le screenshot
+                    |--------------------------------------------------------------------------
+                    */
+
+                    const maxTranslate = Math.max(
+                        0,
+                        image.offsetHeight - media.offsetHeight
+                    );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | On n'utilise qu'une partie du débattement.
+                    | L'effet doit rester subtil.
+                    |--------------------------------------------------------------------------
+                    */
+
+                    const parallaxDistance = Math.min(
+                        maxTranslate,
+                        110
+                    );
+
+                    const translateY =
+                        normalizedProgress * parallaxDistance;
+
+                    image.style.transform =
+                        `translate3d(0, -${translateY}px, 0)`;
+
+                });
+
+                ticking = false;
+
+            };
+
+
+            const requestPortfolioParallax = () => {
+
+                if (ticking) {
+                    return;
+                }
+
+                ticking = true;
+
+                requestAnimationFrame(
+                    updatePortfolioParallax
+                );
+
+            };
+
+
+            window.addEventListener(
+                'scroll',
+                requestPortfolioParallax,
+                {
+                    passive: true
+                }
+            );
+
+            window.addEventListener(
+                'resize',
+                requestPortfolioParallax
+            );
+
+            updatePortfolioParallax();
+
+        }
+
+    }
+
 });

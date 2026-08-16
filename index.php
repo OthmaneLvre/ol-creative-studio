@@ -579,61 +579,174 @@ include 'partials/header.php';
 
     </section>
 
+    <!-- =========================== HOME PORTFOLIO =========================== -->
 
-        <!-- =========================== PORTFOLIO/REALISATIONS =========================== -->
+    <?php
 
-    <section class="portfolio">
+    require_once "php/db.php";
+
+    $query = $pdo->query("
+        SELECT *
+        FROM portfolio
+        ORDER BY id DESC
+        LIMIT 3
+    ");
+
+    $projects = $query->fetchAll(PDO::FETCH_ASSOC);
+
+    $categories = [
+        "figma" => "Maquette Figma",
+        "vitrine" => "Site vitrine",
+        "logo" => "Identité visuelle",
+        "ecommerce" => "E-commerce",
+        "app" => "Application web"
+    ];
+
+    ?>
+
+    <section class="home-portfolio">
+
         <div class="container">
 
-            <h2 class="section-title">Créations Web – Mes réalisations</h2>
-            <p class="section-subtitle">Une sélection de projets conçus avec soin pour mes clients.</p>
+            <div class="home-portfolio__header">
 
-            <div class="portfolio-grid">
+                <div>
 
-                <?php
-                require_once "php/db.php";
-
-                // Récupérer les 3 dernières créations
-                $query = $pdo->query("SELECT * FROM portfolio ORDER BY id DESC LIMIT 3");
-                $projects = $query->fetchAll(PDO::FETCH_ASSOC);
-
-                // 🟦 Table de correspondance CATEGORIE -> LIBELLÉ propre
-                $categories = [
-                    "figma" => "Maquettes Figma",
-                    "vitrine" => "Site vitrine",
-                    "logo" => "Identité visuelle",
-                    "ecommerce" => "Boutique en ligne",
-                    "app" => "Application Web & Mobile"
-                ];
-
-                foreach ($projects as $project):
-                ?>
-
-                <div class="portfolio-card">
-
-                    <h3><?=  htmlspecialchars($project["titre"]); ?></h3>
-                    <span class="project-type">
-                        <?= htmlspecialchars($categories[$project["categorie"]] ?? $project["categorie"]); ?>
+                    <span class="home-portfolio__eyebrow">
+                        Projets récents
                     </span>
 
-                    <div class="project-frame">
-                        <img src="admin/uploads/creation/<?= htmlspecialchars($project["image"]); ?>" width="320px" height="320px" loading="lazy" alt="<?= htmlspecialchars($project["titre"]); ?>">
-                    </div>
+                    <h2 class="home-portfolio__title">
+                        Quelques créations
+                        <em>qui ont pris vie.</em>
+                    </h2>
 
                 </div>
 
-                <?php endforeach; ?>
+                <div class="home-portfolio__header-side">
+
+                    <p>
+                        Une sélection de projets web et graphiques
+                        conçus sur mesure pour répondre à des besoins,
+                        des univers et des objectifs différents.
+                    </p>
+
+                    <a
+                        href="/portfolio.php"
+                        class="home-portfolio__all-link"
+                    >
+                        Voir tous les projets
+                        <span aria-hidden="true">↗</span>
+                    </a>
+
+                </div>
 
             </div>
 
-            <div class="portfolio-btn-container">
-                <a href="portfolio.php" class="btn-primary">Voir mes créations</a>
+
+            <?php if (!empty($projects)): ?>
+
+                <div class="home-portfolio__grid">
+
+                    <?php foreach ($projects as $index => $project): ?>
+
+                        <?php
+                        $projectNumber = str_pad(
+                            (string) ($index + 1),
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        );
+
+                        $categoryLabel =
+                            $categories[$project["categorie"]]
+                            ?? $project["categorie"];
+                        ?>
+
+                        <article
+                            class="home-project <?= $index === 0 ? 'home-project--featured' : ''; ?>"
+                        >
+
+                            <a
+                                href="/portfolio-details.php?id=<?= (int) $project["id"]; ?>"
+                                class="home-project__link"
+                                aria-label="Découvrir le projet <?= htmlspecialchars($project["titre"]); ?>"
+                            >
+
+                                <div class="home-project__media">
+
+                                    <img
+                                        src="/admin/uploads/creation/<?= htmlspecialchars($project["image"]); ?>"
+                                        alt="<?= htmlspecialchars($project["titre"]); ?>"
+                                        loading="lazy"
+                                    >
+
+                                    <div
+                                        class="home-project__arrow"
+                                        aria-hidden="true"
+                                    >
+                                        ↗
+                                    </div>
+
+                                </div>
+
+
+                                <div class="home-project__content">
+
+                                    <div class="home-project__meta">
+
+                                        <span>
+                                            <?= $projectNumber; ?>
+                                        </span>
+
+                                        <span>
+                                            <?= htmlspecialchars($categoryLabel); ?>
+                                        </span>
+
+                                    </div>
+
+                                    <h3>
+                                        <?= htmlspecialchars($project["titre"]); ?>
+                                    </h3>
+
+                                </div>
+
+                            </a>
+
+                        </article>
+
+                    <?php endforeach; ?>
+
+                </div>
+
+            <?php endif; ?>
+
+
+            <div class="home-portfolio__footer">
+
+                <span>
+                    Web · E-commerce · Branding · Design
+                </span>
+
+                <a
+                    href="/portfolio.php"
+                    class="button button--secondary"
+                >
+                    <span>Explorer le portfolio</span>
+
+                    <span
+                        class="button__icon"
+                        aria-hidden="true"
+                    >
+                        ↗
+                    </span>
+                </a>
+
             </div>
 
         </div>
-    </section>
 
-    <div class="section-divider"></div>
+    </section>
 
         <!-- =========================== TESTIMONIALS =========================== -->
 
