@@ -59,4 +59,88 @@ document.addEventListener('DOMContentLoaded', () => {
         visual.style.transform = '';
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | SERVICES — REVEAL AU SCROLL
+    |--------------------------------------------------------------------------
+    */
+
+    const servicesSection = document.querySelector('.home-services');
+
+    if (servicesSection) {
+
+        const servicesHeader = servicesSection.querySelector(
+            '.home-services__header'
+        );
+
+        const serviceItems = servicesSection.querySelectorAll(
+            '.home-service'
+        );
+
+        const servicesFooter = servicesSection.querySelector(
+            '.home-services__footer'
+        );
+
+        const prefersReducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+        if (prefersReducedMotion) {
+
+            servicesHeader?.classList.add('is-visible');
+
+            serviceItems.forEach((item) => {
+                item.classList.add('is-visible');
+            });
+
+            servicesFooter?.classList.add('is-visible');
+
+        } else {
+
+            const servicesObserver = new IntersectionObserver(
+                (entries, observer) => {
+
+                    entries.forEach((entry) => {
+
+                        if (!entry.isIntersecting) {
+                            return;
+                        }
+
+                        const target = entry.target;
+
+                        target.classList.add('is-visible');
+
+                        observer.unobserve(target);
+
+                    });
+
+                },
+                {
+                    threshold: 0.18,
+                    rootMargin: '0px 0px -70px 0px'
+                }
+            );
+
+            if (servicesHeader) {
+                servicesObserver.observe(servicesHeader);
+            }
+
+            serviceItems.forEach((item, index) => {
+
+                item.style.setProperty(
+                    '--service-delay',
+                    `${index * 110}ms`
+                );
+
+                servicesObserver.observe(item);
+            });
+
+            if (servicesFooter) {
+                servicesObserver.observe(servicesFooter);
+            }
+
+        }
+
+    }
+
 });

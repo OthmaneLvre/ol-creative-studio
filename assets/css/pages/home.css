@@ -1208,6 +1208,57 @@
 
 }
 
+/* ========================================================= */
+/*                 SERVICES — SCROLL REVEAL                  */
+/* ========================================================= */
+
+.home-services__header,
+.home-service,
+.home-services__footer {
+    opacity: 0;
+
+    transform: translateY(28px);
+
+    transition:
+        opacity 0.75s var(--ease-expo),
+        transform 0.75s var(--ease-expo);
+}
+
+.home-service {
+    transition:
+        opacity 0.75s var(--ease-expo) var(--service-delay, 0ms),
+        transform 0.75s var(--ease-expo) var(--service-delay, 0ms),
+        padding var(--duration-normal) var(--ease-standard),
+        background-color var(--duration-normal) var(--ease-standard);
+}
+
+.home-services__header.is-visible,
+.home-service.is-visible,
+.home-services__footer.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.home-services__footer {
+    transition-delay: 120ms;
+}
+
+
+/* ========================================================= */
+/*                    REDUCED MOTION                         */
+/* ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .home-services__header,
+    .home-service,
+    .home-services__footer {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+}
 
 
 
