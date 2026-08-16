@@ -656,4 +656,187 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | TESTIMONIALS — SLIDER
+    |--------------------------------------------------------------------------
+    */
+
+    const testimonialsSection = document.querySelector('.home-testimonials');
+
+    if (testimonialsSection && Array.isArray(window.homeTestimonials)) {
+
+        const slider = testimonialsSection.querySelector(
+            '[data-testimonials]'
+        );
+
+        const textElement = testimonialsSection.querySelector(
+            '[data-testimonial-text]'
+        );
+
+        const nameElement = testimonialsSection.querySelector(
+            '[data-testimonial-name]'
+        );
+
+        const projectElement = testimonialsSection.querySelector(
+            '[data-testimonial-project]'
+        );
+
+        const currentElement = testimonialsSection.querySelector(
+            '[data-testimonial-current]'
+        );
+
+        const prevButton = testimonialsSection.querySelector(
+            '[data-testimonial-prev]'
+        );
+
+        const nextButton = testimonialsSection.querySelector(
+            '[data-testimonial-next]'
+        );
+
+        const testimonials = window.homeTestimonials;
+
+        let currentIndex = 0;
+        let isAnimating = false;
+
+
+        const updateTestimonial = (index) => {
+
+            if (
+                !slider ||
+                !textElement ||
+                !nameElement ||
+                !projectElement ||
+                !currentElement ||
+                isAnimating
+            ) {
+                return;
+            }
+
+            isAnimating = true;
+
+            slider.classList.add('is-changing');
+
+            window.setTimeout(() => {
+
+                const testimonial = testimonials[index];
+
+                textElement.textContent =
+                    testimonial.commentaire ?? '';
+
+                nameElement.textContent =
+                    testimonial.nom ?? 'Client';
+
+                projectElement.textContent =
+                    testimonial.categorie ?? 'Projet digital';
+
+                currentElement.textContent =
+                    String(index + 1).padStart(2, '0');
+
+                slider.classList.remove('is-changing');
+
+                window.setTimeout(() => {
+                    isAnimating = false;
+                }, 350);
+
+            }, 220);
+
+        };
+
+
+        const showPrevious = () => {
+
+            currentIndex =
+                (currentIndex - 1 + testimonials.length) %
+                testimonials.length;
+
+            updateTestimonial(currentIndex);
+
+        };
+
+
+        const showNext = () => {
+
+            currentIndex =
+                (currentIndex + 1) %
+                testimonials.length;
+
+            updateTestimonial(currentIndex);
+
+        };
+
+
+        prevButton?.addEventListener(
+            'click',
+            showPrevious
+        );
+
+        nextButton?.addEventListener(
+            'click',
+            showNext
+        );
+
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TESTIMONIALS — REVEAL
+    |--------------------------------------------------------------------------
+    */
+
+    if (testimonialsSection) {
+
+        const testimonialsHeader = testimonialsSection.querySelector(
+            '.home-testimonials__header'
+        );
+
+        const testimonialsSlider = testimonialsSection.querySelector(
+            '.home-testimonials__slider'
+        );
+
+        const prefersReducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+        const revealElements = [
+            testimonialsHeader,
+            testimonialsSlider
+        ].filter(Boolean);
+
+        if (prefersReducedMotion) {
+
+            revealElements.forEach((element) => {
+                element.classList.add('is-visible');
+            });
+
+        } else {
+
+            const testimonialsObserver = new IntersectionObserver(
+                (entries, observer) => {
+
+                    entries.forEach((entry) => {
+
+                        if (!entry.isIntersecting) {
+                            return;
+                        }
+
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+
+                    });
+
+                },
+                {
+                    threshold: 0.16,
+                    rootMargin: '0px 0px -70px 0px'
+                }
+            );
+
+            revealElements.forEach((element) => {
+                testimonialsObserver.observe(element);
+            });
+
+        }
+
+    }
 });

@@ -748,54 +748,153 @@ include 'partials/header.php';
 
     </section>
 
-        <!-- =========================== TESTIMONIALS =========================== -->
-
+    <!-- =========================== TESTIMONIALS =========================== -->
 
     <?php
+
     require_once "php/db.php";
 
-    $sql = "SELECT * FROM avis WHERE statut = 'validé' ORDER BY id DESC";
+    $sql = "
+        SELECT *
+        FROM avis
+        WHERE statut = 'validé'
+        ORDER BY id DESC
+    ";
+
     $stmt = $pdo->query($sql);
     $avis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     ?>
 
-    <section class="testimonials">
+    <section class="home-testimonials">
+
         <div class="container">
 
-            <h2 class="section-title">Ils m'ont fait confiance !</h2>
-            <p class="section-subtitle">
-                Découvrez ce que pensent mes clients de leur expérience avec OL Creative Studio.
-            </p>
+            <div class="home-testimonials__header">
 
-            <div class="testimonial-card">
+                <div>
 
-                <button class="arrow arrow-left" id="prevTestimonial">
-                    <img src="assets/icons/arrow-left.svg" alt="Précédent" aria-label="Avis précédent">
-                </button>
+                    <span class="home-testimonials__eyebrow">
+                        Ils m'ont fait confiance
+                    </span>
 
-                <div class="testimonial-content">
-                    <img src="assets/images/default-avatar.svg" id="clientAvatar" loading="lazy" alt="Avis client">
+                    <h2 class="home-testimonials__title">
+                        Des collaborations
+                        <em>qui comptent.</em>
+                    </h2>
 
-                    <h3 class="testimonial-name" id="clientName">Client</h3>
-                    <p class="testimonial-type" id="clientType">Création d’un site vitrine</p>
-
-                    <p class="testimonial-text" id="clientText">
-                        “Othmane a fait un travail exceptionnel pour mon site vitrine. Rapidité,
-                        qualité, écoute... Je recommande à 200 % !”
-                    </p>
                 </div>
 
-                <button class="arrow arrow-right" id="nextTestimonial">
-                    <img src="assets/icons/arrow-right.svg" alt="Suivant" aria-label="Avis suivant">
-                </button>
+                <p class="home-testimonials__intro">
+                    Derrière chaque projet, il y a surtout une collaboration,
+                    des échanges et un objectif commun : créer quelque chose
+                    de juste, utile et durable.
+                </p>
 
             </div>
 
-        </div>
 
-        <script>
-            const testimonials = <?= json_encode($avis); ?>;
-        </script>
+            <?php if (!empty($avis)): ?>
+
+                <div
+                    class="home-testimonials__slider"
+                    data-testimonials
+                >
+
+                    <div class="home-testimonials__quote-mark" aria-hidden="true">
+                        “
+                    </div>
+
+                    <div class="home-testimonials__content">
+
+                        <p
+                            class="home-testimonials__quote"
+                            data-testimonial-text
+                        >
+                            <?= htmlspecialchars($avis[0]["commentaire"] ?? ""); ?>
+                        </p>
+
+                        <div class="home-testimonials__client">
+
+                            <div>
+
+                                <span
+                                    class="home-testimonials__name"
+                                    data-testimonial-name
+                                >
+                                    <?= htmlspecialchars($avis[0]["nom"] ?? "Client"); ?>
+                                </span>
+
+                                <span
+                                    class="home-testimonials__project"
+                                    data-testimonial-project
+                                >
+                                    <?= htmlspecialchars($avis[0]["categorie"] ?? "Projet digital"); ?>
+                                </span>
+
+                            </div>
+
+                            <div class="home-testimonials__counter">
+
+                                <span data-testimonial-current>
+                                    01
+                                </span>
+
+                                <span>
+                                    /
+                                </span>
+
+                                <span>
+                                    <?= str_pad(
+                                        (string) count($avis),
+                                        2,
+                                        '0',
+                                        STR_PAD_LEFT
+                                    ); ?>
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="home-testimonials__controls">
+
+                        <button
+                            type="button"
+                            class="home-testimonials__button"
+                            data-testimonial-prev
+                            aria-label="Avis précédent"
+                        >
+                            ←
+                        </button>
+
+                        <button
+                            type="button"
+                            class="home-testimonials__button"
+                            data-testimonial-next
+                            aria-label="Avis suivant"
+                        >
+                            →
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <script>
+                    window.homeTestimonials = <?= json_encode(
+                        $avis,
+                        JSON_UNESCAPED_UNICODE |
+                        JSON_UNESCAPED_SLASHES
+                    ); ?>;
+                </script>
+
+            <?php endif; ?>
+
+        </div>
 
     </section>
 
