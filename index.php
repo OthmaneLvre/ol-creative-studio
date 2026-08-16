@@ -460,40 +460,124 @@ include 'partials/header.php';
 
     </section>
 
-        <!-- =========================== ABOUT SECTION =========================== -->
+    <!-- =========================== ABOUT / STUDIO =========================== -->
 
-    <section class="about">
-        <div class="container about-container">
+    <section class="home-about">
 
-            <!-- Illustration -->
-            <div class="about-image">
-                <img src="/assets/images/about-illustration.webp"
-                    loading="lazy"
-                    alt="Développeur freelance illustration"
-                    width="480"
-                    height="320"
-                >
+        <div class="container">
+
+            <div class="home-about__header">
+
+                <span class="home-about__eyebrow">
+                    À propos
+                </span>
+
+                <p class="home-about__location">
+                    Céret · Pyrénées-Orientales · France
+                </p>
+
             </div>
 
-            <!-- Contenu texte -->
-            <div class="about-content">
-                <h2>Qui suis-je ?</h2>
-                <h3>Développeur Web Freelance basé à Céret</h3>
 
-                <p>
-                    Basé à Céret dans les Pyrénées-Orientales, j'accompagne les artisans, commerçants, associations et
-                    entreprises dans la création de sites internet modernes, rapides et optimisés pour le référencement naturel.
-                    <br><br>
-                    <strong>Mon objectif :</strong> transformer votre présence en ligne en un véritable atout professionnel.
-                </p>
-            
-                <a href="contact.php" class="btn-secondary about-btn">Me contacter</a>
+            <div class="home-about__content">
+
+                <div class="home-about__statement">
+
+                    <h2>
+                        Je conçois des expériences
+                        <em>digitales utiles et mémorables.</em>
+                    </h2>
+
+                </div>
+
+                <div class="home-about__details">
+
+                    <p class="home-about__lead">
+                        OL Creative Studio accompagne les artisans,
+                        indépendants et entreprises dans la création
+                        de sites web, boutiques en ligne et identités
+                        visuelles pensées pour durer.
+                    </p>
+
+                    <p>
+                        Mon approche mêle design, développement et stratégie
+                        pour créer des solutions cohérentes, performantes
+                        et adaptées à chaque activité.
+                    </p>
+
+                    <a
+                        href="/contact.php"
+                        class="home-about__link"
+                    >
+                        Travailler ensemble
+                        <span aria-hidden="true">↗</span>
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <div class="home-about__meta">
+
+                <div class="home-about__meta-item">
+
+                    <span class="home-about__meta-number">
+                        01
+                    </span>
+
+                    <span class="home-about__meta-label">
+                        Sur mesure
+                    </span>
+
+                    <p>
+                        Pas de modèle générique : chaque projet est pensé
+                        selon votre activité et vos objectifs.
+                    </p>
+
+                </div>
+
+
+                <div class="home-about__meta-item">
+
+                    <span class="home-about__meta-number">
+                        02
+                    </span>
+
+                    <span class="home-about__meta-label">
+                        Design & code
+                    </span>
+
+                    <p>
+                        Une approche globale qui relie identité visuelle,
+                        expérience utilisateur et développement.
+                    </p>
+
+                </div>
+
+
+                <div class="home-about__meta-item">
+
+                    <span class="home-about__meta-number">
+                        03
+                    </span>
+
+                    <span class="home-about__meta-label">
+                        Accompagnement
+                    </span>
+
+                    <p>
+                        Un interlocuteur unique de la première idée
+                        jusqu’à la mise en ligne du projet.
+                    </p>
+
+                </div>
+
             </div>
 
         </div>
-    </section>
 
-    <div class="section-divider"></div>
+    </section>
 
 
         <!-- =========================== PORTFOLIO/REALISATIONS =========================== -->

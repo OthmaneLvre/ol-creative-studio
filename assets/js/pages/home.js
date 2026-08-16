@@ -341,4 +341,94 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | ABOUT — REVEAL AU SCROLL
+    |--------------------------------------------------------------------------
+    */
+
+    const aboutSection = document.querySelector('.home-about');
+
+    if (aboutSection) {
+
+        const aboutHeader = aboutSection.querySelector(
+            '.home-about__header'
+        );
+
+        const aboutStatement = aboutSection.querySelector(
+            '.home-about__statement'
+        );
+
+        const aboutDetails = aboutSection.querySelector(
+            '.home-about__details'
+        );
+
+        const aboutMetaItems = aboutSection.querySelectorAll(
+            '.home-about__meta-item'
+        );
+
+        const prefersReducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+        if (prefersReducedMotion) {
+
+            aboutHeader?.classList.add('is-visible');
+            aboutStatement?.classList.add('is-visible');
+            aboutDetails?.classList.add('is-visible');
+
+            aboutMetaItems.forEach((item) => {
+                item.classList.add('is-visible');
+            });
+
+        } else {
+
+            const aboutObserver = new IntersectionObserver(
+                (entries, observer) => {
+
+                    entries.forEach((entry) => {
+
+                        if (!entry.isIntersecting) {
+                            return;
+                        }
+
+                        entry.target.classList.add('is-visible');
+
+                        observer.unobserve(entry.target);
+
+                    });
+
+                },
+                {
+                    threshold: 0.18,
+                    rootMargin: '0px 0px -70px 0px'
+                }
+            );
+
+            if (aboutHeader) {
+                aboutObserver.observe(aboutHeader);
+            }
+
+            if (aboutStatement) {
+                aboutObserver.observe(aboutStatement);
+            }
+
+            if (aboutDetails) {
+                aboutObserver.observe(aboutDetails);
+            }
+
+            aboutMetaItems.forEach((item, index) => {
+
+                item.style.setProperty(
+                    '--about-delay',
+                    `${index * 120}ms`
+                );
+
+                aboutObserver.observe(item);
+
+            });
+
+        }
+
+    }
 });
