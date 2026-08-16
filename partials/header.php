@@ -148,7 +148,7 @@
 
 </head>
 
-<body>
+<body id="top">
 
 <?php
 $currentPage = basename($_SERVER['PHP_SELF']);

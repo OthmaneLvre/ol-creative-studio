@@ -1,89 +1,224 @@
 </main>
 
-<footer class="footer" itemscope itemtype="https://schema.org/LocalBusiness">
+<footer class="site-footer" itemscope itemtype="https://schema.org/LocalBusiness">
 
-    <div class="footer-container">
+    <!-- CTA FOOTER -->
+    <div class="container">
 
-        <div class="footer-cols">
+        <div class="site-footer__cta">
 
-            <!-- COLONNE 1 -->
-            <div class="footer-col">
-                <img src="/assets/logo/logo@1x.webp"
-                    class="footer-logo"
-                    srcset="
-                        /assets/logo/dark/logo-dark@1x.webp 65w,
-                        /assets/logo/dark/logo-dark@2x.webp 130w,
-                    "
-                    sizes="(max-width: 768px) 42px, 65px"
-                    alt="OL Creative Studio - Concepteur web à Céret"
-                    >
-                <p itemprop="description">
-                    "Développeur Web & Graphiste Freelance à Céret et dans les Pyrénées-Orientales."
-                </p>
+            <div class="site-footer__cta-content">
 
-                <!-- Réseaux & Plateformes -->
-                <div class="footer-socials">
-                    <a href="https://github.com/OthmaneLvre" target="_blank" aria-label="GitHub OL Creative Studio">
-                        <img src="/assets/icons/github.svg" alt="">
-                    </a>
-                    <a href="https://linkedin.com/in/olcreativestudio" target="_blank" aria-label="LinkedIn OL Creative Studio">
-                        <img src="/assets/icons/linkedin.svg" alt="">
-                    </a>
-                    <a href="https://www.upwork.com/freelancers/~012bfcf401f6a63a9c?mp_source=share" target="_blank" aria-label="Profil Upwork OL Creative Studio">
-                        <img src="/assets/icons/upwork.svg" alt="">
-                    </a>
-                </div>
+                <span class="site-footer__eyebrow">
+                    Un projet en tête ?
+                </span>
+
+                <h2 class="site-footer__title">
+                    Faisons quelque chose
+                    <em>qui marque.</em>
+                </h2>
+
             </div>
-        
-            <!-- COLONNE 2 -->
-            <div class="footer-col">
-                <h2>Navigation</h2>
-                <nav>
-                    <a href="index.php">Accueil</a>
-                    <a href="services.php">Services</a>
-                    <a href="portfolio.php">Portfolio</a>
-                    <a href="contact.php">Contact</a>
-                </nav>
-            </div>
-        
-            <!-- COLONNE 3 -->
-            <div class="footer-col">
-                <h2>Contact</h2>
 
-                <address class="footer-contact" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
-                    
-                    <div class="footer-item">
-                        <img src="/assets/icons/envelope.svg" alt="">
-                        <a href="mailto:contact@olcreativestudio.com" class="footer-mail" itemprop="email">
-                            Contact@olcreativestudio.com
-                        </a>
-                    </div>
+            <a
+                href="/contact.php"
+                class="button button--primary button--lg site-footer__cta-button"
+            >
+                <span>Parler de votre projet</span>
 
-                    <div class="footer-item">
-                        <img src="/assets/icons/location.svg" alt="">
-                        <span itemprop="streetAddress">66 400, Céret, France</span>
-                    </div>
-
-                    <div class="footer-item">
-                        <img src="/assets/icons/phone.svg" alt="">
-                        <a href="tel:+33767841013" itemprop="telephone">07 67 84 10 13</a>
-                    </div>
-
-                </address>
-            </div>
+                <span
+                    class="button__icon"
+                    aria-hidden="true"
+                >
+                    ↗
+                </span>
+            </a>
 
         </div>
 
-        <div class="footer-bottom">
-            <p>© <?= date("Y") ?> OL Creative Studio - Tous droits réservés</p>
-            <p>
-                <a href="/docs/mentions-legales.php">Mentions légales</a> •
-                <a href="/docs/politique-confidentialite.php">Politique de confidentialité</a> •
-                <a href="/docs/cgv.php">CGV</a> •
-                <a href="/docs/cgu.php">CGU</a>
-            </p>
-
     </div>
+
+            <!-- MAIN FOOTER -->
+            <div class="site-footer__main">
+
+                <div class="container">
+
+                    <div class="site-footer__grid">
+
+                        <!-- BRAND -->
+                        <div class="site-footer__brand">
+
+                            <a
+                                href="/index.php"
+                                class="site-footer__logo-link"
+                                aria-label="OL Creative Studio - Accueil"
+                            >
+
+                                <img
+                                    src="/assets/logo/light/logo-light@1x.webp"
+                                    srcset="
+                                        /assets/logo/light/logo-light@1x.webp 1x,
+                                        /assets/logo/light/logo-light@2x.webp 2x
+                                    "
+                                    alt=""
+                                    class="site-footer__logo"
+                                >
+                            </a>
+
+                            <p class="site-footer__description">
+                                Développement web, identité visuelle et solutions
+                                digitales sur mesure pour les entreprises,
+                                indépendants et associations.
+                            </p>
+
+                            <p class="site-footer__location">
+                                Céret · Pyrénées-Orientales · France
+                            </p>
+                        </div>
+
+                        <!-- NAVIGATION -->
+                        <div class="site-footer__column">
+
+                            <span class="site-footer__label">
+                                Navigation
+                            </span>
+
+                            <nav
+                                class="site-footer__nav"
+                                aria-label="Navigation du pied de page"
+                            >
+                                <a href="/index.php">
+                                    Accueil
+                                </a>
+
+                                <a href="/services.php">
+                                    Services
+                                </a>
+
+                                <a href="/portfolio.php">
+                                    Portfolio
+                                </a>
+
+                                <a href="/contact.php">
+                                    Contact
+                                </a>
+                            </nav>
+
+                        </div>
+
+                        <!-- CONTACT -->
+                        <div class="site-footer__column">
+
+                            <span class="site-footer__label">
+                                Contact
+                            </span>
+
+                            <div class="site-footer__links">
+
+                                <a href="mailto:contact@olcreativestudio.com">
+                                    contact@olcreativestudio.com
+                                </a>
+
+                                <a href="tel:+33767841013">
+                                    07 67 84 10 13
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                        <!-- SOCIAL -->
+                        <div class="site-footer__column">
+
+                            <span class="site-footer__label">
+                                Réseaux
+                            </span>
+
+                            <div class="site-footer__links">
+
+                                <a
+                                    href="https://github.com/OthmaneLvre"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <span>GitHub</span>
+                                    <span aria-hidden="true">↗</span>
+                                </a>
+
+                                <a
+                                    href="https://linkedin.com/in/olcreativestudio"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <span>LinkedIn</span>
+                                    <span aria-hidden="true">↗</span>
+                                </a>
+
+                                <a
+                                    href="https://www.instagram.com/olcreativestudio?utm_source=qr"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <span>Instagram</span>
+                                    <span aria-hidden="true">↗</span>
+                                </a>
+
+                                <a
+                                    href="https://www.upwork.com/freelancers/~012bfcf401f6a63a9c?mp_source=share"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <span>Upwork</span>
+                                    <span aria-hidden="true">↗</span>
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- BOTTOM -->
+                    <div class="site-footer__bottom">
+
+                        <p>
+                            © <?= date('Y') ?> OL Creative Studio
+                        </p>
+
+                        <div class="site-footer__legal">
+
+                            <a href="/docs/mentions-legales.php">
+                                Mentions légales
+                            </a>
+
+                            <a href="/docs/politique-confidentialite.php">
+                                Confidentialité
+                            </a>
+
+                            <a href="/docs/cgv.php">
+                                CGV
+                            </a>
+
+                            <a href="/docs/cgu.php">
+                                CGU
+                            </a>
+
+                        </div>
+
+                        <a
+                            href="#top"
+                            class="site-footer__back-top"
+                            aria-label="Retour en haut de la page"
+                        >
+                            <span>Haut de page</span>
+                            <span aria-hidden="true">↑</span>
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
 
 </footer>
 
