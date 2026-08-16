@@ -9,34 +9,121 @@ include 'partials/header.php';
 <main class="page-content">
     <!-- =========================== HERO SECTION =========================== -->
 
-    <section class="hero">
-        <div class="container hero-container">
+    <section class="home-hero">
 
-            <div class="hero-text">
-                <h1>Développeur Web Freelance à Céret</h1>
-                <p>Sites vitrines modernes, optimisés et élégants — adaptés à votre activité.</p>
-            
-                <div class="hero-buttons">
-                    <a href="contact.php" class="btn-primary">Me contacter</a>
-                    <a href="services.php" class="btn-secondary">Voir mes services</a>
+        <div class="home-hero__background" aria-hidden="true">
+            <span class="home-hero__orb home-hero__orb--one"></span>
+            <span class="home-hero__orb home-hero__orb--two"></span>
+            <span class="home-hero__grid"></span>
+        </div>
+
+        <div class="container home-hero__container">
+
+            <div class="home-hero__content">
+
+                <span class="home-hero__eyebrow">
+                    Studio créatif · Céret
+                </span>
+
+                <h1 class="home-hero__title">
+                    Des expériences digitales
+                    <em>qui marquent.</em>
+                </h1>
+
+                <p class="home-hero__description">
+                    J'imagine et dévelope des sites web sur mesure,
+                    des boutiques en ligne et des identités visuelles
+                    pensées pour donner du caractère à votre marque.
+                </p>
+
+                <div class="home-hero__actions">
+
+                    <a
+                        href="/contact.php"
+                        class="button button--primary button--lg"
+                    >
+                        <span>Parler de votre projet</span>
+                    </a>
+
+                    <a
+                        href="/portfolio.php"
+                        class="home-hero__portfolio-link"
+                    >
+                        Voir les réalisations
+
+                        <span aria-hidden="true"></span>
+                    </a>
+
                 </div>
+
             </div>
 
-            <div class="hero-image">
-                <img src="assets/images/hero.webp"
-                    alt="Développeur web freelance créant des sites modernes"
-                    width="800"
-                    height="600"
-                    loading="eager"
-                    fetchpriority="high"
-                    decoding="async"
-                >
+            <div class="home-hero__visual" aria-hidden="true">
+
+                <div class="home-hero__visual-card">
+
+                    <div class="home-hero__visual-top">
+
+                        <span> OL / Creative Studio</span>
+
+                        <span>2026</span>
+
+                    </div>
+
+                    <div class="home-hero__visual-center">
+
+                        <span class="home-hero__visual-small">
+                            Web
+                        </span>
+
+                        <strong>
+                            Design
+                            <em>&</em>
+                            Code
+                        </strong>
+
+                        <span class="home-hero__visual-small home-hero__visual-small--right">
+                            Identity
+                        </span>
+
+                    </div>
+
+                    <div class="home-hero__visual-bottom">
+
+                        <span>
+                            Sites web
+                        </span>
+
+                        <span>
+                            E-commerce
+                        </span>
+
+                        <span>
+                            Branding
+                        </span>
+
+                    </div>
+
+                </div>
+
             </div>
 
         </div>
-    </section>
 
-    <div class="section-divider"></div>
+        <div class="container home-hero__footer">
+
+            <span>
+                Développeur web freelance
+            </span>
+
+            <a href="#home-services">
+                Découvrir le Studio
+                <span aria-hidden="true">↓</span>
+            </a>
+
+        </div>
+
+    </section>
 
         <!-- =========================== SERVICES SECTION =========================== -->
 
@@ -242,7 +329,9 @@ include 'partials/header.php';
         </div>
     </section>
 
-</main>
-
+<script
+    type="module"
+    src="/assets/js/pages/home.js"
+></script>
 
 <?php include 'partials/footer.php'; ?>
