@@ -321,6 +321,143 @@ include 'partials/header.php';
             </div>
 
         </div>
+
+    </section>
+
+    <!-- =========================== FEATURED PROJECT =========================== -->
+
+    <section class="home-featured-project">
+
+        <div class="container">
+
+            <div class="home-featured-project__header">
+
+                <span class="home-featured-project__eyebrow">
+                    Projet sélectionné · 01
+                </span>
+
+                <div class="home-featured-project__heading">
+
+                    <h2>
+                        Below Dreams
+                        <em>E-commerce sur mesure.</em>
+                    </h2>
+
+                    <p>
+                        Une boutique en ligne développée de A à Z avec une
+                        expérience d’achat personnalisée, un espace client,
+                        une administration complète et un paiement sécurisé.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="home-featured-project__visual">
+
+                <div class="home-featured-project__browser">
+
+                    <div class="home-featured-project__browser-bar">
+
+                        <div class="home-featured-project__browser-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+
+                        <span class="home-featured-project__browser-url">
+                            belowdreams.com
+                        </span>
+
+                    </div>
+
+                    <div class="home-featured-project__media">
+
+                        <img
+                            src="/assets/images/projects/below-dreams.webp"
+                            alt="Aperçu du site e-commerce Below Dreams"
+                            loading="lazy"
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="home-featured-project__details">
+
+                <div class="home-featured-project__intro">
+
+                    <span class="home-featured-project__label">
+                        Le projet
+                    </span>
+
+                    <p>
+                        Conception et développement d’une plateforme e-commerce
+                        indépendante pensée pour donner à la marque un contrôle
+                        total sur ses produits, ses commandes et son expérience client.
+                    </p>
+
+                </div>
+
+
+                <div class="home-featured-project__features">
+
+                    <div class="home-featured-project__feature">
+                        <span>01</span>
+                        <p>Boutique & catalogue produits</p>
+                    </div>
+
+                    <div class="home-featured-project__feature">
+                        <span>02</span>
+                        <p>Paiement sécurisé Stripe</p>
+                    </div>
+
+                    <div class="home-featured-project__feature">
+                        <span>03</span>
+                        <p>Espace client & commandes</p>
+                    </div>
+
+                    <div class="home-featured-project__feature">
+                        <span>04</span>
+                        <p>Administration sur mesure</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="home-featured-project__footer">
+
+                <div class="home-featured-project__stack">
+                    <span>PHP</span>
+                    <span>MySQL</span>
+                    <span>Stripe</span>
+                    <span>JavaScript</span>
+                </div>
+
+                <a
+                    href="/portfolio.php"
+                    class="button button--primary"
+                >
+                    <span>Découvrir le projet</span>
+
+                    <span
+                        class="button__icon"
+                        aria-hidden="true"
+                    >
+                        ↗
+                    </span>
+                </a>
+
+            </div>
+
+        </div>
+
     </section>
 
         <!-- =========================== ABOUT SECTION =========================== -->
