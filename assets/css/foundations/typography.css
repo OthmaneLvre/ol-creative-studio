@@ -1,0 +1,211 @@
+/* =========================================
+   TYPOGRAPHY
+   ========================================= */
+
+/* ==================================================
+   FONT FACES — MANROPE
+================================================== */
+
+@font-face {
+    font-family: 'Manrope';
+    src: url('/assets/fonts/Manrope-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Manrope';
+    src: url('/assets/fonts/Manrope-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Manrope';
+    src: url('/assets/fonts/Manrope-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+/* ==================================================
+   FONT FACES — CORMORANT GARAMOND
+================================================== */
+
+@font-face {
+    font-family: 'Cormorant Garamond';
+    src: url('/assets/fonts/CormorantGaramond-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Cormorant Garamond';
+    src: url('/assets/fonts/CormorantGaramond-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+
+/* ==================================================
+   DOCUMENT
+================================================== */
+
+html {
+    font-family: var(--font-body);
+    font-size: 100%;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-base);
+    color: var(--color-text);
+}
+
+
+/* ==================================================
+   HEADINGS
+================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    color: inherit;
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+    text-wrap: balance;
+}
+
+h1 {
+    font-size: clamp(3rem, 7vw, var(--font-size-6xl));
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+}
+
+h2 {
+    font-size: clamp(2.4rem, 5vw, var(--font-size-5xl));
+    letter-spacing: var(--letter-spacing-tight);
+}
+
+h3 {
+    font-size: clamp(1.8rem, 3vw, var(--font-size-3xl));
+}
+
+h4 {
+    font-size: var(--font-size-2xl);
+}
+
+h5 {
+    font-size: var(--font-size-xl);
+}
+
+h6 {
+    font-size: var(--font-size-lg);
+}
+
+
+/* ==================================================
+   BODY TEXT
+================================================== */
+
+p {
+    max-width: 70ch;
+    color: inherit;
+    text-wrap: pretty;
+}
+
+strong,
+b {
+    font-weight: var(--font-weight-bold);
+}
+
+em,
+i {
+    font-style: italic;
+}
+
+small {
+    font-size: var(--font-size-sm);
+}
+
+
+/* ==================================================
+   LINKS
+================================================== */
+
+a {
+    color: inherit;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.18em;
+}
+
+
+/* ==================================================
+   LISTS
+================================================== */
+
+ul,
+ol {
+    padding: 0;
+    margin: 0;
+}
+
+
+/* ==================================================
+   QUOTES
+================================================== */
+
+blockquote {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3vw, var(--font-size-3xl));
+    line-height: var(--line-height-heading);
+}
+
+
+/* ==================================================
+   TEXT HELPERS
+================================================== */
+
+.text-display {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 9vw, 9rem);
+    font-weight: var(--font-weight-bold);
+    line-height: 0.9;
+    letter-spacing: var(--letter-spacing-tight);
+}
+
+.text-eyebrow {
+    font-family: var(--font-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1;
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+}
+
+.text-lead {
+    font-size: clamp(
+        var(--font-size-lg),
+        2vw,
+        var(--font-size-xl)
+    );
+    line-height: 1.6;
+}
+
+.text-muted {
+    color: var(--color-text-muted);
+}

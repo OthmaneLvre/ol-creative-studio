@@ -14,10 +14,11 @@ $creations = $pdo->query("SELECT * FROM portfolio ORDER BY date_creation DESC")-
     <meta charset="UTF-8">
     <title>Dashboard Admin - OL Creative Studio</title>
     <!-- Favicon -->
-        <link rel="icon" type="image/x-icon" href="/olcreativestudio/assets/logo/favicon_olCreativeStudio.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" href="/favicon.ico">
     
     <!-- CSS -->
-        <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="/admin/admin.css">
 
 </head>
 <body>
@@ -48,7 +49,7 @@ $creations = $pdo->query("SELECT * FROM portfolio ORDER BY date_creation DESC")-
                     <div class="card">
                         
                         <?php
-                        $imgPath = "uploads/creation/" . $c["image"];
+                        $imgPath = "/admin/uploads/creation/" . $c["image"];
                         ?>
 
                         <img src="<?= $imgPath ?>" alt="<?= htmlspecialchars($c["titre"]) ?>">

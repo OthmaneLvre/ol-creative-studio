@@ -1,4 +1,9 @@
-<?php include 'partials/header.php'; ?>
+<?php
+$pageTitle = "Développeur Web Freelance à Céret";
+$pageDescription = "Développeur web freelance à Céret dans les Pyrénées-Orientales. Création de sites vitrines, boutiques en ligne, référencement naturel SEO et identité visuelle pour artisans, indépendants et associations.";
+
+include 'partials/header.php';
+?>
 
 
 <main class="page-content">
@@ -8,7 +13,7 @@
         <div class="container hero-container">
 
             <div class="hero-text">
-                <h1>Développeur Web & Graphiste Freelance</h1>
+                <h1>Développeur Web Freelance à Céret</h1>
                 <p>Sites vitrines modernes, optimisés et élégants — adaptés à votre activité.</p>
             
                 <div class="hero-buttons">
@@ -18,7 +23,14 @@
             </div>
 
             <div class="hero-image">
-                <img src="assets/images/hero.jpg" loading="lazy" alt="Développeur web freelance créant des sites modernes">
+                <img src="assets/images/hero.webp"
+                    alt="Développeur web freelance créant des sites modernes"
+                    width="800"
+                    height="600"
+                    loading="eager"
+                    fetchpriority="high"
+                    decoding="async"
+                >
             </div>
 
         </div>
@@ -37,14 +49,14 @@
 
                 <!-- CARD 1 -->
                 <div class="service-card">
-                    <img src="assets/icons/computer.svg" loading="lazy" alt="Site vitrine moderne">
+                    <img src="/assets/icons/computer.svg" loading="lazy" alt="Site vitrine moderne">
                     <h3>Site vitrine moderne</h3>
                     <p>Création de sites modernes, optimisés, responsives et élégants  adaptés à votre activité.</p>
                 </div>
 
                 <!-- CARD 2 -->
                 <div class="service-card">
-                    <img src="assets/icons/palette.svg" loading="lazy" alt="Identité visuelle">
+                    <img src="/assets/icons/palette.svg" loading="lazy" alt="Identité visuelle">
                     <h3>Identité visuelle & Graphisme</h3>
                     <p>Création d’identités visuelles uniques : logos, chartes graphiques, supports web et print adaptés à votre marque.</p>
                 </div>
@@ -52,7 +64,7 @@
                 
                 <!-- CARD 1 -->
                 <div class="service-card">
-                    <img src="assets/icons/maintenance.svg" loading="lazy" alt="Maintenance & Optimisation">
+                    <img src="/assets/icons/maintenance.svg" loading="lazy" alt="Maintenance & Optimisation">
                     <h3>Maintenance & optimisation</h3>
                     <p>Suivi technique, mises à jour, optimisation des performances et accompagnement pour un site sécurisé et rapide.</p>
                 </div>
@@ -82,7 +94,12 @@
 
             <!-- Illustration -->
             <div class="about-image">
-                <img src="assets/images/about-illustration.png" loading="lazy" alt="Développeur freelance illustration">
+                <img src="/assets/images/about-illustration.webp"
+                    loading="lazy"
+                    alt="Développeur freelance illustration"
+                    width="480"
+                    height="320"
+                >
             </div>
 
             <!-- Contenu texte -->
@@ -91,8 +108,8 @@
                 <h3>Développeur Web Freelance basé à Céret</h3>
 
                 <p>
-                    Passionné par le web et le design, j’accompagne les entreprises et indépendants
-                    dans la création de sites modernes, élégants et performants.
+                    Basé à Céret dans les Pyrénées-Orientales, j'accompagne les artisans, commerçants, associations et
+                    entreprises dans la création de sites internet modernes, rapides et optimisés pour le référencement naturel.
                     <br><br>
                     <strong>Mon objectif :</strong> transformer votre présence en ligne en un véritable atout professionnel.
                 </p>
@@ -127,7 +144,7 @@
                 $categories = [
                     "figma" => "Maquettes Figma",
                     "vitrine" => "Site vitrine",
-                    "identite" => "Identité visuelle",
+                    "logo" => "Identité visuelle",
                     "ecommerce" => "Boutique en ligne",
                     "app" => "Application Web & Mobile"
                 ];
@@ -143,7 +160,7 @@
                     </span>
 
                     <div class="project-frame">
-                        <img src="admin/uploads/creation/<?= htmlspecialchars($project["image"]); ?>" loading="lazy" alt="<?= htmlspecialchars($project["titre"]); ?>">
+                        <img src="admin/uploads/creation/<?= htmlspecialchars($project["image"]); ?>" width="320px" height="320px" loading="lazy" alt="<?= htmlspecialchars($project["titre"]); ?>">
                     </div>
 
                 </div>

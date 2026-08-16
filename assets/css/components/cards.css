@@ -1,0 +1,167 @@
+/* =========================================
+   CARDS
+   ========================================= */
+
+.card {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    background: var(--color-surface);
+    color: var(--color-text);
+
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    overflow: hidden;
+
+    transition:
+        transform var(--duration-normal) var(--ease-standard),
+        box-shadow var(--duration-normal) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
+
+    box-shadow: var(--shadow-sm);
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+}
+
+
+/* ==================================================
+   CARD IMAGE
+================================================== */
+
+.card__media {
+    position: relative;
+    overflow: hidden;
+}
+
+.card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
+    transition:
+        transform var(--duration-slow) var(--ease-standard);
+}
+
+.card:hover .card__media img {
+    transform: scale(1.05);
+}
+
+
+/* ==================================================
+   CARD CONTENT
+================================================== */
+
+.card__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    padding: var(--space-6);
+}
+
+.card__eyebrow {
+    color: var(--color-primary);
+
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wide);
+}
+
+.card__title {
+    margin: 0;
+
+    font-size: var(--font-size-2xl);
+    line-height: var(--line-height-heading);
+}
+
+.card__text {
+    color: var(--color-text-muted);
+}
+
+.card__footer {
+    margin-top: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding-top: var(--space-4);
+}
+
+
+/* ==================================================
+   CARD LINK
+================================================== */
+
+.card__link {
+    display: flex;
+    flex-direction: column;
+
+    height: 100%;
+
+    color: inherit;
+}
+
+
+/* ==================================================
+   DARK CARD
+================================================== */
+
+.card--dark {
+    background: var(--color-surface-dark);
+    color: var(--color-text-light);
+
+    border-color: rgba(255,255,255,.08);
+}
+
+.card--dark .card__text {
+    color: rgba(255,255,255,.72);
+}
+
+
+/* ==================================================
+   GLASS CARD
+================================================== */
+
+.card--glass {
+    backdrop-filter: blur(18px);
+
+    background: rgba(255,255,255,.05);
+
+    border: 1px solid rgba(255,255,255,.12);
+}
+
+
+/* ==================================================
+   HORIZONTAL
+================================================== */
+
+.card--horizontal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media (max-width: 768px) {
+
+    .card--horizontal {
+        grid-template-columns: 1fr;
+    }
+
+    .card__content {
+        padding: var(--space-5);
+    }
+
+}

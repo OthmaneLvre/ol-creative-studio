@@ -1,0 +1,178 @@
+/* =========================================
+   BASE
+   ========================================= */
+
+/* ==================================================
+   DOCUMENT
+================================================== */
+
+html {
+    min-height: 100%;
+    background: var(--color-background);
+}
+
+body {
+    min-height: 100vh;
+    overflow-x: hidden;
+
+    background: var(--color-background);
+    color: var(--color-text);
+
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-base);
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ==================================================
+   PAGE STRUCTURE
+================================================== */
+
+main {
+    position: relative;
+    width: 100%;
+    overflow: clip;
+}
+
+section {
+    position: relative;
+}
+
+.page {
+    position: relative;
+    min-height: 100vh;
+}
+
+
+/* ==================================================
+   MEDIA
+================================================== */
+
+img,
+video {
+    max-width: 100%;
+}
+
+img {
+    object-fit: cover;
+}
+
+video {
+    height: auto;
+}
+
+
+/* ==================================================
+   GENERIC SURFACES
+================================================== */
+
+.surface {
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.surface-dark {
+    background: var(--color-background-dark);
+    color: var(--color-text-light);
+}
+
+.surface-elevated {
+    background: var(--color-surface-elevated);
+    color: var(--color-text-light);
+}
+
+
+/* ==================================================
+   SECTION SPACING
+================================================== */
+
+.section {
+    padding-block: var(--section-spacing);
+}
+
+.section--sm {
+    padding-block: var(--space-8);
+}
+
+.section--lg {
+    padding-block: clamp(
+        var(--space-9),
+        12vw,
+        12rem
+    );
+}
+
+
+/* ==================================================
+   CONTENT FLOW
+================================================== */
+
+.flow > * + * {
+    margin-top: var(--flow-space, var(--space-4));
+}
+
+
+/* ==================================================
+   DIVIDERS
+================================================== */
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background: var(--color-border);
+}
+
+
+/* ==================================================
+   VISIBILITY
+================================================== */
+
+[hidden] {
+    display: none !important;
+}
+
+
+/* ==================================================
+   ACCESSIBILITY / MOTION
+================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media (max-width: 768px) {
+
+    .section {
+        padding-block: clamp(
+            var(--space-8),
+            12vw,
+            var(--space-9)
+        );
+    }
+
+    .section--sm {
+        padding-block: var(--space-7);
+    }
+
+}

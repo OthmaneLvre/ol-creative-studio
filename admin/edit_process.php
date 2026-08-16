@@ -7,6 +7,51 @@ if (!isset($_SESSION["admin_logged"])) {
 
 require_once "../php/db.php";
 
+// ============================
+// 🖼️ Fonction redimensionnement + WEBP
+// ============================
+function resizeTo1200Webp($sourceTmpPath, $destinationPath, $quality = 85) {
+
+    list($w, $h, $type) = getimagesize($sourceTmpPath);
+
+    $newWidth = 1200;
+    $newHeight = intval($h * ($newWidth / $w));
+
+    // Chargement selon le type
+    switch ($type) {
+        case IMAGETYPE_JPEG:
+            $src = imagecreatefromjpeg($sourceTmpPath);
+            break;
+        case IMAGETYPE_PNG:
+            $src = imagecreatefrompng($sourceTmpPath);
+            break;
+        case IMAGETYPE_WEBP:
+            $src = imagecreatefromwebp($sourceTmpPath);
+            break;
+        default:
+            return false;
+    }
+
+    $dst = imagecreatetruecolor($newWidth, $newHeight);
+
+    if ($type == IMAGETYPE_PNG) {
+        imagealphablending($dst, false);
+        imagesavealpha($dst, true);
+    }
+
+    imagecopyresampled($dst, $src, 0, 0, 0, 0,
+        $newWidth, $newHeight, $w, $h
+    );
+
+    imagewebp($dst, $destinationPath, $quality);
+
+    imagedestroy($src);
+    imagedestroy($dst);
+
+    return true;
+}
+
+
 $id = intval($_POST["id"]);
 
 // ===== RÉCUPÉRER L'ANCIEN PROJET COMPLET =====
@@ -45,14 +90,14 @@ if (!empty($_FILES["image"]["name"])) {
     $ext = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
     if (!in_array($ext, $allowed)) die("Format d'image non autorisé.");
 
-    $filename = uniqid("creation_") . "." . $ext;
+    // Nouveau nom en WebP
+    $filename = uniqid("creation_") . ".webp";
+    $target = $folderMain . $filename;
 
-    move_uploaded_file(
-        $_FILES["image"]["tmp_name"],
-        $folderMain . $filename
-    );
+    // Redimensionne + convertir en WebP
+    resizeTo1200Webp($_FILES["image"]["tmp_name"], $target);
 
-    // supprimer l’ancienne image
+    // Supprimer l'ancienne image
     if (!empty($old["image"]) && file_exists($folderMain . $old["image"])) {
         unlink($folderMain . $old["image"]);
     }
@@ -89,17 +134,18 @@ if (!empty($_FILES["gallery"]["name"][0])) {
 
         if (empty($fileName)) continue;
 
+        $tmp = $_FILES["gallery"]["tmp_name"][$i];
+
         $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         if (!in_array($ext, $allowed)) continue;
 
-        $unique = uniqid("g_") . "." . $ext;
+        $newName = uniqid("g_") . ".webp";
+        $dest = $folderGallery . $newName;
 
-        move_uploaded_file(
-            $_FILES["gallery"]["tmp_name"][$i],
-            $folderGallery . $unique
-        );
-
-        $gallery[] = $unique;
+        // Redimension + conversion WebP
+        resizeTo1200Webp($tmp, $dest);
+        
+        $gallery[] = $newName;
     }
 }
 

@@ -1,5 +1,6 @@
 # Fichiers sensibles
 php/db.php
+php/db.local.php
 
 # Uploads images admin
 admin/uploads/
@@ -17,3 +18,8 @@ Thumbs.db
 # Cache éditeurs
 .vscode/
 .idea/
+
+# Documentation interne
+/docs/backend.md
+/docs/backend.pdf
+/docs/*.sql

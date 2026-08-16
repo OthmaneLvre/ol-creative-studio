@@ -146,7 +146,7 @@ body {
 .card img {
     width: 100%;
     height: 180px;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 /* Zone du titre */
@@ -259,7 +259,7 @@ body {
     max-width: 250px;
     border-radius: 10px;
     margin-bottom: 10px;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .add-form textarea {
@@ -295,7 +295,7 @@ body {
 
 .tech-tag {
     background: var(--bleu-azur);
-    color: white;
+    color: var(--blanc);
     padding: 6px 10px;
     border-radius: 6px;
     display: flex;
@@ -307,7 +307,7 @@ body {
 .tech-tag button {
     background: transparent;
     border: none;
-    color: white;
+    color: var(--blanc);
     cursor: pointer;
     font-weight: bold;
 }
