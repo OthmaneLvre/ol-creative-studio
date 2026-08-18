@@ -5,7 +5,7 @@
 .site-footer {
     position: relative;
 
-    background: var(--color-background-dark);
+    background: var(--color-background-deep);
     color: var(--color-text-light);
 
     overflow: hidden;

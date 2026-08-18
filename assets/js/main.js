@@ -1,4 +1,5 @@
 import { initNavigation } from './modules/navigation.js';
+import { initRevealAnimations } from './modules/reveal.js';
 
 /* =========================================
    INITIALISATION
@@ -6,6 +7,7 @@ import { initNavigation } from './modules/navigation.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
+    initRevealAnimations();
 });
 
 /*********************************/
