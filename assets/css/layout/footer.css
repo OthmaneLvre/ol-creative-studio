@@ -439,3 +439,157 @@
     }
 
 }
+
+/* ========================================================= */
+/*                CONTACT — REASSURANCE                      */
+/* ========================================================= */
+
+.site-footer__contact {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1.2fr)
+        minmax(320px, .8fr);
+
+    gap: 100px;
+    align-items: end;
+
+    padding:
+        clamp(90px, 10vw, 150px)
+        0;
+
+    border-bottom:
+        1px solid rgba(255, 255, 255, .1);
+}
+
+
+/* ========================================================= */
+/*                         CONTENT                           */
+/* ========================================================= */
+
+.site-footer__contact-content {
+    max-width: 900px;
+}
+
+.site-footer__contact-title {
+    margin: 0;
+
+    font-family: var(--font-body);
+    font-size: clamp(54px, 6vw, 92px);
+    font-weight: var(--font-weight-medium);
+    line-height: .92;
+    letter-spacing: -.055em;
+
+    color: var(--color-white);
+}
+
+.site-footer__contact-title em {
+    display: block;
+
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: -.03em;
+
+    color: var(--color-primary);
+}
+
+
+/* ========================================================= */
+/*                           SIDE                            */
+/* ========================================================= */
+
+.site-footer__contact-side {
+    max-width: 440px;
+}
+
+.site-footer__contact-status {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    margin-bottom: 24px;
+
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: var(--font-weight-semibold);
+
+    color: var(--color-white);
+}
+
+.site-footer__contact-dot {
+    width: 8px;
+    height: 8px;
+
+    flex: 0 0 auto;
+
+    border-radius: 50%;
+
+    background: var(--color-success);
+
+    box-shadow:
+        0 0 0 5px rgba(49, 180, 108, .12);
+}
+
+.site-footer__contact-text {
+    margin: 0 0 26px;
+
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.75;
+
+    color: rgba(255, 255, 255, .64);
+}
+
+.site-footer__contact-signature {
+    display: block;
+
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+
+    color: var(--color-primary);
+}
+
+
+/* ========================================================= */
+/*                         TABLET                            */
+/* ========================================================= */
+
+@media (max-width: 1050px) {
+
+    .site-footer__contact {
+        grid-template-columns: 1fr;
+
+        gap: 50px;
+    }
+
+    .site-footer__contact-side {
+        max-width: 620px;
+    }
+
+}
+
+
+/* ========================================================= */
+/*                         MOBILE                            */
+/* ========================================================= */
+
+@media (max-width: 768px) {
+
+    .site-footer__contact {
+        gap: 40px;
+
+        padding: 80px 0;
+    }
+
+    .site-footer__contact-title {
+        font-size: clamp(44px, 13vw, 62px);
+        line-height: .96;
+    }
+
+    .site-footer__contact-text {
+        font-size: 14px;
+    }
+
+}
