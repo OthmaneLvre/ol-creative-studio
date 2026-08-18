@@ -2,7 +2,7 @@
 $pageTitle = "Développeur Web Freelance à Céret";
 $pageDescription = "Développeur web freelance à Céret dans les Pyrénées-Orientales. Création de sites vitrines, boutiques en ligne, référencement naturel SEO et identité visuelle pour artisans, indépendants et associations.";
 
-include 'partials/header.php';
+include_once 'partials/header.php';
 ?>
 
 
@@ -31,7 +31,7 @@ include 'partials/header.php';
                 </h1>
 
                 <p class="home-hero__description">
-                    J'imagine et dévelope des sites web sur mesure,
+                    J'imagine et développe des sites web sur mesure,
                     des boutiques en ligne et des identités visuelles
                     pensées pour donner du caractère à votre marque.
                 </p>
@@ -959,6 +959,6 @@ include 'partials/header.php';
 
 <?php
 $hideFooterCta = true;
-include 'partials/footer.php';
+include_once 'partials/footer.php';
 ?>
 

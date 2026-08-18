@@ -1,4 +1,69 @@
-document.addEventListener('DOMContentLoaded', () => {
+/*
+|--------------------------------------------------------------------------
+| HELPERS
+|--------------------------------------------------------------------------
+*/
+
+const prefersReducedMotion = () =>
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+
+/**
+ * Crée un IntersectionObserver réutilisable.
+ */
+const createRevealObserver = (
+    threshold = 0.18,
+    rootMargin = '0px 0px -70px 0px'
+) => {
+
+    return new IntersectionObserver(
+        (entries, observer) => {
+
+            for (const entry of entries) {
+
+                if (!entry.isIntersecting) {
+                    continue;
+                }
+
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+
+        },
+        {
+            threshold,
+            rootMargin
+        }
+    );
+
+};
+
+
+/**
+ * Affiche immédiatement les éléments.
+ * Utilisé notamment avec prefers-reduced-motion.
+ */
+const revealImmediately = (elements) => {
+
+    for (const element of elements) {
+
+        if (!element) {
+            continue;
+        }
+
+        element.classList.add('is-visible');
+    }
+
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| HERO
+|--------------------------------------------------------------------------
+*/
+
+function initHero() {
 
     const hero = document.querySelector('.home-hero');
 
@@ -6,41 +71,53 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | HERO — INTRODUCTION
-    |--------------------------------------------------------------------------
-    */
-
     requestAnimationFrame(() => {
         hero.classList.add('is-loaded');
     });
 
+    initHeroVisual(hero);
+}
 
-    /*
-    |--------------------------------------------------------------------------
-    | HERO — PARALLAX LÉGER DU VISUEL
-    |--------------------------------------------------------------------------
-    */
 
-    const visual = hero.querySelector('.home-hero__visual-card');
+/*
+|--------------------------------------------------------------------------
+| HERO — PARALLAX LÉGER DU VISUEL
+|--------------------------------------------------------------------------
+*/
+
+function initHeroVisual(hero) {
+
+    const visual = hero.querySelector(
+        '.home-hero__visual-card'
+    );
 
     const canUsePointerEffect =
         visual &&
         window.matchMedia('(pointer: fine)').matches &&
-        !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        !prefersReducedMotion();
 
-    if (canUsePointerEffect) {
+    if (!canUsePointerEffect) {
+        return;
+    }
 
-        visual.addEventListener('mousemove', (event) => {
+    visual.addEventListener(
+        'mousemove',
+        (event) => {
 
-            const rect = visual.getBoundingClientRect();
+            const rect =
+                visual.getBoundingClientRect();
 
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
+            const x =
+                event.clientX - rect.left;
 
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
+            const y =
+                event.clientY - rect.top;
+
+            const centerX =
+                rect.width / 2;
+
+            const centerY =
+                rect.height / 2;
 
             const rotateX =
                 ((y - centerY) / centerY) * -1.5;
@@ -54,672 +131,691 @@ document.addEventListener('DOMContentLoaded', () => {
                 rotateY(${rotateY}deg)
                 translateY(-4px)
             `;
-        });
+        }
+    );
 
-        visual.addEventListener('mouseleave', () => {
+    visual.addEventListener(
+        'mouseleave',
+        () => {
             visual.style.transform = '';
-        });
+        }
+    );
+}
 
+
+/*
+|--------------------------------------------------------------------------
+| SERVICES
+|--------------------------------------------------------------------------
+*/
+
+function initServices() {
+
+    const section =
+        document.querySelector('.home-services');
+
+    if (!section) {
+        return;
     }
-    /*
-    |--------------------------------------------------------------------------
-    | SERVICES — REVEAL AU SCROLL
-    |--------------------------------------------------------------------------
-    */
 
-    const servicesSection = document.querySelector('.home-services');
-
-    if (servicesSection) {
-
-        const servicesHeader = servicesSection.querySelector(
+    const header =
+        section.querySelector(
             '.home-services__header'
         );
 
-        const serviceItems = servicesSection.querySelectorAll(
+    const items =
+        section.querySelectorAll(
             '.home-service'
         );
 
-        const servicesFooter = servicesSection.querySelector(
+    const footer =
+        section.querySelector(
             '.home-services__footer'
         );
 
-        const prefersReducedMotion = window.matchMedia(
-            '(prefers-reduced-motion: reduce)'
-        ).matches;
+    const elements = [
+        header,
+        ...items,
+        footer
+    ].filter(Boolean);
 
-        if (prefersReducedMotion) {
+    if (prefersReducedMotion()) {
 
-            servicesHeader?.classList.add('is-visible');
-
-            serviceItems.forEach((item) => {
-                item.classList.add('is-visible');
-            });
-
-            servicesFooter?.classList.add('is-visible');
-
-        } else {
-
-            const servicesObserver = new IntersectionObserver(
-                (entries, observer) => {
-
-                    entries.forEach((entry) => {
-
-                        if (!entry.isIntersecting) {
-                            return;
-                        }
-
-                        const target = entry.target;
-
-                        target.classList.add('is-visible');
-
-                        observer.unobserve(target);
-
-                    });
-
-                },
-                {
-                    threshold: 0.18,
-                    rootMargin: '0px 0px -70px 0px'
-                }
-            );
-
-            if (servicesHeader) {
-                servicesObserver.observe(servicesHeader);
-            }
-
-            serviceItems.forEach((item, index) => {
-
-                item.style.setProperty(
-                    '--service-delay',
-                    `${index * 110}ms`
-                );
-
-                servicesObserver.observe(item);
-            });
-
-            if (servicesFooter) {
-                servicesObserver.observe(servicesFooter);
-            }
-
-        }
-
+        revealImmediately(elements);
+        return;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | FEATURED PROJECT — REVEAL
-    |--------------------------------------------------------------------------
-    */
+    const observer =
+        createRevealObserver(
+            0.18,
+            '0px 0px -70px 0px'
+        );
 
-    const featuredProject = document.querySelector('.home-featured-project');
+    if (header) {
+        observer.observe(header);
+    }
 
-    if (featuredProject) {
+    let index = 0;
 
-        const projectHeader = featuredProject.querySelector(
+    for (const item of items) {
+
+        item.style.setProperty(
+            '--service-delay',
+            `${index * 110}ms`
+        );
+
+        observer.observe(item);
+
+        index += 1;
+    }
+
+    if (footer) {
+        observer.observe(footer);
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FEATURED PROJECT
+|--------------------------------------------------------------------------
+*/
+
+function initFeaturedProject() {
+
+    const section =
+        document.querySelector(
+            '.home-featured-project'
+        );
+
+    if (!section) {
+        return;
+    }
+
+    initFeaturedProjectReveal(section);
+    initFeaturedProjectScroll(section);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| FEATURED PROJECT — REVEAL
+|--------------------------------------------------------------------------
+*/
+
+function initFeaturedProjectReveal(section) {
+
+    const elements = [
+        section.querySelector(
             '.home-featured-project__header'
-        );
-
-        const projectVisual = featuredProject.querySelector(
+        ),
+        section.querySelector(
             '.home-featured-project__visual'
-        );
-
-        const projectDetails = featuredProject.querySelector(
+        ),
+        section.querySelector(
             '.home-featured-project__details'
-        );
-
-        const projectFooter = featuredProject.querySelector(
+        ),
+        section.querySelector(
             '.home-featured-project__footer'
+        )
+    ].filter(Boolean);
+
+    if (prefersReducedMotion()) {
+
+        revealImmediately(elements);
+        return;
+    }
+
+    const observer =
+        createRevealObserver(
+            0.15,
+            '0px 0px -80px 0px'
         );
 
-        const prefersReducedMotion = window.matchMedia(
-            '(prefers-reduced-motion: reduce)'
-        ).matches;
-
-        const revealElements = [
-            projectHeader,
-            projectVisual,
-            projectDetails,
-            projectFooter
-        ].filter(Boolean);
-
-        if (prefersReducedMotion) {
-
-            revealElements.forEach((element) => {
-                element.classList.add('is-visible');
-            });
-
-        } else {
-
-            const projectObserver = new IntersectionObserver(
-                (entries, observer) => {
-
-                    entries.forEach((entry) => {
-
-                        if (!entry.isIntersecting) {
-                            return;
-                        }
-
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target);
-
-                    });
-
-                },
-                {
-                    threshold: 0.15,
-                    rootMargin: '0px 0px -80px 0px'
-                }
-            );
-
-            revealElements.forEach((element) => {
-                projectObserver.observe(element);
-            });
-
-        }
+    for (const element of elements) {
+        observer.observe(element);
+    }
+}
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | FEATURED PROJECT — SCROLL INTERNE
-        |--------------------------------------------------------------------------
-        */
+/*
+|--------------------------------------------------------------------------
+| FEATURED PROJECT — SCROLL INTERNE
+|--------------------------------------------------------------------------
+*/
 
-        const media = featuredProject.querySelector(
+function initFeaturedProjectScroll(section) {
+
+    const media =
+        section.querySelector(
             '.home-featured-project__media'
         );
 
-        const projectImage = featuredProject.querySelector(
+    const projectImage =
+        section.querySelector(
             '.home-featured-project__media img'
         );
 
-        const canAnimateProject =
-            media &&
-            projectImage &&
-            window.matchMedia('(pointer: fine)').matches &&
-            !prefersReducedMotion;
+    const canAnimateProject =
+        media &&
+        projectImage &&
+        window.matchMedia('(pointer: fine)').matches &&
+        !prefersReducedMotion();
 
-        if (canAnimateProject) {
-
-            let currentTranslate = 0;
-
-            const getMaxTranslate = () => {
-                return Math.max(
-                    0,
-                    projectImage.offsetHeight - media.offsetHeight
-                );
-            };
-
-            const updateImagePosition = () => {
-
-                projectImage.style.transform =
-                    `translate3d(0, -${currentTranslate}px, 0)`;
-            };
-
-            media.addEventListener(
-                'wheel',
-                (event) => {
-
-                    const maxTranslate = getMaxTranslate();
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Aucun scroll possible dans l'image
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (maxTranslate <= 0) {
-                        return;
-                    }
-
-                    const scrollingDown = event.deltaY > 0;
-                    const scrollingUp = event.deltaY < 0;
-
-                    const isAtTop =
-                        currentTranslate <= 0;
-
-                    const isAtBottom =
-                        currentTranslate >= maxTranslate;
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Si on est arrivé à une extrémité,
-                    | on rend le scroll à la page.
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (
-                        (scrollingUp && isAtTop) ||
-                        (scrollingDown && isAtBottom)
-                    ) {
-                        return;
-                    }
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Sinon, on bloque le scroll de la page
-                    | et on fait défiler uniquement Below Dreams.
-                    |--------------------------------------------------------------------------
-                    */
-
-                    event.preventDefault();
-
-                    currentTranslate += event.deltaY * 0.5;
-
-                    currentTranslate = Math.max(
-                        0,
-                        Math.min(
-                            maxTranslate,
-                            currentTranslate
-                        )
-                    );
-
-                    updateImagePosition();
-
-                },
-                {
-                    passive: false
-                }
-            );
-
-            window.addEventListener(
-                'resize',
-                () => {
-
-                    const maxTranslate = getMaxTranslate();
-
-                    currentTranslate = Math.min(
-                        currentTranslate,
-                        maxTranslate
-                    );
-
-                    updateImagePosition();
-
-                }
-            );
-
-        }
-
+    if (!canAnimateProject) {
+        return;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ABOUT — REVEAL AU SCROLL
-    |--------------------------------------------------------------------------
-    */
+    let currentTranslate = 0;
 
-    const aboutSection = document.querySelector('.home-about');
 
-    if (aboutSection) {
+    const getMaxTranslate = () => {
 
-        const aboutHeader = aboutSection.querySelector(
-            '.home-about__header'
+        return Math.max(
+            0,
+            projectImage.offsetHeight -
+            media.offsetHeight
         );
+    };
 
-        const aboutStatement = aboutSection.querySelector(
-            '.home-about__statement'
-        );
 
-        const aboutDetails = aboutSection.querySelector(
-            '.home-about__details'
-        );
+    const updateImagePosition = () => {
 
-        const aboutMetaItems = aboutSection.querySelectorAll(
-            '.home-about__meta-item'
-        );
+        projectImage.style.transform =
+            `translate3d(
+                0,
+                -${currentTranslate}px,
+                0
+            )`;
+    };
 
-        const prefersReducedMotion = window.matchMedia(
-            '(prefers-reduced-motion: reduce)'
-        ).matches;
 
-        if (prefersReducedMotion) {
+    media.addEventListener(
+        'wheel',
+        (event) => {
 
-            aboutHeader?.classList.add('is-visible');
-            aboutStatement?.classList.add('is-visible');
-            aboutDetails?.classList.add('is-visible');
+            const maxTranslate =
+                getMaxTranslate();
 
-            aboutMetaItems.forEach((item) => {
-                item.classList.add('is-visible');
-            });
-
-        } else {
-
-            const aboutObserver = new IntersectionObserver(
-                (entries, observer) => {
-
-                    entries.forEach((entry) => {
-
-                        if (!entry.isIntersecting) {
-                            return;
-                        }
-
-                        entry.target.classList.add('is-visible');
-
-                        observer.unobserve(entry.target);
-
-                    });
-
-                },
-                {
-                    threshold: 0.18,
-                    rootMargin: '0px 0px -70px 0px'
-                }
-            );
-
-            if (aboutHeader) {
-                aboutObserver.observe(aboutHeader);
-            }
-
-            if (aboutStatement) {
-                aboutObserver.observe(aboutStatement);
-            }
-
-            if (aboutDetails) {
-                aboutObserver.observe(aboutDetails);
-            }
-
-            aboutMetaItems.forEach((item, index) => {
-
-                item.style.setProperty(
-                    '--about-delay',
-                    `${index * 120}ms`
-                );
-
-                aboutObserver.observe(item);
-
-            });
-
-        }
-
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | HOME PORTFOLIO — REVEAL
-    |--------------------------------------------------------------------------
-    */
-
-    const portfolioSection = document.querySelector('.home-portfolio');
-
-    if (portfolioSection) {
-
-        const portfolioHeader = portfolioSection.querySelector(
-            '.home-portfolio__header'
-        );
-
-        const portfolioProjects = portfolioSection.querySelectorAll(
-            '.home-project'
-        );
-
-        const portfolioFooter = portfolioSection.querySelector(
-            '.home-portfolio__footer'
-        );
-
-        const prefersReducedMotion = window.matchMedia(
-            '(prefers-reduced-motion: reduce)'
-        ).matches;
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | REVEAL
-        |--------------------------------------------------------------------------
-        */
-
-        const revealElements = [
-            portfolioHeader,
-            ...portfolioProjects,
-            portfolioFooter
-        ].filter(Boolean);
-
-        if (prefersReducedMotion) {
-
-            revealElements.forEach((element) => {
-                element.classList.add('is-visible');
-            });
-
-        } else {
-
-            const portfolioObserver = new IntersectionObserver(
-                (entries, observer) => {
-
-                    entries.forEach((entry) => {
-
-                        if (!entry.isIntersecting) {
-                            return;
-                        }
-
-                        entry.target.classList.add('is-visible');
-
-                        observer.unobserve(entry.target);
-
-                    });
-
-                },
-                {
-                    threshold: 0.12,
-                    rootMargin: '0px 0px -70px 0px'
-                }
-            );
-
-            if (portfolioHeader) {
-                portfolioObserver.observe(portfolioHeader);
-            }
-
-            portfolioProjects.forEach((project, index) => {
-
-                project.style.setProperty(
-                    '--portfolio-delay',
-                    `${index * 120}ms`
-                );
-
-                portfolioObserver.observe(project);
-
-            });
-
-            if (portfolioFooter) {
-                portfolioObserver.observe(portfolioFooter);
-            }
-
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SCREENSHOTS — PARALLAX AU SCROLL
-        |--------------------------------------------------------------------------
-        */
-
-        const canUseParallax =
-            !prefersReducedMotion &&
-            window.matchMedia('(min-width: 769px)').matches;
-
-        if (canUseParallax) {
-
-            const projectMedia = portfolioSection.querySelectorAll(
-                '.home-project__media'
-            );
-
-            let ticking = false;
-
-            const updatePortfolioParallax = () => {
-
-                const viewportHeight = window.innerHeight;
-
-                projectMedia.forEach((media) => {
-
-                    const image = media.querySelector('img');
-
-                    if (!image) {
-                        return;
-                    }
-
-                    const rect = media.getBoundingClientRect();
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | On ignore les projets complètement hors écran
-                    |--------------------------------------------------------------------------
-                    */
-
-                    if (
-                        rect.bottom < 0 ||
-                        rect.top > viewportHeight
-                    ) {
-                        return;
-                    }
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Progression dans le viewport
-                    | 0 = entre par le bas
-                    | 1 = sort par le haut
-                    |--------------------------------------------------------------------------
-                    */
-
-                    const progress =
-                        (viewportHeight - rect.top) /
-                        (viewportHeight + rect.height);
-
-                    const normalizedProgress = Math.max(
-                        0,
-                        Math.min(1, progress)
-                    );
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Distance réellement disponible dans le screenshot
-                    |--------------------------------------------------------------------------
-                    */
-
-                    const maxTranslate = Math.max(
-                        0,
-                        image.offsetHeight - media.offsetHeight
-                    );
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | On n'utilise qu'une partie du débattement.
-                    | L'effet doit rester subtil.
-                    |--------------------------------------------------------------------------
-                    */
-
-                    const parallaxDistance = Math.min(
-                        maxTranslate,
-                        110
-                    );
-
-                    const translateY =
-                        normalizedProgress * parallaxDistance;
-
-                    image.style.transform =
-                        `translate3d(0, -${translateY}px, 0)`;
-
-                });
-
-                ticking = false;
-
-            };
-
-
-            const requestPortfolioParallax = () => {
-
-                if (ticking) {
-                    return;
-                }
-
-                ticking = true;
-
-                requestAnimationFrame(
-                    updatePortfolioParallax
-                );
-
-            };
-
-
-            window.addEventListener(
-                'scroll',
-                requestPortfolioParallax,
-                {
-                    passive: true
-                }
-            );
-
-            window.addEventListener(
-                'resize',
-                requestPortfolioParallax
-            );
-
-            updatePortfolioParallax();
-
-        }
-
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | TESTIMONIALS — SLIDER
-    |--------------------------------------------------------------------------
-    */
-
-    const testimonialsSection = document.querySelector('.home-testimonials');
-
-    if (testimonialsSection && Array.isArray(window.homeTestimonials)) {
-
-        const slider = testimonialsSection.querySelector(
-            '[data-testimonials]'
-        );
-
-        const textElement = testimonialsSection.querySelector(
-            '[data-testimonial-text]'
-        );
-
-        const nameElement = testimonialsSection.querySelector(
-            '[data-testimonial-name]'
-        );
-
-        const projectElement = testimonialsSection.querySelector(
-            '[data-testimonial-project]'
-        );
-
-        const currentElement = testimonialsSection.querySelector(
-            '[data-testimonial-current]'
-        );
-
-        const prevButton = testimonialsSection.querySelector(
-            '[data-testimonial-prev]'
-        );
-
-        const nextButton = testimonialsSection.querySelector(
-            '[data-testimonial-next]'
-        );
-
-        const testimonials = window.homeTestimonials;
-
-        let currentIndex = 0;
-        let isAnimating = false;
-
-
-        const updateTestimonial = (index) => {
-
-            if (
-                !slider ||
-                !textElement ||
-                !nameElement ||
-                !projectElement ||
-                !currentElement ||
-                isAnimating
-            ) {
+            if (maxTranslate <= 0) {
                 return;
             }
 
-            isAnimating = true;
+            const scrollingDown =
+                event.deltaY > 0;
 
-            slider.classList.add('is-changing');
+            const scrollingUp =
+                event.deltaY < 0;
 
-            window.setTimeout(() => {
+            const isAtTop =
+                currentTranslate <= 0;
 
-                const testimonial = testimonials[index];
+            const isAtBottom =
+                currentTranslate >= maxTranslate;
+
+            const shouldReleaseScroll =
+                (scrollingUp && isAtTop) ||
+                (scrollingDown && isAtBottom);
+
+            if (shouldReleaseScroll) {
+                return;
+            }
+
+            event.preventDefault();
+
+            currentTranslate +=
+                event.deltaY * 0.5;
+
+            currentTranslate = Math.max(
+                0,
+                Math.min(
+                    maxTranslate,
+                    currentTranslate
+                )
+            );
+
+            updateImagePosition();
+        },
+        {
+            passive: false
+        }
+    );
+
+
+    window.addEventListener(
+        'resize',
+        () => {
+
+            const maxTranslate =
+                getMaxTranslate();
+
+            currentTranslate =
+                Math.min(
+                    currentTranslate,
+                    maxTranslate
+                );
+
+            updateImagePosition();
+        }
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| ABOUT
+|--------------------------------------------------------------------------
+*/
+
+function initAbout() {
+
+    const section =
+        document.querySelector('.home-about');
+
+    if (!section) {
+        return;
+    }
+
+    const header =
+        section.querySelector(
+            '.home-about__header'
+        );
+
+    const statement =
+        section.querySelector(
+            '.home-about__statement'
+        );
+
+    const details =
+        section.querySelector(
+            '.home-about__details'
+        );
+
+    const metaItems =
+        section.querySelectorAll(
+            '.home-about__meta-item'
+        );
+
+    const elements = [
+        header,
+        statement,
+        details,
+        ...metaItems
+    ].filter(Boolean);
+
+    if (prefersReducedMotion()) {
+
+        revealImmediately(elements);
+        return;
+    }
+
+    const observer =
+        createRevealObserver(
+            0.18,
+            '0px 0px -70px 0px'
+        );
+
+    if (header) {
+        observer.observe(header);
+    }
+
+    if (statement) {
+        observer.observe(statement);
+    }
+
+    if (details) {
+        observer.observe(details);
+    }
+
+    let index = 0;
+
+    for (const item of metaItems) {
+
+        item.style.setProperty(
+            '--about-delay',
+            `${index * 120}ms`
+        );
+
+        observer.observe(item);
+
+        index += 1;
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PORTFOLIO
+|--------------------------------------------------------------------------
+*/
+
+function initPortfolio() {
+
+    const section =
+        document.querySelector(
+            '.home-portfolio'
+        );
+
+    if (!section) {
+        return;
+    }
+
+    initPortfolioReveal(section);
+    initPortfolioParallax(section);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PORTFOLIO — REVEAL
+|--------------------------------------------------------------------------
+*/
+
+function initPortfolioReveal(section) {
+
+    const header =
+        section.querySelector(
+            '.home-portfolio__header'
+        );
+
+    const projects =
+        section.querySelectorAll(
+            '.home-project'
+        );
+
+    const footer =
+        section.querySelector(
+            '.home-portfolio__footer'
+        );
+
+    const elements = [
+        header,
+        ...projects,
+        footer
+    ].filter(Boolean);
+
+    if (prefersReducedMotion()) {
+
+        revealImmediately(elements);
+        return;
+    }
+
+    const observer =
+        createRevealObserver(
+            0.12,
+            '0px 0px -70px 0px'
+        );
+
+    if (header) {
+        observer.observe(header);
+    }
+
+    let index = 0;
+
+    for (const project of projects) {
+
+        project.style.setProperty(
+            '--portfolio-delay',
+            `${index * 120}ms`
+        );
+
+        observer.observe(project);
+
+        index += 1;
+    }
+
+    if (footer) {
+        observer.observe(footer);
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PORTFOLIO — PARALLAX AU SCROLL
+|--------------------------------------------------------------------------
+*/
+
+function initPortfolioParallax(section) {
+
+    const canUseParallax =
+        !prefersReducedMotion() &&
+        window.matchMedia(
+            '(min-width: 769px)'
+        ).matches;
+
+    if (!canUseParallax) {
+        return;
+    }
+
+    const mediaElements =
+        section.querySelectorAll(
+            '.home-project__media'
+        );
+
+    let ticking = false;
+
+
+    const updatePortfolioParallax = () => {
+
+        const viewportHeight =
+            window.innerHeight;
+
+        for (const media of mediaElements) {
+
+            updatePortfolioMedia(
+                media,
+                viewportHeight
+            );
+        }
+
+        ticking = false;
+    };
+
+
+    const requestPortfolioParallax = () => {
+
+        if (ticking) {
+            return;
+        }
+
+        ticking = true;
+
+        requestAnimationFrame(
+            updatePortfolioParallax
+        );
+    };
+
+
+    window.addEventListener(
+        'scroll',
+        requestPortfolioParallax,
+        {
+            passive: true
+        }
+    );
+
+    window.addEventListener(
+        'resize',
+        requestPortfolioParallax
+    );
+
+    updatePortfolioParallax();
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PORTFOLIO — POSITION D'UN SCREENSHOT
+|--------------------------------------------------------------------------
+*/
+
+function updatePortfolioMedia(
+    media,
+    viewportHeight
+) {
+
+    const image =
+        media.querySelector('img');
+
+    if (!image) {
+        return;
+    }
+
+    const rect =
+        media.getBoundingClientRect();
+
+    const isOutsideViewport =
+        rect.bottom < 0 ||
+        rect.top > viewportHeight;
+
+    if (isOutsideViewport) {
+        return;
+    }
+
+    const progress =
+        (viewportHeight - rect.top) /
+        (viewportHeight + rect.height);
+
+    const normalizedProgress =
+        Math.max(
+            0,
+            Math.min(1, progress)
+        );
+
+    const maxTranslate =
+        Math.max(
+            0,
+            image.offsetHeight -
+            media.offsetHeight
+        );
+
+    const parallaxDistance =
+        Math.min(
+            maxTranslate,
+            110
+        );
+
+    const translateY =
+        normalizedProgress *
+        parallaxDistance;
+
+    image.style.transform =
+        `translate3d(
+            0,
+            -${translateY}px,
+            0
+        )`;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| TESTIMONIALS
+|--------------------------------------------------------------------------
+*/
+
+function initTestimonials() {
+
+    const section =
+        document.querySelector(
+            '.home-testimonials'
+        );
+
+    if (!section) {
+        return;
+    }
+
+    initTestimonialsSlider(section);
+    initTestimonialsReveal(section);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| TESTIMONIALS — SLIDER
+|--------------------------------------------------------------------------
+*/
+
+function initTestimonialsSlider(section) {
+
+    if (
+        !Array.isArray(
+            window.homeTestimonials
+        )
+    ) {
+        return;
+    }
+
+    const slider =
+        section.querySelector(
+            '[data-testimonials]'
+        );
+
+    const textElement =
+        section.querySelector(
+            '[data-testimonial-text]'
+        );
+
+    const nameElement =
+        section.querySelector(
+            '[data-testimonial-name]'
+        );
+
+    const projectElement =
+        section.querySelector(
+            '[data-testimonial-project]'
+        );
+
+    const currentElement =
+        section.querySelector(
+            '[data-testimonial-current]'
+        );
+
+    const prevButton =
+        section.querySelector(
+            '[data-testimonial-prev]'
+        );
+
+    const nextButton =
+        section.querySelector(
+            '[data-testimonial-next]'
+        );
+
+    if (
+        !slider ||
+        !textElement ||
+        !nameElement ||
+        !projectElement ||
+        !currentElement
+    ) {
+        return;
+    }
+
+    const testimonials =
+        window.homeTestimonials;
+
+    let currentIndex = 0;
+    let isAnimating = false;
+
+
+    const updateTestimonial = (index) => {
+
+        if (isAnimating) {
+            return;
+        }
+
+        isAnimating = true;
+
+        slider.classList.add(
+            'is-changing'
+        );
+
+        window.setTimeout(
+            () => {
+
+                const testimonial =
+                    testimonials[index];
 
                 textElement.textContent =
                     testimonial.commentaire ?? '';
@@ -728,170 +824,170 @@ document.addEventListener('DOMContentLoaded', () => {
                     testimonial.nom ?? 'Client';
 
                 projectElement.textContent =
-                    testimonial.categorie ?? 'Projet digital';
+                    testimonial.categorie ??
+                    'Projet digital';
 
                 currentElement.textContent =
-                    String(index + 1).padStart(2, '0');
+                    String(index + 1)
+                        .padStart(2, '0');
 
-                slider.classList.remove('is-changing');
+                slider.classList.remove(
+                    'is-changing'
+                );
 
-                window.setTimeout(() => {
-                    isAnimating = false;
-                }, 350);
+                window.setTimeout(
+                    () => {
+                        isAnimating = false;
+                    },
+                    350
+                );
 
-            }, 220);
-
-        };
-
-
-        const showPrevious = () => {
-
-            currentIndex =
-                (currentIndex - 1 + testimonials.length) %
-                testimonials.length;
-
-            updateTestimonial(currentIndex);
-
-        };
-
-
-        const showNext = () => {
-
-            currentIndex =
-                (currentIndex + 1) %
-                testimonials.length;
-
-            updateTestimonial(currentIndex);
-
-        };
-
-
-        prevButton?.addEventListener(
-            'click',
-            showPrevious
+            },
+            220
         );
+    };
 
-        nextButton?.addEventListener(
-            'click',
-            showNext
+
+    const showPrevious = () => {
+
+        currentIndex =
+            (
+                currentIndex -
+                1 +
+                testimonials.length
+            ) %
+            testimonials.length;
+
+        updateTestimonial(
+            currentIndex
         );
+    };
 
-    }
 
-    /*
-    |--------------------------------------------------------------------------
-    | TESTIMONIALS — REVEAL
-    |--------------------------------------------------------------------------
-    */
+    const showNext = () => {
 
-    if (testimonialsSection) {
+        currentIndex =
+            (
+                currentIndex +
+                1
+            ) %
+            testimonials.length;
 
-        const testimonialsHeader = testimonialsSection.querySelector(
+        updateTestimonial(
+            currentIndex
+        );
+    };
+
+
+    prevButton?.addEventListener(
+        'click',
+        showPrevious
+    );
+
+    nextButton?.addEventListener(
+        'click',
+        showNext
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| TESTIMONIALS — REVEAL
+|--------------------------------------------------------------------------
+*/
+
+function initTestimonialsReveal(section) {
+
+    const elements = [
+        section.querySelector(
             '.home-testimonials__header'
-        );
-
-        const testimonialsSlider = testimonialsSection.querySelector(
+        ),
+        section.querySelector(
             '.home-testimonials__slider'
-        );
+        )
+    ].filter(Boolean);
 
-        const prefersReducedMotion = window.matchMedia(
-            '(prefers-reduced-motion: reduce)'
-        ).matches;
+    if (prefersReducedMotion()) {
 
-        const revealElements = [
-            testimonialsHeader,
-            testimonialsSlider
-        ].filter(Boolean);
-
-        if (prefersReducedMotion) {
-
-            revealElements.forEach((element) => {
-                element.classList.add('is-visible');
-            });
-
-        } else {
-
-            const testimonialsObserver = new IntersectionObserver(
-                (entries, observer) => {
-
-                    entries.forEach((entry) => {
-
-                        if (!entry.isIntersecting) {
-                            return;
-                        }
-
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target);
-
-                    });
-
-                },
-                {
-                    threshold: 0.16,
-                    rootMargin: '0px 0px -70px 0px'
-                }
-            );
-
-            revealElements.forEach((element) => {
-                testimonialsObserver.observe(element);
-            });
-
-        }
-
+        revealImmediately(elements);
+        return;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | FINAL CTA — REVEAL
-    |--------------------------------------------------------------------------
-    */
+    const observer =
+        createRevealObserver(
+            0.16,
+            '0px 0px -70px 0px'
+        );
 
-    const ctaSection = document.querySelector('.home-cta');
+    for (const element of elements) {
+        observer.observe(element);
+    }
+}
 
-    if (ctaSection) {
 
-        const ctaInner = ctaSection.querySelector(
+/*
+|--------------------------------------------------------------------------
+| FINAL CTA
+|--------------------------------------------------------------------------
+*/
+
+function initFinalCta() {
+
+    const section =
+        document.querySelector(
+            '.home-cta'
+        );
+
+    if (!section) {
+        return;
+    }
+
+    const inner =
+        section.querySelector(
             '.home-cta__inner'
         );
 
-        const prefersReducedMotion = window.matchMedia(
-            '(prefers-reduced-motion: reduce)'
-        ).matches;
+    if (!inner) {
+        return;
+    }
 
-        if (ctaInner) {
+    if (prefersReducedMotion()) {
 
-            if (prefersReducedMotion) {
+        inner.classList.add(
+            'is-visible'
+        );
 
-                ctaInner.classList.add('is-visible');
+        return;
+    }
 
-            } else {
+    const observer =
+        createRevealObserver(
+            0.22,
+            '0px 0px -60px 0px'
+        );
 
-                const ctaObserver = new IntersectionObserver(
-                    (entries, observer) => {
+    observer.observe(inner);
+}
 
-                        entries.forEach((entry) => {
 
-                            if (!entry.isIntersecting) {
-                                return;
-                            }
+/*
+|--------------------------------------------------------------------------
+| INITIALISATION
+|--------------------------------------------------------------------------
+*/
 
-                            entry.target.classList.add('is-visible');
-                            observer.unobserve(entry.target);
+document.addEventListener(
+    'DOMContentLoaded',
+    () => {
 
-                        });
-
-                    },
-                    {
-                        threshold: 0.22,
-                        rootMargin: '0px 0px -60px 0px'
-                    }
-                );
-
-                ctaObserver.observe(ctaInner);
-
-            }
-
-        }
+        initHero();
+        initServices();
+        initFeaturedProject();
+        initAbout();
+        initPortfolio();
+        initTestimonials();
+        initFinalCta();
 
     }
-});
+);
