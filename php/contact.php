@@ -1,108 +1,272 @@
 <?php
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header("Location: /contact.php");
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: /contact.php');
     exit;
 }
 
-// Honeypot anti-bot (champ caché dans le formulaire)
-if (!empty($_POST["website"])) {
-    // Si ce champ est rempli → bot → on coupe tout
+
+/*
+|--------------------------------------------------------------------------
+| Honeypot anti-bot
+|--------------------------------------------------------------------------
+*/
+
+if (!empty($_POST['website'] ?? '')) {
     exit;
 }
 
-// Petite fonction de nettoyage
-function clean($data) {
-    return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
+
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
+
+function cleanInput(?string $value): string
+{
+    return trim((string) $value);
 }
 
-$prenom  = clean($_POST["prenom"] ?? '');
-$nom     = clean($_POST["nom"] ?? '');
-$email   = trim($_POST["email"] ?? '');
-$objet   = clean($_POST["objet"] ?? '');
-$message = clean($_POST["message"] ?? '');
 
-// Vérification email
+/*
+|--------------------------------------------------------------------------
+| Données
+|--------------------------------------------------------------------------
+*/
+
+$prenom = cleanInput($_POST['prenom'] ?? '');
+$nom = cleanInput($_POST['nom'] ?? '');
+$email = cleanInput($_POST['email'] ?? '');
+$telephone = cleanInput($_POST['telephone'] ?? '');
+$objet = cleanInput($_POST['objet'] ?? '');
+$budget = cleanInput($_POST['budget'] ?? '');
+$message = cleanInput($_POST['message'] ?? '');
+
+$consent = isset($_POST['consent'])
+    && $_POST['consent'] === '1';
+
+
+/*
+|--------------------------------------------------------------------------
+| Validation
+|--------------------------------------------------------------------------
+*/
+
+if (
+    mb_strlen($prenom) < 2 ||
+    mb_strlen($nom) < 2 ||
+    mb_strlen($objet) < 2 ||
+    mb_strlen($message) < 10
+) {
+    header('Location: /contact.php?error=fields');
+    exit;
+}
+
+
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    header("Location: /contact.php?error=email");
+    header('Location: /contact.php?error=email');
     exit;
 }
 
-// On récupère l'IP pour les logs
+
+if (!$consent) {
+    header('Location: /contact.php?error=consent');
+    exit;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| IP
+|--------------------------------------------------------------------------
+*/
+
 $ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
-// ================== LOG EN BDD ==================
+
+/*
+|--------------------------------------------------------------------------
+| Enregistrement BDD
+|--------------------------------------------------------------------------
+*/
+
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/mailer.php';
 
 try {
-    $sql = "INSERT INTO contact_messages (prenom, nom, email, objet, message, ip, created_at)
-            VALUES (:prenom, :nom, :email, :objet, :message, :ip, NOW())";
+
+    $sql = "
+        INSERT INTO contact_messages (
+            prenom,
+            nom,
+            email,
+            telephone,
+            objet,
+            budget,
+            message,
+            consent,
+            ip,
+            created_at
+        )
+        VALUES (
+            :prenom,
+            :nom,
+            :email,
+            :telephone,
+            :objet,
+            :budget,
+            :message,
+            :consent,
+            :ip,
+            NOW()
+        )
+    ";
+
     $stmt = $pdo->prepare($sql);
+
     $stmt->execute([
-        ':prenom'  => $prenom,
-        ':nom'     => $nom,
-        ':email'   => $email,
-        ':objet'   => $objet,
+        ':prenom' => $prenom,
+        ':nom' => $nom,
+        ':email' => $email,
+        ':telephone' => $telephone,
+        ':objet' => $objet,
+        ':budget' => $budget,
         ':message' => $message,
-        ':ip'      => $ip
+        ':consent' => 1,
+        ':ip' => $ip,
     ]);
+
 } catch (PDOException $e) {
-    // Tu peux loguer l'erreur si besoin
-    // file_put_contents(__DIR__ . '/logs_contact_error.txt', $e->getMessage() . PHP_EOL, FILE_APPEND);
+
+    error_log(
+        '[CONTACT] Database error: ' .
+        $e->getMessage()
+    );
+
 }
 
-// ================== EMAIL À TOI ==================
-$toOwner  = "contact@olcreativestudio.fr";
-$subjectOwner = "📩 Nouveau message depuis OL Creative Studio – $objet";
 
-$bodyOwner = "Nouveau message reçu depuis le formulaire de contact OL Creative Studio :
+/*
+|--------------------------------------------------------------------------
+| Email propriétaire
+|--------------------------------------------------------------------------
+*/
 
-Prénom : $prenom
-Nom : $nom
-Email : $email
-Objet : $objet
+$toOwner = 'contact@olcreativestudio.fr';
+
+$subjectOwner =
+    "Nouveau message OL Creative Studio – {$objet}";
+
+$telephoneDisplay =
+    $telephone !== ''
+        ? $telephone
+        : 'Non renseigné';
+
+$budgetDisplay =
+    $budget !== ''
+        ? $budget
+        : 'Non renseigné';
+
+$bodyOwner = <<<TEXT
+Nouveau message reçu depuis le formulaire OL Creative Studio.
+
+Prénom : {$prenom}
+Nom : {$nom}
+Email : {$email}
+Téléphone : {$telephoneDisplay}
+
+Projet : {$objet}
+Budget : {$budgetDisplay}
 
 Message :
-$message
+{$message}
 
-IP : $ip
-";
+Consentement RGPD : Oui
+IP : {$ip}
+TEXT;
 
-$headersOwner  = "From: OL Creative Studio <contact@olcreativestudio.fr>\r\n";
-$headersOwner .= "Reply-To: $email\r\n";
-$headersOwner .= "Content-Type: text/plain; charset=UTF-8\r\n";
-$headersOwner .= "X-Mailer: PHP/" . phpversion();
+$ownerMailSent = sendMail(
+    $toOwner,
+    'OL Creative Studio',
+    $subjectOwner,
+    $bodyOwner,
+    $email,
+    "{$prenom} {$nom}"
+);
 
-@mail($toOwner, $subjectOwner, $bodyOwner, $headersOwner);
+if (!$ownerMailSent) {
 
-// ================== EMAIL AU CLIENT (ACCUSÉ DE RÉCEPTION) ==================
-$toClient  = $email;
-$subjectClient = "Nous avons bien reçu votre message – OL Creative Studio";
+    error_log(
+        '[CONTACT] Owner email could not be sent.'
+    );
 
-$bodyClient = "Bonjour $prenom,
+} else {
 
-Merci pour votre message, il a bien été reçu par OL Creative Studio.
+    error_log(
+        '[CONTACT] Owner email sent successfully.'
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Accusé de réception client
+|--------------------------------------------------------------------------
+*/
+
+$subjectClient =
+    'Votre demande a bien été reçue – OL Creative Studio';
+
+$bodyClient = <<<TEXT
+Bonjour {$prenom},
+
+Merci pour votre message. Votre demande a bien été reçue par OL Creative Studio.
 
 Récapitulatif :
-Objet : $objet
+
+Projet : {$objet}
+Budget : {$budgetDisplay}
 
 Message :
-$message
+{$message}
 
-Je reviens vers vous sous 24 heures maximum.
+Je reviens vers vous généralement sous 24 heures ouvrées.
 
-À très vite,
+À bientôt,
+
 Othmane
 OL Creative Studio
 https://olcreativestudio.fr
-";
+TEXT;
 
-$headersClient  = "From: OL Creative Studio <contact@olcreativestudio.fr>\r\n";
-$headersClient .= "Reply-To: contact@olcreativestudio.fr\r\n";
-$headersClient .= "Content-Type: text/plain; charset=UTF-8\r\n";
-$headersClient .= "X-Mailer: PHP/" . phpversion();
+$clientMailSent = sendMail(
+    $email,
+    "{$prenom} {$nom}",
+    $subjectClient,
+    $bodyClient
+);
 
-@mail($toClient, $subjectClient, $bodyClient, $headersClient);
+if (!$clientMailSent) {
 
-// Redirection
-header("Location: /contact.php?success=1");
+    error_log(
+        '[CONTACT] Client confirmation could not be sent.'
+    );
+
+} else {
+
+    error_log(
+        '[CONTACT] Client confirmation sent successfully to: ' .
+        $email
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Redirection
+|--------------------------------------------------------------------------
+*/
+
+header('Location: /contact.php?success=1');
 exit;
