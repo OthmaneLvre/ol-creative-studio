@@ -2961,61 +2961,325 @@
 
 }
 
+/* ========================================================= */
+/*                        HOME CTA                           */
+/* ========================================================= */
 
+.home-cta {
+    position: relative;
 
-/* =========================== CTA =========================== */
+    padding: 150px 0;
 
-.cta {
-    background: var(--bleu-nuit); /* ton bleu nuit */
-    padding: 80px 0;
-    text-align: center;
-}
+    overflow: hidden;
 
-.cta h2 {
-    font-family: var(--font-primary);
-    font-size: 48px;
-    font-weight: 600;
-    color: var(--blanc);
-    margin-bottom: 15px;
-}
+    background: var(--color-background-dark);
 
-.cta p {
-    font-size: 20px;
-    color: var(--blanc);
-    margin-bottom: 35px;
-    font-family: var(--font-primary);
+    color: var(--color-text-light);
 }
 
 
 /* ========================================================= */
-/*                INDEX — VERSION MOBILE (<768px)            */
+/*                        DECORATION                         */
+/* ========================================================= */
+
+.home-cta::before,
+.home-cta::after {
+    content: "";
+
+    position: absolute;
+
+    border-radius: 50%;
+
+    pointer-events: none;
+}
+
+.home-cta::before {
+    width: 560px;
+    height: 560px;
+
+    top: -260px;
+    right: -140px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(27, 154, 170, .18),
+            transparent 70%
+        );
+}
+
+.home-cta::after {
+    width: 420px;
+    height: 420px;
+
+    left: -180px;
+    bottom: -220px;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255, 255, 255, .06),
+            transparent 72%
+        );
+}
+
+
+/* ========================================================= */
+/*                          INNER                            */
+/* ========================================================= */
+
+.home-cta__inner {
+    position: relative;
+    z-index: 1;
+
+    max-width: 1080px;
+
+    margin: 0 auto;
+
+    text-align: center;
+}
+
+
+/* ========================================================= */
+/*                         EYEBROW                           */
+/* ========================================================= */
+
+.home-cta__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 30px;
+
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+
+    color: var(--color-primary);
+}
+
+.home-cta__eyebrow::before,
+.home-cta__eyebrow::after {
+    content: "";
+
+    width: 32px;
+    height: 1px;
+
+    background: currentColor;
+}
+
+
+/* ========================================================= */
+/*                          TITLE                            */
+/* ========================================================= */
+
+.home-cta__title {
+    margin: 0;
+
+    font-family: var(--font-body);
+    font-size: clamp(58px, 7vw, 108px);
+    font-weight: var(--font-weight-medium);
+    line-height: .9;
+    letter-spacing: -.055em;
+
+    color: var(--color-white);
+}
+
+.home-cta__title em {
+    display: block;
+
+    font-family: var(--font-display);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: -.03em;
+
+    color: var(--color-primary);
+}
+
+
+/* ========================================================= */
+/*                          TEXT                             */
+/* ========================================================= */
+
+.home-cta__text {
+    max-width: 680px;
+
+    margin: 36px auto 0;
+
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.75;
+
+    color: rgba(255, 255, 255, .68);
+}
+
+
+/* ========================================================= */
+/*                         ACTIONS                           */
+/* ========================================================= */
+
+.home-cta__actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    gap: 28px;
+
+    margin-top: 48px;
+}
+
+.home-cta__email {
+    position: relative;
+
+    padding-bottom: 5px;
+
+    font-family: var(--font-body);
+    font-size: 14px;
+
+    color: rgba(255, 255, 255, .72);
+
+    transition:
+        color var(--duration-fast) var(--ease-standard);
+}
+
+.home-cta__email::after {
+    content: "";
+
+    position: absolute;
+    left: 0;
+    bottom: 0;
+
+    width: 100%;
+    height: 1px;
+
+    background: currentColor;
+
+    transform: scaleX(0);
+    transform-origin: right;
+
+    transition:
+        transform var(--duration-normal) var(--ease-expo);
+}
+
+.home-cta__email:hover {
+    color: var(--color-white);
+}
+
+.home-cta__email:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+}
+
+
+/* ========================================================= */
+/*                         MOBILE                            */
 /* ========================================================= */
 
 @media (max-width: 768px) {
 
-   
-
-
-    /* ======================== */
-    /*           CTA            */
-    /* ======================== */
-
-    .cta {
-        padding: 50px 20px;
+    .home-cta {
+        padding: 100px 0;
     }
 
-    .cta h2 {
-        font-size: 32px;
+    .home-cta__eyebrow {
+        margin-bottom: 24px;
+
+        font-size: 10px;
     }
 
-    .cta p {
-        font-size: 18px;
-        margin-bottom: 25px;
+    .home-cta__eyebrow::before,
+    .home-cta__eyebrow::after {
+        width: 22px;
     }
 
-    .cta a {
+    .home-cta__title {
+        font-size: clamp(48px, 14vw, 68px);
+        line-height: .94;
+    }
+
+    .home-cta__text {
+        margin-top: 28px;
+
+        font-size: 15px;
+    }
+
+    .home-cta__actions {
+        flex-direction: column;
+
+        gap: 20px;
+
+        margin-top: 38px;
+    }
+
+    .home-cta__actions .button {
         width: 100%;
-        display: block;
-        text-align: center;
+        justify-content: center;
     }
+
+}
+
+/* ========================================================= */
+/*                    CTA — SCROLL REVEAL                    */
+/* ========================================================= */
+
+.home-cta__eyebrow,
+.home-cta__title,
+.home-cta__text,
+.home-cta__actions {
+    opacity: 0;
+
+    transform: translateY(28px);
+
+    transition:
+        opacity .8s var(--ease-expo),
+        transform .8s var(--ease-expo);
+}
+
+
+/* ---------- Séquençage ---------- */
+
+.home-cta__title {
+    transition-delay: 100ms;
+}
+
+.home-cta__text {
+    transition-delay: 200ms;
+}
+
+.home-cta__actions {
+    transition-delay: 300ms;
+}
+
+
+/* ---------- Visible ---------- */
+
+.home-cta__inner.is-visible .home-cta__eyebrow,
+.home-cta__inner.is-visible .home-cta__title,
+.home-cta__inner.is-visible .home-cta__text,
+.home-cta__inner.is-visible .home-cta__actions {
+    opacity: 1;
+
+    transform: translateY(0);
+}
+
+
+/* ========================================================= */
+/*                    REDUCED MOTION                         */
+/* ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .home-cta__eyebrow,
+    .home-cta__title,
+    .home-cta__text,
+    .home-cta__actions {
+        opacity: 1;
+
+        transform: none;
+
+        transition: none;
+    }
+
 }

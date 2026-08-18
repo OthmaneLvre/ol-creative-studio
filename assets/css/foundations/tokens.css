@@ -9,6 +9,8 @@
        COLORS — BRAND
     ================================================== */
 
+    --color-navy-1000: #040A12;
+
     --color-navy-950: #07111F;
     --color-navy-900: #0D1B2A;
     --color-navy-800: #14283D;
@@ -37,6 +39,7 @@
     --color-background: var(--color-white);
     --color-background-alt: var(--color-off-white);
     --color-background-dark: var(--color-navy-950);
+    --color-background-deep: var(--color-navy-1000);
 
     --color-surface: var(--color-white);
     --color-surface-dark: var(--color-navy-900);

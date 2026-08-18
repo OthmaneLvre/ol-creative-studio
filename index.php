@@ -898,17 +898,58 @@ include 'partials/header.php';
 
     </section>
 
-        <!-- =========================== CTA SECTION =========================== -->
+    <!-- =========================== FINAL CTA =========================== -->
 
-    <section class="cta">
-        <div class="container cta-container">
+    <section class="home-cta">
 
-            <h2>Prêt à booster votre présence en ligne ?</h2>
-            <p>Des sites modernes, performants et élégants — adaptés à votre activité.</p>
+        <div class="container">
 
-            <a href="contact.php" class="btn-primary">Me contacter</a>
+            <div class="home-cta__inner">
+
+                <span class="home-cta__eyebrow">
+                    Un projet en tête ?
+                </span>
+
+                <h2 class="home-cta__title">
+                    Faisons quelque chose
+                    <em>qui marque.</em>
+                </h2>
+
+                <p class="home-cta__text">
+                    Site web, boutique en ligne ou identité visuelle :
+                    parlons de votre projet et construisons quelque chose
+                    de cohérent, utile et mémorable.
+                </p>
+
+                <div class="home-cta__actions">
+
+                    <a
+                        href="/contact.php"
+                        class="button button--primary button--lg"
+                    >
+                        <span>Parler de votre projet</span>
+
+                        <span
+                            class="button__icon"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+                    </a>
+
+                    <a
+                        href="mailto:contact@olcreativestudio.com"
+                        class="home-cta__email"
+                    >
+                        contact@olcreativestudio.com
+                    </a>
+
+                </div>
+
+            </div>
 
         </div>
+
     </section>
 
 <script
@@ -916,4 +957,8 @@ include 'partials/header.php';
     src="/assets/js/pages/home.js"
 ></script>
 
-<?php include 'partials/footer.php'; ?>
+<?php
+$hideFooterCta = true;
+include 'partials/footer.php';
+?>
+

@@ -3,40 +3,42 @@
 <footer class="site-footer" itemscope itemtype="https://schema.org/LocalBusiness">
 
     <!-- CTA FOOTER -->
-    <div class="container">
+    <?php if (empty($hideFooterCta)): ?>
+        <div class="container">
 
-        <div class="site-footer__cta">
+            <div class="site-footer__cta">
 
-            <div class="site-footer__cta-content">
+                <div class="site-footer__cta-content">
 
-                <span class="site-footer__eyebrow">
-                    Un projet en tête ?
-                </span>
+                    <span class="site-footer__eyebrow">
+                        Un projet en tête ?
+                    </span>
 
-                <h2 class="site-footer__title">
-                    Faisons quelque chose
-                    <em>qui marque.</em>
-                </h2>
+                    <h2 class="site-footer__title">
+                        Faisons quelque chose
+                        <em>qui marque.</em>
+                    </h2>
+
+                </div>
+
+                <a
+                    href="/contact.php"
+                    class="button button--primary button--lg site-footer__cta-button"
+                >
+                    <span>Parler de votre projet</span>
+
+                    <span
+                        class="button__icon"
+                        aria-hidden="true"
+                    >
+                        ↗
+                    </span>
+                </a>
 
             </div>
 
-            <a
-                href="/contact.php"
-                class="button button--primary button--lg site-footer__cta-button"
-            >
-                <span>Parler de votre projet</span>
-
-                <span
-                    class="button__icon"
-                    aria-hidden="true"
-                >
-                    ↗
-                </span>
-            </a>
-
         </div>
-
-    </div>
+    <?php endif; ?>
 
             <!-- MAIN FOOTER -->
             <div class="site-footer__main">

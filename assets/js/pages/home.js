@@ -839,4 +839,59 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FINAL CTA — REVEAL
+    |--------------------------------------------------------------------------
+    */
+
+    const ctaSection = document.querySelector('.home-cta');
+
+    if (ctaSection) {
+
+        const ctaInner = ctaSection.querySelector(
+            '.home-cta__inner'
+        );
+
+        const prefersReducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+        if (ctaInner) {
+
+            if (prefersReducedMotion) {
+
+                ctaInner.classList.add('is-visible');
+
+            } else {
+
+                const ctaObserver = new IntersectionObserver(
+                    (entries, observer) => {
+
+                        entries.forEach((entry) => {
+
+                            if (!entry.isIntersecting) {
+                                return;
+                            }
+
+                            entry.target.classList.add('is-visible');
+                            observer.unobserve(entry.target);
+
+                        });
+
+                    },
+                    {
+                        threshold: 0.22,
+                        rootMargin: '0px 0px -60px 0px'
+                    }
+                );
+
+                ctaObserver.observe(ctaInner);
+
+            }
+
+        }
+
+    }
 });
