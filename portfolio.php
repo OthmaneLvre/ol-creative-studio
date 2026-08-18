@@ -6,189 +6,310 @@ require_once 'php/db.php'; ?>
 
 <main class="page-content">
 
-    <!-- =========================== HERO =========================== -->
+    <!-- =========================== PORTFOLIO HERO =========================== -->
+
     <section class="portfolio-hero">
-            <img src="/assets/images/illustration-hero.webp"
-            alt="Illustration portfolio"
-            width="1200"
-            height="1200"
-            class="hero-bg"
-            loading="eager">
-        <div class="container">
-            <h1>Portfolio – Créations Web & Identités Visuelles</h1>
-            <p>Découvrez une sélection de projets en design, développement web, maquettes Figma et créations graphiques.</p>
-        </div>
-    </section>
 
-    <!-- =========================== HERO =========================== -->
-    <section class="seo-text">
-    <div class="container">
-        <h2>Un portfolio dédié à la création web et au design graphique</h2>
-        <p>
-            À travers ce portfolio, je présente une sélection de projets réalisés en
-            <strong>développement web</strong>, <strong>création de sites vitrines</strong>,
-            <strong>identités visuelles</strong>, <strong>maquettes Figma</strong> et
-            <strong>applications web & mobiles</strong>. Mon travail repose sur une approche
-            centrée utilisateur : design clair, expérience intuitive et performances optimisées.
-        </p>
+        <div class="container portfolio-hero__container">
 
-        <br>
+            <div class="portfolio-hero__main reveal">
 
-        <p>
-            Chaque projet présenté a été conçu <strong>sur-mesure</strong> pour répondre aux besoins de mes clients :
-            <strong>artisans</strong>, <strong>entrepreneurs</strong>, <strong>entreprises locales</strong>, <strong>associations</strong> ou <strong>projets personnels</strong>.
-            Que ce soit pour un site vitrine moderne, une boutique en ligne performante, un logo professionnel
-            ou une interface mobile, j’accorde une attention particulière à la cohérence visuelle, à la
-            qualité du code et aux bonnes pratiques SEO.
-        </p>
+                <span class="portfolio-hero__eyebrow">
+                    Portfolio
+                </span>
 
-        <br>
+                <h1 class="portfolio-hero__title">
+                    Des projets pensés
+                    <em>pour être vus, utilisés</em>
+                    et retenus.
+                </h1>
 
-        <p>
-            Mon objectif est de proposer des créations esthétiques, efficaces et durables, capables
-            d’améliorer la visibilité en ligne de chaque client. Si vous souhaitez discuter de votre
-            projet ou obtenir un devis, je reste entièrement disponible pour échanger et vous accompagner.
-        </p>
-    </div>
-    </section>
-
-    <!-- =========================== CATÉGORIES (avec icônes) =========================== -->
-    <section class="portfolio-categories">
-
-        <div class="portfolio-section-title">
-            <h2>Mes Créations</h2>
-            <p>Un aperçu de mes différents domaines d'expertise.</p>
-        </div>
-
-        <div class="container">
-            <div class="portfolio-cat-wrapper">
-                <div class="portfolio-cat-grid">
-
-                    <div class="cat-card">
-                        <img src="/assets/icons/figma.svg" alt="Icône Maquettes Figma">
-                        <h3>Maquettes Figma</h3>
-                        <p>UI/UX modernes et responsives.</p>
-                    </div>
-
-                    <div class="cat-card">
-                        <img src="/assets/icons/vitrine.svg" alt="Icône Site vitrine moderne">
-                        <h3>Site vitrine moderne</h3>
-                        <p>Des sites rapides, stylés et adaptés.</p>
-                    </div>
-
-                    <div class="cat-card">
-                        <img src="/assets/icons/ecommerce.svg" alt="Icône Boutique en ligne">
-                        <h3>Boutiques en ligne</h3>
-                        <p>Création de boutiques performantes.</p>
-                    </div>
-
-                    <div class="cat-card">
-                        <img src="/assets/icons/app.svg" alt="Icône Application Web et Mobile">
-                        <h3>Applications Web & Mobile</h3>
-                        <p>Développement d’apps complètes.</p>
-                    </div>
-
-                    <div class="cat-card">
-                        <img src="/assets/icons/logo.svg" alt="Icône Logos et identités visuelles">
-                        <h3>Logos & identités visuelles</h3>
-                        <p>Identités uniques & personnalisées.</p>
-                    </div>
-                </div>
             </div>
+
+
+            <div class="portfolio-hero__side reveal reveal--delay-100">
+
+                <p class="portfolio-hero__intro">
+                    Une sélection de projets web et graphiques conçus sur mesure,
+                    avec une attention particulière portée au design,
+                    à l’expérience et à la performance.
+                </p>
+
+                <div class="portfolio-hero__promise">
+
+                    <span class="portfolio-hero__promise-label">
+                        Une approche complète
+                    </span>
+
+                    <p>
+                        Identité, interface, développement et expérience :
+                        chaque projet est pensé comme un ensemble cohérent.
+                    </p>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <div class="portfolio-cat-pagination">
-            <span class="dot active"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
+
+        <div class="container portfolio-hero__footer">
+
+            <span>
+                01 · Projets
+            </span>
+
+            <a href="#portfolio-projects">
+                Découvrir les réalisations
+                <span aria-hidden="true">↓</span>
+            </a>
+
         </div>
 
     </section>
 
-    <!-- =========================== CHARGEMENT DES CATEGORIES AVANT LES FILTRES =========================== -->
+    <!-- =========================== PORTFOLIO PROJECTS =========================== -->
+
     <?php
-    // On récupère les projets
-    $sql = "SELECT * FROM portfolio ORDER BY id DESC";
+
+    $sql = "
+        SELECT *
+        FROM portfolio
+        ORDER BY id DESC
+    ";
+
     $stmt = $pdo->query($sql);
     $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Toutes les catégories possibles dans ton portfolio
-    $allCategories = [
-        "figma"    => "Maquettes Figma",
-        "vitrine"  => "Sites vitrines",
-        "ecom"     => "Boutiques en ligne",
-        "app"      => "Applications",
-        "logo" => "Logos & identités visuelles"
+    $categoryLabels = [
+        'figma' => 'Maquette Figma',
+        'vitrine' => 'Site vitrine',
+        'ecom' => 'E-commerce',
+        'ecommerce' => 'E-commerce',
+        'app' => 'Application web',
+        'logo' => 'Identité visuelle',
     ];
 
-    // Récupérer toutes les catégories existantes dans la BDD
-    $sqlCat = "SELECT DISTINCT categorie FROM portfolio";
-    $stmtCat = $pdo->query($sqlCat);
-    $existingCategories = $stmtCat->fetchAll(PDO::FETCH_COLUMN);
+    $existingCategories = [];
+
+    foreach ($projects as $project) {
+
+        $category = $project['categorie'] ?? '';
+
+        if (
+            $category !== '' &&
+            !in_array($category, $existingCategories, true)
+        ) {
+            $existingCategories[] = $category;
+        }
+    }
+
     ?>
 
+    <section
+        class="portfolio-projects"
+        id="portfolio-projects"
+    >
 
-    <!-- =========================== FILTRES =========================== -->
-    <section class="portfolio-filters">
-        <div>
+        <div class="container">
 
-            <!-- Toujours visible -->
-            <button class="filter-btn active" data-category="all">Tous</button>
-            
-            <!-- Boutons dynamiques -->
-            <?php foreach ($allCategories as $key => $label): ?>
-                <?php if (in_array($key, $existingCategories)): ?>
-                    <button class="filter-btn" data-category="<?= $key ?>">
-                        <?= $label ?>
-                    </button>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </div>
-    </section>
+            <div class="portfolio-projects__header">
 
+                <div class="reveal">
 
-    <!-- =========================== GRILLE PROJETS (BDD) =========================== -->
-    <section class="portfolio-list">
-        <div class="container portfolio-grid">
+                    <span class="portfolio-projects__eyebrow">
+                        02 · Réalisations
+                    </span>
 
-            <?php foreach ($projects as $p): ?>
+                    <h2 class="portfolio-projects__title">
+                        Quelques projets
+                        <em>qui ont pris vie.</em>
+                    </h2>
 
-            <a href="portfolio-details.php?id=<?= $p['id'] ?>"
-                class="portfolio-card"
-                data-category="<?= htmlspecialchars($p['categorie'] ?? 'all') ?>">
-
-                <div class="card-image">
-                    <img src="/admin/uploads/creation/<?= htmlspecialchars($p['image']) ?>"
-                         alt="<?= htmlspecialchars($p['titre']) ?>"
-                        loading="lazy"
-                    >
-                
-                    <div class="overlay">
-                        Voir les détails du projet
-                    </div>
                 </div>
 
-                <h3><?= htmlspecialchars($p['titre']) ?></h3>
+                <div class="portfolio-projects__side reveal reveal--delay-100">
 
-            </a>
+                    <p>
+                        Sites vitrines, e-commerce, interfaces et identités :
+                        chaque réalisation répond à un univers, un besoin
+                        et des objectifs différents.
+                    </p>
 
-            <?php endforeach; ?>
+                    <?php if (!empty($existingCategories)): ?>
+
+                        <div
+                            class="portfolio-projects__filters"
+                            data-portfolio-filters
+                        >
+
+                            <button
+                                type="button"
+                                class="portfolio-filter is-active"
+                                data-category="all"
+                            >
+                                Tous
+                            </button>
+
+                            <?php foreach ($existingCategories as $category): ?>
+
+                                <button
+                                    type="button"
+                                    class="portfolio-filter"
+                                    data-category="<?= htmlspecialchars($category); ?>"
+                                >
+                                    <?= htmlspecialchars(
+                                        $categoryLabels[$category]
+                                        ?? ucfirst($category)
+                                    ); ?>
+                                </button>
+
+                            <?php endforeach; ?>
+
+                        </div>
+
+                    <?php endif; ?>
+
+                </div>
+
+            </div>
+
+
+            <?php if (!empty($projects)): ?>
+
+                <div
+                    class="portfolio-projects__grid"
+                    data-portfolio-grid
+                >
+
+                    <?php foreach ($projects as $index => $project): ?>
+
+                        <?php
+
+                        $projectNumber = str_pad(
+                            (string) ($index + 1),
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        );
+
+                        $category = $project['categorie'] ?? '';
+
+                        $categoryLabel =
+                            $categoryLabels[$category]
+                            ?? ucfirst($category);
+
+                        $technologies = json_decode(
+                            $project['technologies'] ?? '[]',
+                            true
+                        );
+
+                        if (!is_array($technologies)) {
+                            $technologies = [];
+                        }
+
+                        ?>
+
+                        <article
+                            class="
+                                portfolio-project
+                                <?= $index === 0
+                                    ? 'portfolio-project--featured'
+                                    : ''; ?>
+                                reveal
+                            "
+                            data-project
+                            data-category="<?= htmlspecialchars($category); ?>"
+                        >
+
+                            <a
+                                href="/portfolio-details.php?id=<?= (int) $project['id']; ?>"
+                                class="portfolio-project__link"
+                                aria-label="Découvrir le projet <?= htmlspecialchars($project['titre']); ?>"
+                            >
+
+                                <div class="portfolio-project__media">
+
+                                    <img
+                                        src="/admin/uploads/creation/<?= htmlspecialchars($project['image']); ?>"
+                                        alt="<?= htmlspecialchars($project['titre']); ?>"
+                                        loading="<?= $index === 0 ? 'eager' : 'lazy'; ?>"
+                                    >
+
+                                    <div
+                                        class="portfolio-project__arrow"
+                                        aria-hidden="true"
+                                    >
+                                        ↗
+                                    </div>
+
+                                </div>
+
+
+                                <div class="portfolio-project__content">
+
+                                    <div class="portfolio-project__meta">
+
+                                        <span>
+                                            <?= $projectNumber; ?>
+                                        </span>
+
+                                        <span>
+                                            <?= htmlspecialchars($categoryLabel); ?>
+                                        </span>
+
+                                    </div>
+
+                                    <h3>
+                                        <?= htmlspecialchars($project['titre']); ?>
+                                    </h3>
+
+
+                                    <?php if (!empty($technologies)): ?>
+
+                                        <div class="portfolio-project__stack">
+
+                                            <?php foreach ($technologies as $technology): ?>
+
+                                                <span>
+                                                    <?= htmlspecialchars($technology); ?>
+                                                </span>
+
+                                            <?php endforeach; ?>
+
+                                        </div>
+
+                                    <?php endif; ?>
+
+                                </div>
+
+                            </a>
+
+                        </article>
+
+                    <?php endforeach; ?>
+
+                </div>
+
+            <?php else: ?>
+
+                <p class="portfolio-projects__empty">
+                    Les prochaines réalisations arrivent bientôt.
+                </p>
+
+            <?php endif; ?>
 
         </div>
-    </section>
 
-
-    <!-- =========================== CTA =========================== -->
-    <section class="portfolio-cta">
-        <div class="container">
-            <h2>Vous avez un projet ? Discutons-en.</h2>
-            <p>Je suis disponible pour créer votre site, votre identité visuelle ou votre application web.</p>
-            <a href="contact.php" class="btn-primary">Me contacter</a>
-        </div>
     </section>
 
 </main>
 
-<?php include 'partials/footer.php'; ?>
+<script
+    type="module"
+    src="/assets/js/pages/portfolio.js"
+></script>
+
+<?php
+include_once __DIR__ . '/partials/footer.php';
+?>
