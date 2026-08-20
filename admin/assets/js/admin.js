@@ -23,11 +23,13 @@ function initDeleteConfirmations() {
 
         form.addEventListener('submit', (event) => {
 
-            const projectTitle =
-                form.dataset.projectTitle || 'ce projet';
+            const label =
+                form.dataset.projectTitle ||
+                form.dataset.reviewName ||
+                'cet élément';
 
             const confirmed = window.confirm(
-                `Supprimer définitivement « ${projectTitle} » ?`
+                `Supprimer définitivement « ${label} » ?`
             );
 
             if (!confirmed) {
@@ -39,7 +41,6 @@ function initDeleteConfirmations() {
     }
 
 }
-
 
 /* =========================================================
    TAG FIELDS

@@ -1,10 +1,44 @@
 <?php
-$pageTitle = "Développeur Web Freelance à Céret";
-$pageDescription = "Développeur web freelance à Céret dans les Pyrénées-Orientales. Création de sites vitrines, boutiques en ligne, référencement naturel SEO et identité visuelle pour artisans, indépendants et associations.";
 
-include_once 'partials/header.php';
+declare(strict_types=1);
+
+require_once __DIR__ . '/php/db.php';
+
+
+/*
+|--------------------------------------------------------------------------
+| Projet mis en avant
+|--------------------------------------------------------------------------
+*/
+
+$featuredStmt = $pdo->query(
+    'SELECT *
+     FROM portfolio
+     WHERE featured = 1
+     ORDER BY ordre ASC, date_creation DESC
+     LIMIT 1'
+);
+
+$featuredProject = $featuredStmt->fetch(PDO::FETCH_ASSOC);
+
+
+/*
+|--------------------------------------------------------------------------
+| SEO
+|--------------------------------------------------------------------------
+*/
+
+$pageTitle = 'Développeur Web Freelance à Céret';
+
+$pageDescription =
+    'Développeur web freelance à Céret dans les Pyrénées-Orientales. '
+    . 'Création de sites vitrines, boutiques en ligne, référencement '
+    . 'naturel SEO et identité visuelle pour artisans, indépendants '
+    . 'et associations.';
+
+include_once __DIR__ . '/partials/header.php';
+
 ?>
-
 
 <main class="page-content">
     <!-- =========================== HERO SECTION =========================== -->
@@ -326,139 +360,301 @@ include_once 'partials/header.php';
 
     <!-- =========================== FEATURED PROJECT =========================== -->
 
-    <section class="home-featured-project">
+    <?php if ($featuredProject): ?>
 
-        <div class="container">
+        <?php
 
-            <div class="home-featured-project__header">
+        $featuredTechnologies = [];
 
-                <span class="home-featured-project__eyebrow">
-                    Projet sélectionné · 01
-                </span>
+        if (!empty($featuredProject['technologies'])) {
 
-                <div class="home-featured-project__heading">
+            $decodedTechnologies = json_decode(
+                $featuredProject['technologies'],
+                true
+            );
 
-                    <h2>
-                        Below Dreams
-                        <em>E-commerce sur mesure.</em>
-                    </h2>
+            if (is_array($decodedTechnologies)) {
+                $featuredTechnologies = $decodedTechnologies;
+            }
+        }
 
-                    <p>
-                        Une boutique en ligne développée de A à Z avec une
-                        expérience d’achat personnalisée, un espace client,
-                        une administration complète et un paiement sécurisé.
-                    </p>
+
+        $featuredServices = [];
+
+        if (!empty($featuredProject['services'])) {
+
+            $decodedServices = json_decode(
+                $featuredProject['services'],
+                true
+            );
+
+            if (is_array($decodedServices)) {
+                $featuredServices = $decodedServices;
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | URL affichée dans le faux navigateur
+        |--------------------------------------------------------------------------
+        */
+
+        $featuredHost = '';
+
+        if (!empty($featuredProject['url_demo'])) {
+
+            $parsedHost = parse_url(
+                $featuredProject['url_demo'],
+                PHP_URL_HOST
+            );
+
+            if (is_string($parsedHost)) {
+
+                $featuredHost = preg_replace(
+                    '/^www\./',
+                    '',
+                    $parsedHost
+                ) ?? $parsedHost;
+            }
+        }
+
+        ?>
+
+        <section class="home-featured-project">
+
+            <div class="container">
+
+                <div class="home-featured-project__header">
+
+                    <span class="home-featured-project__eyebrow">
+                        Projet sélectionné · 01
+                    </span>
+
+                    <div class="home-featured-project__heading">
+
+                        <h2>
+                            <?= htmlspecialchars(
+                                $featuredProject['titre'],
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ) ?>
+
+                            <?php if (!empty($featuredProject['role_projet'])): ?>
+
+                                <em>
+                                    <?= htmlspecialchars(
+                                        $featuredProject['role_projet'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+                                </em>
+
+                            <?php endif; ?>
+                        </h2>
+
+
+                        <?php if (!empty($featuredProject['description'])): ?>
+
+                            <p>
+                                <?= htmlspecialchars(
+                                    $featuredProject['description'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>
+                            </p>
+
+                        <?php endif; ?>
+
+                    </div>
 
                 </div>
 
-            </div>
 
+                <div class="home-featured-project__visual">
 
-            <div class="home-featured-project__visual">
+                    <div class="home-featured-project__browser">
 
-                <div class="home-featured-project__browser">
+                        <div class="home-featured-project__browser-bar">
 
-                    <div class="home-featured-project__browser-bar">
+                            <div class="home-featured-project__browser-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
 
-                        <div class="home-featured-project__browser-dots">
-                            <span></span>
-                            <span></span>
-                            <span></span>
+                            <span class="home-featured-project__browser-url">
+
+                                <?= $featuredHost !== ''
+                                    ? htmlspecialchars(
+                                        $featuredHost,
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    )
+                                    : htmlspecialchars(
+                                        $featuredProject['slug']
+                                            ?? $featuredProject['titre'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    )
+                                ?>
+
+                            </span>
+
                         </div>
 
-                        <span class="home-featured-project__browser-url">
-                            belowdreams.com
+
+                        <div class="home-featured-project__media">
+
+                            <img
+                                src="/admin/uploads/creation/<?= htmlspecialchars(
+                                    $featuredProject['image'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>"
+                                alt="Aperçu du projet <?= htmlspecialchars(
+                                    $featuredProject['titre'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>"
+                                loading="lazy"
+                                decoding="async"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="home-featured-project__details">
+
+                    <div class="home-featured-project__intro">
+
+                        <span class="home-featured-project__label">
+                            Le projet
                         </span>
 
+
+                        <?php
+                        $featuredIntro =
+                            $featuredProject['solution']
+                            ?: $featuredProject['contexte']
+                            ?: $featuredProject['description'];
+                        ?>
+
+                        <?php if (!empty($featuredIntro)): ?>
+
+                            <p>
+                                <?= htmlspecialchars(
+                                    $featuredIntro,
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>
+                            </p>
+
+                        <?php endif; ?>
+
                     </div>
 
-                    <div class="home-featured-project__media">
 
-                        <img
-                            src="/assets/images/projects/below-dreams.webp"
-                            alt="Aperçu du site e-commerce Below Dreams"
-                            loading="lazy"
-                        >
+                    <?php if (!empty($featuredServices)): ?>
 
-                    </div>
+                        <div class="home-featured-project__features">
+
+                            <?php foreach (
+                                array_slice(
+                                    $featuredServices,
+                                    0,
+                                    4
+                                )
+                                as $index => $service
+                            ): ?>
+
+                                <div class="home-featured-project__feature">
+
+                                    <span>
+                                        <?= str_pad(
+                                            (string) ($index + 1),
+                                            2,
+                                            '0',
+                                            STR_PAD_LEFT
+                                        ) ?>
+                                    </span>
+
+                                    <p>
+                                        <?= htmlspecialchars(
+                                            (string) $service,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </p>
+
+                                </div>
+
+                            <?php endforeach; ?>
+
+                        </div>
+
+                    <?php endif; ?>
 
                 </div>
 
-            </div>
+
+                <div class="home-featured-project__footer">
+
+                    <?php if (!empty($featuredTechnologies)): ?>
+
+                        <div class="home-featured-project__stack">
+
+                            <?php foreach (
+                                array_slice(
+                                    $featuredTechnologies,
+                                    0,
+                                    6
+                                )
+                                as $technology
+                            ): ?>
+
+                                <span>
+                                    <?= htmlspecialchars(
+                                        (string) $technology,
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+                                </span>
+
+                            <?php endforeach; ?>
+
+                        </div>
+
+                    <?php endif; ?>
 
 
-            <div class="home-featured-project__details">
-
-                <div class="home-featured-project__intro">
-
-                    <span class="home-featured-project__label">
-                        Le projet
-                    </span>
-
-                    <p>
-                        Conception et développement d’une plateforme e-commerce
-                        indépendante pensée pour donner à la marque un contrôle
-                        total sur ses produits, ses commandes et son expérience client.
-                    </p>
-
-                </div>
-
-
-                <div class="home-featured-project__features">
-
-                    <div class="home-featured-project__feature">
-                        <span>01</span>
-                        <p>Boutique & catalogue produits</p>
-                    </div>
-
-                    <div class="home-featured-project__feature">
-                        <span>02</span>
-                        <p>Paiement sécurisé Stripe</p>
-                    </div>
-
-                    <div class="home-featured-project__feature">
-                        <span>03</span>
-                        <p>Espace client & commandes</p>
-                    </div>
-
-                    <div class="home-featured-project__feature">
-                        <span>04</span>
-                        <p>Administration sur mesure</p>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="home-featured-project__footer">
-
-                <div class="home-featured-project__stack">
-                    <span>PHP</span>
-                    <span>MySQL</span>
-                    <span>Stripe</span>
-                    <span>JavaScript</span>
-                </div>
-
-                <a
-                    href="/portfolio.php"
-                    class="button button--primary"
-                >
-                    <span>Découvrir le projet</span>
-
-                    <span
-                        class="button__icon"
-                        aria-hidden="true"
+                    <a
+                        href="/portfolio-details.php?id=<?= (int) $featuredProject['id'] ?>"
+                        class="button button--primary"
                     >
-                        ↗
-                    </span>
-                </a>
+                        <span>
+                            Découvrir le projet
+                        </span>
+
+                        <span
+                            class="button__icon"
+                            aria-hidden="true"
+                        >
+                            ↗
+                        </span>
+                    </a>
+
+                </div>
 
             </div>
 
-        </div>
+        </section>
 
-    </section>
+    <?php endif; ?>
 
     <!-- =========================== ABOUT / STUDIO =========================== -->
 
@@ -582,8 +778,6 @@ include_once 'partials/header.php';
     <!-- =========================== HOME PORTFOLIO =========================== -->
 
     <?php
-
-    require_once "php/db.php";
 
     $query = $pdo->query("
         SELECT *
@@ -751,8 +945,6 @@ include_once 'partials/header.php';
     <!-- =========================== TESTIMONIALS =========================== -->
 
     <?php
-
-    require_once "php/db.php";
 
     $sql = "
         SELECT *

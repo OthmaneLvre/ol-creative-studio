@@ -1,110 +1,642 @@
 <?php
-session_start();
-if (!isset($_SESSION["admin_logged"])) {
-    header("Location: login.php");
-    exit;
-}
 
-require_once "../php/db.php";
+declare(strict_types=1);
 
-if (isset($_POST["ajouter"])) {
+require_once __DIR__ . '/includes/auth.php';
 
-    $nom = trim($_POST["nom"]);
-    $categorie = trim($_POST["categorie"]);
-    $commentaire = trim($_POST["commentaire"]);
 
-    $avatarName = null;
+/*
+|--------------------------------------------------------------------------
+| Configuration
+|--------------------------------------------------------------------------
+*/
 
-    // ----- UPLOAD AVATAR -----
-    if (!empty($_FILES["avatar"]["name"])) {
+$adminPageTitle = 'Nouvel avis';
+$adminActivePage = 'avis';
 
-        $allowed = ["jpg", "jpeg", "png", "webp"];
-        $fileName = $_FILES["avatar"]["name"];
-        $fileTmp  = $_FILES["avatar"]["tmp_name"];
-        $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+$categories = [
+    'Site vitrine',
+    'Identité visuelle',
+    'Maquettes Figma',
+    'E-commerce',
+    'Application Web & Mobile',
+    'Autre',
+];
 
-        if (in_array($ext, $allowed)) {
+$uploadDirectory =
+    __DIR__ . '/uploads/avatars/';
 
-            $avatarName = uniqid("avatar_") . "." . $ext;
-            $uploadPath = "uploads/avatars/" . $avatarName;
+$allowedMimeTypes = [
+    'image/jpeg' => 'jpg',
+    'image/png'  => 'png',
+    'image/webp' => 'webp',
+];
 
-            move_uploaded_file($fileTmp, $uploadPath);
-        }
+$maxUploadSize =
+    4 * 1024 * 1024;
+
+$error = '';
+
+
+/*
+|--------------------------------------------------------------------------
+| Helper upload avatar
+|--------------------------------------------------------------------------
+*/
+
+function uploadAvatar(
+    array $file,
+    string $directory,
+    array $allowedMimeTypes,
+    int $maxSize
+): string {
+
+    if (
+        !isset(
+            $file['error'],
+            $file['tmp_name'],
+            $file['size']
+        )
+    ) {
+        throw new RuntimeException(
+            'Fichier invalide.'
+        );
     }
 
-    // ----- SQL INSERT -----
-    $sql = "INSERT INTO avis (nom, categorie, commentaire, avatar, statut)
-            VALUES (:nom, :categorie, :commentaire, :avatar, 'validé')";
+    if (
+        $file['error'] !== UPLOAD_ERR_OK
+    ) {
+        throw new RuntimeException(
+            'Erreur pendant l’envoi de l’avatar.'
+        );
+    }
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ":nom"        => $nom,
-        ":categorie"  => $categorie,
-        ":commentaire"=> $commentaire,
-        ":avatar"     => $avatarName
-    ]);
+    if (
+        (int) $file['size'] > $maxSize
+    ) {
+        throw new RuntimeException(
+            'L’avatar dépasse 4 Mo.'
+        );
+    }
 
-    // 🔥 Notifier Google qu'un nouveau contenu est disponible
-    file_get_contents("https://www.google.com/ping?sitemap=https://olcreativestudio.fr/sitemap.xml");
+    $finfo =
+        new finfo(FILEINFO_MIME_TYPE);
 
-    header("Location: avis.php?success=1");
-    exit;
+    $mimeType =
+        $finfo->file(
+            $file['tmp_name']
+        );
+
+    if (
+        !is_string($mimeType) ||
+        !isset($allowedMimeTypes[$mimeType])
+    ) {
+        throw new RuntimeException(
+            'Format d’image non autorisé.'
+        );
+    }
+
+    $extension =
+        $allowedMimeTypes[$mimeType];
+
+    $filename =
+        'avatar_'
+        . bin2hex(random_bytes(12))
+        . '.'
+        . $extension;
+
+    $destination =
+        $directory . $filename;
+
+    if (
+        !move_uploaded_file(
+            $file['tmp_name'],
+            $destination
+        )
+    ) {
+        throw new RuntimeException(
+            'Impossible d’enregistrer l’avatar.'
+        );
+    }
+
+    return $filename;
 }
+
+
+/*
+|--------------------------------------------------------------------------
+| Traitement POST
+|--------------------------------------------------------------------------
+*/
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $csrf =
+        (string) ($_POST['csrf'] ?? '');
+
+    if (
+        !hash_equals(
+            $_SESSION['csrf_token'],
+            $csrf
+        )
+    ) {
+
+        $error =
+            'Session expirée ou requête invalide.';
+
+    } else {
+
+        $name =
+            trim(
+                (string) ($_POST['nom'] ?? '')
+            );
+
+        $category =
+            trim(
+                (string) ($_POST['categorie'] ?? '')
+            );
+
+        $comment =
+            trim(
+                (string) ($_POST['commentaire'] ?? '')
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validation
+        |--------------------------------------------------------------------------
+        */
+
+        if ($name === '') {
+
+            $error =
+                'Le nom du client est obligatoire.';
+
+        } elseif (
+            !in_array(
+                $category,
+                $categories,
+                true
+            )
+        ) {
+
+            $error =
+                'La catégorie sélectionnée est invalide.';
+
+        } elseif ($comment === '') {
+
+            $error =
+                'Le témoignage est obligatoire.';
+
+        } elseif (
+            mb_strlen($comment) > 2000
+        ) {
+
+            $error =
+                'Le témoignage est trop long.';
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Upload + insertion
+        |--------------------------------------------------------------------------
+        */
+
+        if ($error === '') {
+
+            $avatarFilename = null;
+
+            try {
+
+                if (
+                    !is_dir($uploadDirectory) &&
+                    !mkdir(
+                        $uploadDirectory,
+                        0755,
+                        true
+                    )
+                ) {
+                    throw new RuntimeException(
+                        'Impossible de créer le dossier des avatars.'
+                    );
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Avatar optionnel
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    isset($_FILES['avatar']) &&
+                    (
+                        $_FILES['avatar']['error']
+                        ?? UPLOAD_ERR_NO_FILE
+                    ) !== UPLOAD_ERR_NO_FILE
+                ) {
+
+                    $avatarFilename =
+                        uploadAvatar(
+                            $_FILES['avatar'],
+                            $uploadDirectory,
+                            $allowedMimeTypes,
+                            $maxUploadSize
+                        );
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | BDD
+                |--------------------------------------------------------------------------
+                */
+
+                $stmt =
+                    $pdo->prepare(
+                        'INSERT INTO avis (
+                            nom,
+                            categorie,
+                            commentaire,
+                            avatar,
+                            statut
+                        )
+                        VALUES (
+                            :nom,
+                            :categorie,
+                            :commentaire,
+                            :avatar,
+                            :statut
+                        )'
+                    );
+
+                $stmt->execute([
+                    ':nom' =>
+                        $name,
+
+                    ':categorie' =>
+                        $category,
+
+                    ':commentaire' =>
+                        $comment,
+
+                    ':avatar' =>
+                        $avatarFilename,
+
+                    ':statut' =>
+                        'validé',
+                ]);
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Rotation CSRF
+                |--------------------------------------------------------------------------
+                */
+
+                $_SESSION['csrf_token'] =
+                    bin2hex(
+                        random_bytes(32)
+                    );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Redirection
+                |--------------------------------------------------------------------------
+                */
+
+                header(
+                    'Location: /admin/avis.php?created=1'
+                );
+
+                exit;
+
+            } catch (Throwable $exception) {
+
+                if (
+                    $avatarFilename !== null
+                ) {
+
+                    $path =
+                        $uploadDirectory
+                        . basename(
+                            $avatarFilename
+                        );
+
+                    if (is_file($path)) {
+                        unlink($path);
+                    }
+                }
+
+                $error =
+                    'Impossible d’ajouter l’avis. '
+                    . $exception->getMessage();
+            }
+        }
+    }
+}
+
 ?>
 <!DOCTYPE html>
+
 <html lang="fr">
+
 <head>
+
     <meta charset="UTF-8">
-    <title>Ajouter un avis client</title>
 
-    <!-- FAVICON -->
-    <link rel="icon" type="image/x-icon" href="/olcreativestudio/assets/logo/favicon_olCreativeStudio.png">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="admin.css">
+    <meta
+        name="robots"
+        content="noindex, nofollow"
+    >
+
+    <title>
+        Nouvel avis — Administration OL Creative Studio
+    </title>
+
+    <link
+        rel="icon"
+        href="/favicon.ico"
+    >
+
+    <link
+        rel="stylesheet"
+        href="/admin/assets/css/admin.css"
+    >
 
 </head>
-<body>
 
-<div class="admin-wrapper">
-    <div class="sidebar">
-        <h2>OL Creative Studio</h2>
-        <a href="dashboard.php">📂 Dashboard</a>
-        <a href="avis.php">💬 Avis clients</a>
-        <a href="logout.php">Déconnexion</a>
+<body class="admin-body">
+
+    <div class="admin-layout">
+
+        <?php
+        include_once __DIR__ . '/partials/sidebar.php';
+        ?>
+
+
+        <main class="admin-main">
+
+            <?php
+            include_once __DIR__ . '/partials/header.php';
+            ?>
+
+
+            <div class="admin-content">
+
+
+                <!-- =====================================================
+                     HEADER
+                     ===================================================== -->
+
+                <section class="admin-page-heading">
+
+                    <div class="admin-page-heading__content">
+
+                        <a
+                            href="/admin/avis.php"
+                            class="admin-text-link"
+                        >
+                            ← Retour aux avis
+                        </a>
+
+                        <span class="admin-eyebrow">
+                            Témoignages
+                        </span>
+
+                        <h1>
+                            Nouvel avis.
+                        </h1>
+
+                        <p>
+                            Ajoutez un nouveau témoignage client.
+                        </p>
+
+                    </div>
+
+                </section>
+
+
+                <?php if ($error !== ''): ?>
+
+                    <div
+                        class="admin-alert admin-alert--error"
+                        role="alert"
+                    >
+                        <?= htmlspecialchars(
+                            $error,
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ) ?>
+                    </div>
+
+                <?php endif; ?>
+
+
+                <!-- =====================================================
+                     FORM
+                     ===================================================== -->
+
+                <form
+                    method="POST"
+                    enctype="multipart/form-data"
+                    class="admin-form"
+                >
+
+                    <input
+                        type="hidden"
+                        name="csrf"
+                        value="<?= htmlspecialchars(
+                            $_SESSION['csrf_token'],
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ) ?>"
+                    >
+
+
+                    <section class="admin-form-section">
+
+                        <div class="admin-form-section__header">
+
+                            <span class="admin-eyebrow">
+                                01
+                            </span>
+
+                            <div>
+
+                                <h2>
+                                    Informations client
+                                </h2>
+
+                                <p>
+                                    Identité du client et contexte
+                                    du témoignage.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="admin-form-grid">
+
+
+                            <div class="admin-field">
+
+                                <label for="nom">
+                                    Nom du client *
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="nom"
+                                    name="nom"
+                                    value="<?= htmlspecialchars(
+                                        (string) (
+                                            $_POST['nom']
+                                            ?? ''
+                                        ),
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="admin-field">
+
+                                <label for="categorie">
+                                    Catégorie *
+                                </label>
+
+                                <select
+                                    id="categorie"
+                                    name="categorie"
+                                    required
+                                >
+
+                                    <?php foreach (
+                                        $categories as $item
+                                    ): ?>
+
+                                        <option
+                                            value="<?= htmlspecialchars(
+                                                $item,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            <?= (
+                                                ($_POST['categorie'] ?? '')
+                                                === $item
+                                            )
+                                                ? 'selected'
+                                                : ''
+                                            ?>
+                                        >
+                                            <?= htmlspecialchars(
+                                                $item,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>
+                                        </option>
+
+                                    <?php endforeach; ?>
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="admin-field admin-field--full">
+
+                                <label for="commentaire">
+                                    Témoignage *
+                                </label>
+
+                                <textarea
+                                    id="commentaire"
+                                    name="commentaire"
+                                    maxlength="2000"
+                                    required
+                                    placeholder="Le témoignage du client..."
+                                ><?= htmlspecialchars(
+                                    (string) (
+                                        $_POST['commentaire']
+                                        ?? ''
+                                    ),
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?></textarea>
+
+                            </div>
+
+
+                            <div class="admin-field admin-field--full">
+
+                                <label for="avatar">
+                                    Avatar du client
+                                </label>
+
+                                <input
+                                    type="file"
+                                    id="avatar"
+                                    name="avatar"
+                                    accept="image/jpeg,image/png,image/webp"
+                                >
+
+                                <span class="admin-field__help">
+                                    Optionnel · JPG, PNG ou WebP · 4 Mo maximum.
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </section>
+
+
+                    <div class="admin-form-actions">
+
+                        <a
+                            href="/admin/avis.php"
+                            class="admin-button admin-button--secondary"
+                        >
+                            Annuler
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="admin-button admin-button--primary"
+                        >
+                            Ajouter l’avis
+                            <span aria-hidden="true">→</span>
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </main>
+
     </div>
 
-    <div class="main">
 
-        <h1>Ajouter un avis client</h1>
-
-        <form class="add-form" action="" method="POST" enctype="multipart/form-data">
-
-            <label>Nom du client</label>
-            <input type="text" name="nom" required>
-
-            <label>Catégorie</label>
-            <select name="categorie" required>
-                <option value="Site vitrine">Site vitrine</option>
-                <option value="Identité visuelle">Identité visuelle</option>
-                <option value="Maquettes Figma">Maquettes Figma</option>
-                <option value="E-commerce">Boutique en ligne</option>
-                <option value="Application Web & Mobile">Application Web & Mobile</option>
-                <option value="Autre">Autre</option>
-            </select>
-
-            <label>Commentaire</label>
-            <textarea name="commentaire" required></textarea>
-
-            <label>Avatar du client (optionnel)</label>
-            <input type="file" name="avatar">
-
-            <button type="submit" name="ajouter" class="btn">Créer l'avis</button>
-        </form>
-
-    </div>
-
-</div>
+    <?php
+    include_once __DIR__ . '/partials/footer.php';
+    ?>
 
 </body>
+
 </html>

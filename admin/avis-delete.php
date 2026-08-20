@@ -1,40 +1,168 @@
 <?php
-session_start();
-if (!isset($_SESSION["admin_logged"])) {
-    header("Location: login.php");
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/includes/auth.php';
+
+
+/*
+|--------------------------------------------------------------------------
+| POST uniquement
+|--------------------------------------------------------------------------
+*/
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header(
+        'Location: /admin/avis.php'
+    );
     exit;
 }
 
-require_once "../php/db.php";
 
-if (!isset($_GET["id"])) {
-    header("Location: avis.php");
+/*
+|--------------------------------------------------------------------------
+| CSRF
+|--------------------------------------------------------------------------
+*/
+
+$csrf =
+    (string) ($_POST['csrf'] ?? '');
+
+if (
+    !hash_equals(
+        $_SESSION['csrf_token'],
+        $csrf
+    )
+) {
+    header(
+        'Location: /admin/avis.php?error=csrf'
+    );
     exit;
 }
 
-$id = $_GET["id"];
 
-// 1. Récupérer l'avatar
-$stmt = $pdo->prepare("SELECT avatar FROM avis WHERE id = :id");
-$stmt->execute([":id" => $id]);
-$avis = $stmt->fetch(PDO::FETCH_ASSOC);
+/*
+|--------------------------------------------------------------------------
+| ID
+|--------------------------------------------------------------------------
+*/
 
-// 2. Supprimer l'avatar si il existe
-if ($avis && !empty($avis["avatar"])) {
+$id =
+    filter_input(
+        INPUT_POST,
+        'id',
+        FILTER_VALIDATE_INT
+    );
 
-    $filePath = "uploads/avatars/" . $avis["avatar"];
+if (!$id || $id < 1) {
+    header(
+        'Location: /admin/avis.php?error=invalid'
+    );
+    exit;
+}
 
-    if (file_exists($filePath)) {
-        unlink($filePath);
+
+/*
+|--------------------------------------------------------------------------
+| Avis
+|--------------------------------------------------------------------------
+*/
+
+$stmt = $pdo->prepare(
+    'SELECT
+        id,
+        avatar
+     FROM avis
+     WHERE id = :id
+     LIMIT 1'
+);
+
+$stmt->execute([
+    ':id' => $id,
+]);
+
+$review =
+    $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$review) {
+    header(
+        'Location: /admin/avis.php?error=notfound'
+    );
+    exit;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Suppression
+|--------------------------------------------------------------------------
+*/
+
+try {
+
+    $pdo->beginTransaction();
+
+    $deleteStmt =
+        $pdo->prepare(
+            'DELETE FROM avis
+             WHERE id = :id'
+        );
+
+    $deleteStmt->execute([
+        ':id' => $id,
+    ]);
+
+    $pdo->commit();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Avatar
+    |--------------------------------------------------------------------------
+    */
+
+    if (!empty($review['avatar'])) {
+
+        $avatarPath =
+            __DIR__
+            . '/uploads/avatars/'
+            . basename(
+                (string) $review['avatar']
+            );
+
+        if (is_file($avatarPath)) {
+            unlink($avatarPath);
+        }
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rotation CSRF
+    |--------------------------------------------------------------------------
+    */
+
+    $_SESSION['csrf_token'] =
+        bin2hex(
+            random_bytes(32)
+        );
+
+
+    header(
+        'Location: /admin/avis.php?deleted=1'
+    );
+
+    exit;
+
+} catch (Throwable $exception) {
+
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    header(
+        'Location: /admin/avis.php?error=delete'
+    );
+
+    exit;
 }
-
-// 3. Supprimer l'avis en DB
-$stmt = $pdo->prepare("DELETE FROM avis WHERE id = :id");
-$stmt->execute([":id" => $id]);
-
-// 🔥 Notifier Google qu'un nouveau contenu est disponible
-file_get_contents("https://www.google.com/ping?sitemap=https://olcreativestudio.fr/sitemap.xml");
-
-header("Location: avis.php?deleted=1");
-exit;

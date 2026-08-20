@@ -1752,3 +1752,336 @@ select {
     }
 
 }
+
+/* =========================================================
+   AVIS CLIENTS
+   ========================================================= */
+
+.admin-reviews-panel {
+    margin-top: 32px;
+}
+
+.admin-reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+
+/* =========================================================
+   REVIEW CARD
+   ========================================================= */
+
+.admin-review-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 320px;
+    padding: 30px;
+
+    background: var(--admin-white);
+    border: 1px solid var(--admin-border);
+    border-radius: 22px;
+
+    box-shadow:
+        0 12px 40px rgba(7, 17, 31, 0.04);
+
+    transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        border-color 180ms ease;
+}
+
+.admin-review-card:hover {
+    transform: translateY(-2px);
+
+    border-color: rgba(27, 154, 170, 0.22);
+
+    box-shadow:
+        0 18px 50px rgba(7, 17, 31, 0.07);
+}
+
+
+/* =========================================================
+   REVIEW HEADER
+   ========================================================= */
+
+.admin-review-card__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+
+/* Avatar */
+
+.admin-review-card__avatar {
+    width: 54px;
+    height: 54px;
+
+    flex: 0 0 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    background: var(--admin-navy);
+    border-radius: 50%;
+
+    color: var(--admin-white);
+
+    font-family: var(--admin-font-display);
+    font-size: 22px;
+    line-height: 1;
+}
+
+.admin-review-card__avatar img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+}
+
+
+/* Identité */
+
+.admin-review-card__identity {
+    min-width: 0;
+}
+
+.admin-review-card__identity h2 {
+    margin: 0 0 4px;
+
+    color: var(--admin-navy);
+
+    font-family: var(--admin-font-display);
+    font-size: 25px;
+    font-weight: 500;
+    line-height: 1.05;
+}
+
+.admin-review-card__identity span {
+    color: var(--admin-cyan);
+
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   COMMENTAIRE
+   ========================================================= */
+
+.admin-review-card__quote {
+    flex: 1;
+
+    margin: 28px 0 30px;
+    padding: 0;
+
+    border: 0;
+}
+
+.admin-review-card__quote p {
+    margin: 0;
+
+    color: var(--admin-text);
+
+    font-size: 15px;
+    line-height: 1.75;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.admin-review-card__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid var(--admin-border);
+}
+
+.admin-review-card__actions form {
+    margin: 0;
+}
+
+.admin-action-link {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 0;
+
+    background: transparent;
+    border: 0;
+
+    color: var(--admin-navy);
+
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition: color 160ms ease;
+}
+
+.admin-action-link:hover {
+    color: var(--admin-cyan);
+}
+
+.admin-action-link--danger {
+    color: var(--admin-text-muted);
+}
+
+.admin-action-link--danger:hover {
+    color: var(--admin-error);
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.admin-empty-state {
+    padding: 64px 32px;
+
+    background: var(--admin-white);
+    border: 1px solid var(--admin-border);
+    border-radius: 22px;
+
+    text-align: center;
+}
+
+.admin-empty-state h2 {
+    margin: 12px 0 10px;
+
+    color: var(--admin-navy);
+
+    font-family: var(--admin-font-display);
+    font-size: clamp(30px, 3vw, 42px);
+    font-weight: 500;
+    line-height: 1.05;
+}
+
+.admin-empty-state p {
+    max-width: 440px;
+
+    margin: 0 auto 26px;
+
+    color: var(--admin-text-muted);
+
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   RESPONSIVE — TABLETTE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .admin-reviews-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE — MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .admin-reviews-panel {
+        margin-top: 24px;
+    }
+
+    .admin-review-card {
+        min-height: 0;
+        padding: 22px;
+        border-radius: 18px;
+    }
+
+    .admin-review-card__avatar {
+        width: 48px;
+        height: 48px;
+
+        flex-basis: 48px;
+
+        font-size: 20px;
+    }
+
+    .admin-review-card__identity h2 {
+        font-size: 22px;
+    }
+
+    .admin-review-card__quote {
+        margin: 24px 0;
+    }
+
+    .admin-review-card__quote p {
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .admin-review-card__actions {
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .admin-empty-state {
+        padding: 48px 22px;
+        border-radius: 18px;
+    }
+
+}
+
+/* =========================================================
+   AVATAR EDITOR
+   ========================================================= */
+
+.admin-avatar-editor {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+
+    background: var(--admin-off-white);
+    border-radius: var(--admin-radius-md);
+}
+
+.admin-avatar-editor__preview {
+    flex: 0 0 80px;
+
+    width: 80px;
+    height: 80px;
+
+    overflow: hidden;
+
+    border-radius: 50%;
+    background: var(--admin-gray-100);
+}
+
+.admin-avatar-editor__preview img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
