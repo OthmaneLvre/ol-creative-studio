@@ -1,0 +1,319 @@
+/* =========================================================
+   OL CREATIVE STUDIO — ADMIN LOGIN
+   ========================================================= */
+
+@import url(
+    'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,500&family=Manrope:wght@400;500;600;700&display=swap'
+);
+
+
+/* =========================================================
+   TOKENS
+   ========================================================= */
+
+:root {
+    --login-navy-950: #07111F;
+    --login-navy-900: #0D1B2A;
+
+    --login-cyan-500: #1B9AAA;
+    --login-cyan-400: #2FB7C8;
+
+    --login-white: #FFFFFF;
+    --login-off-white: #F5F7F8;
+
+    --login-gray-100: #E9EBED;
+    --login-gray-300: #B8BEC5;
+    --login-gray-500: #727B86;
+    --login-gray-700: #393E46;
+
+    --login-error: #D64545;
+
+    --login-font-body: 'Manrope', sans-serif;
+    --login-font-heading: 'Cormorant Garamond', serif;
+}
+
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+
+    font-family: var(--login-font-body);
+    color: var(--login-navy-950);
+
+    -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.admin-login {
+    min-height: 100vh;
+
+    background:
+        radial-gradient(
+            circle at 80% 20%,
+            rgba(27, 154, 170, 0.12),
+            transparent 30%
+        ),
+        var(--login-navy-950);
+}
+
+.admin-login__main {
+    display: grid;
+    place-items: center;
+
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.admin-login__card {
+    position: relative;
+
+    width: min(100%, 520px);
+    padding: clamp(2rem, 5vw, 4rem);
+
+    overflow: hidden;
+
+    background: var(--login-white);
+    border-radius: 1.5rem;
+
+    box-shadow:
+        0 35px 90px rgba(0, 0, 0, 0.28);
+}
+
+.admin-login__card::before {
+    content: '';
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 4px;
+
+    background: var(--login-cyan-500);
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.admin-login__brand {
+    margin-bottom: 2.5rem;
+}
+
+.admin-login__eyebrow {
+    display: block;
+
+    margin-bottom: 1rem;
+
+    color: var(--login-cyan-500);
+
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.admin-login__brand h1 {
+    margin: 0;
+
+    font-family: var(--login-font-heading);
+    font-size: clamp(3rem, 8vw, 4.5rem);
+    font-weight: 500;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+
+    color: var(--login-navy-950);
+}
+
+.admin-login__brand p {
+    max-width: 400px;
+    margin: 1.25rem 0 0;
+
+    color: var(--login-gray-500);
+
+    font-size: 0.93rem;
+    line-height: 1.65;
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.admin-alert {
+    margin-bottom: 1.5rem;
+    padding: 0.9rem 1rem;
+
+    border-radius: 0.75rem;
+
+    font-size: 0.82rem;
+}
+
+.admin-alert--error {
+    background: rgba(214, 69, 69, 0.08);
+    border: 1px solid rgba(214, 69, 69, 0.18);
+
+    color: var(--login-error);
+}
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.admin-login__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+}
+
+.admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.admin-field label {
+    color: var(--login-navy-900);
+
+    font-size: 0.77rem;
+    font-weight: 700;
+}
+
+.admin-field input {
+    width: 100%;
+    min-height: 52px;
+
+    padding: 0.85rem 1rem;
+
+    background: var(--login-off-white);
+
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+
+    color: var(--login-navy-950);
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-field input:hover {
+    border-color: var(--login-gray-300);
+}
+
+.admin-field input:focus {
+    outline: none;
+
+    background: var(--login-white);
+    border-color: var(--login-cyan-500);
+
+    box-shadow:
+        0 0 0 4px rgba(27, 154, 170, 0.1);
+}
+
+
+/* =========================================================
+   SUBMIT
+   ========================================================= */
+
+.admin-login__submit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+    min-height: 54px;
+    margin-top: 0.5rem;
+    padding: 0.85rem 1.2rem;
+
+    background: var(--login-cyan-500);
+    border: 0;
+    border-radius: 999px;
+
+    color: var(--login-navy-950);
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.admin-login__submit:hover {
+    background: var(--login-cyan-400);
+    transform: translateY(-2px);
+}
+
+.admin-login__submit span {
+    font-size: 1.2rem;
+}
+
+
+/* =========================================================
+   BACK LINK
+   ========================================================= */
+
+.admin-login__back {
+    display: inline-flex;
+
+    margin-top: 2rem;
+
+    color: var(--login-gray-500);
+
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    transition: color 0.2s ease;
+}
+
+.admin-login__back:hover {
+    color: var(--login-cyan-500);
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .admin-login__main {
+        padding: 1rem;
+    }
+
+    .admin-login__card {
+        padding: 2rem 1.5rem;
+        border-radius: 1.1rem;
+    }
+
+}
