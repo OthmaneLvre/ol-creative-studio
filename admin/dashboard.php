@@ -6,20 +6,12 @@ require_once __DIR__ . '/includes/auth.php';
 
 /*
 |--------------------------------------------------------------------------
-| Statistiques Portfolio
+| Statistiques
 |--------------------------------------------------------------------------
 */
 
 $statsStmt = $pdo->query(
-    'SELECT
-        COUNT(*) AS total_projects,
-        SUM(
-            CASE
-                WHEN featured = 1 THEN 1
-                ELSE 0
-            END
-        ) AS featured_projects,
-        MAX(annee) AS latest_year
+    'SELECT COUNT(*) AS total_projects
      FROM portfolio'
 );
 
@@ -30,12 +22,44 @@ $portfolioStats = $statsStmt->fetch(
 $totalProjects =
     (int) ($portfolioStats['total_projects'] ?? 0);
 
-$featuredProjects =
-    (int) ($portfolioStats['featured_projects'] ?? 0);
 
-$latestYear =
-    $portfolioStats['latest_year'] ?? null;
+/*
+|--------------------------------------------------------------------------
+| Avis clients
+|--------------------------------------------------------------------------
+*/
 
+$reviewsStatsStmt = $pdo->query(
+    'SELECT COUNT(*) AS total_reviews
+     FROM avis'
+);
+
+$reviewsStats =
+    $reviewsStatsStmt->fetch(
+        PDO::FETCH_ASSOC
+    );
+
+$totalReviews =
+    (int) ($reviewsStats['total_reviews'] ?? 0);
+
+
+/*
+|--------------------------------------------------------------------------
+| Projet mis en avant
+|--------------------------------------------------------------------------
+*/
+
+$featuredStmt = $pdo->query(
+    'SELECT
+        id,
+        titre
+     FROM portfolio
+     WHERE featured = 1
+     LIMIT 1'
+);
+
+$featuredProject =
+    $featuredStmt->fetch(PDO::FETCH_ASSOC);
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +74,7 @@ $projectsStmt = $pdo->query(
         categorie,
         image,
         featured,
+        statut,
         date_creation
      FROM portfolio
      ORDER BY date_creation DESC
@@ -60,6 +85,25 @@ $recentProjects = $projectsStmt->fetchAll(
     PDO::FETCH_ASSOC
 );
 
+/*
+|--------------------------------------------------------------------------
+| Dernier avis
+|--------------------------------------------------------------------------
+*/
+
+$latestReviewStmt = $pdo->query(
+    'SELECT
+        id,
+        nom,
+        categorie,
+        commentaire
+     FROM avis
+     ORDER BY id DESC
+     LIMIT 1'
+);
+
+$latestReview =
+    $latestReviewStmt->fetch(PDO::FETCH_ASSOC);
 
 /*
 |--------------------------------------------------------------------------
@@ -111,14 +155,14 @@ $adminActivePage = 'dashboard';
     <div class="admin-layout">
 
         <?php
-        include __DIR__ . '/partials/sidebar.php';
+        include_once __DIR__ . '/partials/sidebar.php';
         ?>
 
 
         <main class="admin-main">
 
             <?php
-            include __DIR__ . '/partials/header.php';
+            include_once __DIR__ . '/partials/header.php';
             ?>
 
 
@@ -165,13 +209,15 @@ $adminActivePage = 'dashboard';
 
 
                 <!-- =========================
-                     STATS
-                     ========================= -->
+                    STATS
+                    ========================= -->
 
                 <section
                     class="admin-stats"
                     aria-label="Statistiques"
                 >
+
+                    <!-- PROJETS -->
 
                     <article class="admin-stat-card">
 
@@ -190,42 +236,46 @@ $adminActivePage = 'dashboard';
                     </article>
 
 
+                    <!-- AVIS -->
+
                     <article class="admin-stat-card">
 
                         <span class="admin-stat-card__label">
-                            Mis en avant
+                            Avis clients
                         </span>
 
                         <strong>
-                            <?= $featuredProjects ?>
+                            <?= $totalReviews ?>
                         </strong>
 
                         <span class="admin-stat-card__meta">
-                            projets featured
+                            avis enregistrés
                         </span>
 
                     </article>
 
 
+                    <!-- FEATURED -->
+
                     <article class="admin-stat-card">
 
                         <span class="admin-stat-card__label">
-                            Dernière année
+                            Projet mis en avant
                         </span>
 
-                        <strong>
-                            <?= $latestYear
+                        <strong class="admin-stat-card__project">
+                            <?= $featuredProject
                                 ? htmlspecialchars(
-                                    (string) $latestYear,
+                                    $featuredProject['titre'],
                                     ENT_QUOTES,
                                     'UTF-8'
                                 )
-                                : '—'
+                                : 'Aucun'
                             ?>
                         </strong>
 
                         <span class="admin-stat-card__meta">
-                            dernière réalisation
+                            affiché actuellement sur l’accueil
                         </span>
 
                     </article>
@@ -332,10 +382,15 @@ $adminActivePage = 'dashboard';
 
                                         </div>
 
+                                        <?php if (($project['statut'] ?? 'draft') !== 'published'): ?>
 
-                                        <?php if ((int) $project['featured'] === 1): ?>
+                                            <span class="admin-badge admin-badge--draft">
+                                                Brouillon
+                                            </span>
 
-                                            <span class="admin-badge">
+                                        <?php elseif ((int) $project['featured'] === 1): ?>
+
+                                            <span class="admin-badge admin-badge--featured">
                                                 Mis en avant
                                             </span>
 
@@ -346,18 +401,22 @@ $adminActivePage = 'dashboard';
 
                                     <div class="admin-project-row__actions">
 
-                                        <a
-                                            href="/portfolio-details.php?id=<?= (int) $project['id'] ?>"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            aria-label="Voir <?= htmlspecialchars(
-                                                $project['titre'],
-                                                ENT_QUOTES,
-                                                'UTF-8'
-                                            ) ?>"
-                                        >
-                                            ↗
-                                        </a>
+                                        <?php if (($project['statut'] ?? 'draft') === 'published'): ?>
+
+                                            <a
+                                                href="/portfolio-details.php?id=<?= (int) $project['id'] ?>"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                aria-label="Voir <?= htmlspecialchars(
+                                                    $project['titre'],
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>"
+                                            >
+                                                ↗
+                                            </a>
+
+                                        <?php endif; ?>
 
                                         <a
                                             href="/admin/portfolio-edit.php?id=<?= (int) $project['id'] ?>"
@@ -377,6 +436,132 @@ $adminActivePage = 'dashboard';
 
                 </section>
 
+                <!-- =========================
+                    DERNIÈRE ACTIVITÉ
+                    ========================= -->
+
+                <section class="admin-panel admin-activity">
+
+                    <div class="admin-panel__header">
+
+                        <div>
+
+                            <span class="admin-eyebrow">
+                                Activité
+                            </span>
+
+                            <h2>
+                                Dernière activité
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="admin-activity__grid">
+
+                        <!-- DERNIER PROJET -->
+
+                        <article class="admin-activity-card">
+
+                            <span class="admin-activity-card__label">
+                                Dernier projet
+                            </span>
+
+                            <?php if (!empty($recentProjects)): ?>
+
+                                <?php $latestProject = $recentProjects[0]; ?>
+
+                                <h3>
+                                    <?= htmlspecialchars(
+                                        $latestProject['titre'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+                                </h3>
+
+                                <span class="admin-activity-card__meta">
+                                    <?= ($latestProject['statut'] ?? 'draft') === 'published'
+                                        ? 'Publié'
+                                        : 'Brouillon'
+                                    ?>
+                                </span>
+
+                                <a
+                                    href="/admin/portfolio-edit.php?id=<?= (int) $latestProject['id'] ?>"
+                                    class="admin-text-link"
+                                >
+                                    Modifier le projet
+                                    <span aria-hidden="true">→</span>
+                                </a>
+
+                            <?php else: ?>
+
+                                <p>
+                                    Aucun projet enregistré.
+                                </p>
+
+                            <?php endif; ?>
+
+                        </article>
+
+
+                        <!-- DERNIER AVIS -->
+
+                        <article class="admin-activity-card">
+
+                            <span class="admin-activity-card__label">
+                                Dernier avis
+                            </span>
+
+                            <?php if ($latestReview): ?>
+
+                                <h3>
+                                    <?= htmlspecialchars(
+                                        $latestReview['nom'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+                                </h3>
+
+                                <span class="admin-activity-card__meta">
+                                    <?= htmlspecialchars(
+                                        $latestReview['categorie'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+                                </span>
+
+                                <p>
+                                    <?= htmlspecialchars(
+                                        $latestReview['commentaire'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+                                </p>
+
+                                <a
+                                    href="/admin/avis-edit.php?id=<?= (int) $latestReview['id'] ?>"
+                                    class="admin-text-link"
+                                >
+                                    Modifier l’avis
+                                    <span aria-hidden="true">→</span>
+                                </a>
+
+                            <?php else: ?>
+
+                                <p>
+                                    Aucun avis enregistré.
+                                </p>
+
+                            <?php endif; ?>
+
+                        </article>
+
+                    </div>
+
+                </section>
 
                 <!-- =========================
                      ACTIONS RAPIDES
