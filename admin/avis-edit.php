@@ -235,11 +235,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'Le témoignage est obligatoire.';
 
         } elseif (
-            mb_strlen($comment) > 2000
+            mb_strlen($comment) > 600
         ) {
 
             $error =
-                'Le témoignage est trop long.';
+                'Le témoignage ne peut pas dépasser 600 caractères.';
         }
 
 
@@ -640,19 +640,37 @@ $form = [
                         <div class="admin-field admin-field--full">
 
                             <label for="commentaire">
-                                Témoignage *
+                                Commentaire
                             </label>
 
                             <textarea
                                 id="commentaire"
                                 name="commentaire"
-                                maxlength="2000"
+                                maxlength="600"
                                 required
+                                data-character-counter
+                                data-character-counter-target="review-comment-counter"
                             ><?= htmlspecialchars(
                                 (string) $form['commentaire'],
                                 ENT_QUOTES,
                                 'UTF-8'
                             ) ?></textarea>
+
+                            <div class="admin-field__footer">
+
+                                <span class="admin-field__help">
+                                    600 caractères maximum.
+                                </span>
+
+                                <span
+                                    class="admin-character-counter"
+                                    id="review-comment-counter"
+                                    aria-live="polite"
+                                >
+                                    0 / 600
+                                </span>
+
+                            </div>
 
                         </div>
 
