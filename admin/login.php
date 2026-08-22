@@ -21,6 +21,10 @@ if (
 $error = '';
 $username = '';
 
+$resetSuccess =
+    isset($_GET['reset']) &&
+    $_GET['reset'] === 'success';
+
 /*
 |--------------------------------------------------------------------------
 | Authentification
@@ -177,6 +181,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <?php if ($resetSuccess): ?>
+
+                <div
+                    class="admin-alert admin-alert--success"
+                    role="status"
+                >
+                    Votre mot de passe a bien été réinitialisé.
+                    Vous pouvez maintenant vous connecter.
+                </div>
+
+            <?php endif; ?>
 
             <?php if ($error !== ''): ?>
 
@@ -250,6 +265,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 </div>
 
+                <div class="admin-login__password-tools">
+                    <a href="/admin/forgot-password.php">
+                        Mot de passe oublié ?
+                    </a>
+                </div>
 
                 <button
                     type="submit"
@@ -260,7 +280,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
 
             </form>
-
 
             <a
                 href="/"

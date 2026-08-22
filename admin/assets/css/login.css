@@ -317,3 +317,25 @@ input {
     }
 
 }
+
+.admin-login__password-tools {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: -0.35rem;
+}
+
+.admin-login__password-tools a {
+    color: var(--admin-gray-500);
+
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    text-decoration: none;
+
+    transition: color 0.2s ease;
+}
+
+.admin-login__password-tools a:hover {
+    color: var(--admin-cyan-500);
+}

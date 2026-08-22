@@ -50,9 +50,19 @@ $activePage = $adminActivePage ?? '';
             <span>Avis clients</span>
         </a>
 
+        <a
+            href="/admin/account.php"
+            class="admin-sidebar__link <?= $adminActivePage === 'account'
+                ? 'is-active'
+                : ''
+            ?>"
+        >
+            Mon compte
+        </a>
+
     </nav>
 
-
+    
     <div class="admin-sidebar__footer">
 
         <a
