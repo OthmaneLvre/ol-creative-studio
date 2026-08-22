@@ -12,11 +12,12 @@ require_once __DIR__ . '/php/db.php';
 */
 
 $featuredStmt = $pdo->query(
-    'SELECT *
+    "SELECT *
      FROM portfolio
      WHERE featured = 1
+     AND statut = 'published'
      ORDER BY ordre ASC, date_creation DESC
-     LIMIT 1'
+     LIMIT 1"
 );
 
 $featuredProject = $featuredStmt->fetch(PDO::FETCH_ASSOC);
@@ -782,10 +783,11 @@ include_once __DIR__ . '/partials/header.php';
     $query = $pdo->query("
         SELECT *
         FROM portfolio
-        ORDER BY ordre ASCn date_creation DESC
+        WHERE statut = 'published'
+        ORDER BY ordre ASC, date_creation DESC
         LIMIT 3
     ");
-
+    
     $projects = $query->fetchAll(PDO::FETCH_ASSOC);
 
     $categories = [

@@ -75,6 +75,7 @@ require_once 'php/db.php'; ?>
     $sql = "
         SELECT *
         FROM portfolio
+        WHERE statut = 'published'
         ORDER BY id ASC, date_creation DESC
     ";
 

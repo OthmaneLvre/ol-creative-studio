@@ -2085,3 +2085,29 @@ select {
 
     object-fit: cover;
 }
+
+/* =========================================================
+   PROJECT STATUS
+   ========================================================= */
+
+.admin-project-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-badge--published {
+    background: rgba(49, 180, 108, 0.12);
+    color: #176238;
+}
+
+.admin-badge--draft {
+    background: rgba(114, 123, 134, 0.12);
+    color: var(--admin-text-muted);
+}
+
+.admin-badge--featured {
+    background: rgba(27, 154, 170, 0.12);
+    color: var(--admin-cyan);
+}

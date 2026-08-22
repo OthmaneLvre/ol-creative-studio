@@ -36,6 +36,7 @@ $stmt = $pdo->query(
         categorie,
         image,
         featured,
+        statut,
         ordre,
         date_creation
      FROM portfolio
@@ -292,6 +293,8 @@ $adminActivePage = 'portfolio';
                                 $isFeatured =
                                     (int) ($project['featured'] ?? 0) === 1;
 
+                                $isPublished =
+                                    ($project['statut'] ?? 'draft') === 'published';
                                 ?>
 
 
@@ -412,19 +415,32 @@ $adminActivePage = 'portfolio';
                                         data-label="Statut"
                                     >
 
-                                        <?php if ($isFeatured): ?>
+                                        <div class="admin-project-status">
 
-                                            <span class="admin-badge">
-                                                Mis en avant
-                                            </span>
+                                            <?php if ($isPublished): ?>
 
-                                        <?php else: ?>
+                                                <span class="admin-badge admin-badge--published">
+                                                    Publié
+                                                </span>
 
-                                            <span class="admin-badge admin-badge--neutral">
-                                                Standard
-                                            </span>
+                                            <?php else: ?>
 
-                                        <?php endif; ?>
+                                                <span class="admin-badge admin-badge--draft">
+                                                    Brouillon
+                                                </span>
+
+                                            <?php endif; ?>
+
+
+                                            <?php if ($isFeatured): ?>
+
+                                                <span class="admin-badge admin-badge--featured">
+                                                    Mis en avant
+                                                </span>
+
+                                            <?php endif; ?>
+
+                                        </div>
 
                                     </div>
 
@@ -433,21 +449,24 @@ $adminActivePage = 'portfolio';
 
                                     <div class="admin-portfolio-item__actions">
 
-                                        <a
-                                            href="/portfolio-details.php?id=<?= (int) $project['id'] ?>"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            class="admin-icon-action"
-                                            title="Voir le projet"
-                                            aria-label="Voir <?= htmlspecialchars(
-                                                $project['titre'],
-                                                ENT_QUOTES,
-                                                'UTF-8'
-                                            ) ?>"
-                                        >
-                                            ↗
-                                        </a>
+                                        <?php if ($isPublished): ?>
 
+                                            <a
+                                                href="/portfolio-details.php?id=<?= (int) $project['id'] ?>"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="admin-icon-action"
+                                                title="Voir le projet"
+                                                aria-label="Voir <?= htmlspecialchars(
+                                                    $project['titre'],
+                                                    ENT_QUOTES,
+                                                    'UTF-8'
+                                                ) ?>"
+                                            >
+                                                ↗
+                                            </a>
+
+                                        <?php endif; ?>
 
                                         <a
                                             href="/admin/portfolio-edit.php?id=<?= (int) $project['id'] ?>"

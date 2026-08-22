@@ -440,6 +440,32 @@ if (
                 ? 1
                 : 0;
 
+        $status =
+            (string) (
+                $_POST['statut']
+                ?? 'draft'
+            );
+
+        if (
+            !in_array(
+                $status,
+                ['draft', 'published'],
+                true
+            )
+        ) {
+            $status = 'draft';
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Un brouillon ne peut pas être featured
+        |--------------------------------------------------------------------------
+        */
+
+        if ($status !== 'published') {
+            $featured = 0;
+        }
+
         $order =
             max(
                 0,
@@ -768,6 +794,7 @@ if (
                             images_gallery = :images_gallery,
                             url_demo = :url_demo,
                             featured = :featured,
+                            statut = :statut,
                             ordre = :ordre,
                             categorie = :categorie
                          WHERE id = :id'
@@ -853,6 +880,9 @@ if (
 
                     ':featured' =>
                         $featured,
+
+                    ':statut' =>
+                        $status,
 
                     ':ordre' =>
                         $order,
@@ -1025,6 +1055,11 @@ $form = [
         $_POST['url_demo']
         ?? $project['url_demo']
         ?? '',
+
+    'statut' =>
+        $_POST['statut']
+        ?? $project['statut']
+        ?? 'draft',
 
     'ordre' =>
         $_POST['ordre']
@@ -1776,6 +1811,42 @@ $featuredChecked =
 
                         </div>
 
+                        <div class="admin-field">
+
+                            <label for="statut">
+                                Statut
+                            </label>
+
+                            <select
+                                id="statut"
+                                name="statut"
+                            >
+                                <option
+                                    value="draft"
+                                    <?= $form['statut'] === 'draft'
+                                        ? 'selected'
+                                        : ''
+                                    ?>
+                                >
+                                    Brouillon
+                                </option>
+
+                                <option
+                                    value="published"
+                                    <?= $form['statut'] === 'published'
+                                        ? 'selected'
+                                        : ''
+                                    ?>
+                                >
+                                    Publié
+                                </option>
+                            </select>
+
+                            <span class="admin-field__help">
+                                Un brouillon reste invisible sur le site public.
+                            </span>
+
+                        </div>
 
                         <div class="admin-field">
 

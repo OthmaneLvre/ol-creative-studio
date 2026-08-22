@@ -304,6 +304,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ? 1
                 : 0;
 
+        $status =
+            (string) (
+                $_POST['statut']
+                ?? 'draft'
+            );
+
+        if (
+            !in_array(
+                $status,
+                ['draft', 'published'],
+                true
+            )
+        ) {
+            $status = 'draft';
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Un brouillon ne peut pas être featured
+        |--------------------------------------------------------------------------
+        */
+
+        if ($status !== 'published') {
+            $featured = 0;
+        }
+
         $order =
             max(
                 0,
@@ -572,6 +598,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         url_demo,
                         featured,
                         ordre,
+                        statut,
                         categorie
                     )
                     VALUES (
@@ -593,6 +620,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         :url_demo,
                         :featured,
                         :ordre,
+                        :statut,
                         :categorie
                     )'
                 );
@@ -680,6 +708,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     ':ordre' =>
                         $order,
+
+                    ':statut' =>
+                        $status,
 
                     ':categorie' =>
                         $category,
@@ -1529,6 +1560,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             </div>
 
+                            <div class="admin-field">
+
+                                <label for="statut">
+                                    Statut
+                                </label>
+
+                                <select
+                                    id="statut"
+                                    name="statut"
+                                >
+                                    <option
+                                        value="draft"
+                                        <?= (
+                                            ($_POST['statut'] ?? 'draft')
+                                            === 'draft'
+                                        )
+                                            ? 'selected'
+                                            : ''
+                                        ?>
+                                    >
+                                        Brouillon
+                                    </option>
+
+                                    <option
+                                        value="published"
+                                        <?= (
+                                            ($_POST['statut'] ?? '')
+                                            === 'published'
+                                        )
+                                            ? 'selected'
+                                            : ''
+                                        ?>
+                                    >
+                                        Publié
+                                    </option>
+                                </select>
+
+                                <span class="admin-field__help">
+                                    Un brouillon reste invisible sur le site public.
+                                </span>
+
+                            </div>
 
                             <div class="admin-field">
 

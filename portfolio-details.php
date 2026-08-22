@@ -18,10 +18,11 @@ $categories = [
 ];
 
 $stmt = $pdo->prepare(
-    'SELECT *
+    "SELECT *
      FROM portfolio
      WHERE id = :id
-     LIMIT 1'
+     AND statut = 'published'
+     LIMIT 1"
 );
 
 $stmt->execute([
@@ -77,11 +78,12 @@ if (!empty($project['services'])) {
 */
 
 $nextStmt = $pdo->prepare(
-    'SELECT id, titre, categorie, image
+    "SELECT id, titre, categorie, image
      FROM portfolio
      WHERE ordre > :ordre
+     AND statut = 'published'
      ORDER BY ordre ASC
-     LIMIT 1'
+     LIMIT 1"
 );
 
 $nextStmt->execute([
@@ -92,11 +94,12 @@ $nextProject = $nextStmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$nextProject) {
     $nextStmt = $pdo->prepare(
-        'SELECT id, titre, categorie, image
-         FROM portfolio
-         WHERE id != :id
-         ORDER BY ordre ASC
-         LIMIT 1'
+        "SELECT id, titre, categorie, image
+        FROM portfolio
+        WHERE id != :id
+        AND statut = 'published'
+        ORDER BY ordre ASC
+        LIMIT 1"
     );
 
     $nextStmt->execute([
