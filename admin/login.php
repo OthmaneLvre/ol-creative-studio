@@ -26,6 +26,10 @@ $resetSuccess =
     isset($_GET['reset']) &&
     $_GET['reset'] === 'success';
 
+$sessionExpired =
+    isset($_GET['expired']) &&
+    $_GET['expired'] === '1';
+
 /*
 |--------------------------------------------------------------------------
 | Authentification
@@ -84,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['admin_logged'] = true;
                 $_SESSION['admin_id'] = (int) $admin['id'];
                 $_SESSION['admin_name'] = $admin['username'];
+                $_SESSION['admin_last_activity'] = time();
 
                 writeAdminLog(
                     $pdo,
@@ -198,6 +203,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 >
                     Votre mot de passe a bien été réinitialisé.
                     Vous pouvez maintenant vous connecter.
+                </div>
+
+            <?php endif; ?>
+
+            <?php if ($sessionExpired): ?>
+
+                <div
+                    class="admin-alert admin-alert--error"
+                    role="alert"
+                >
+                    Votre session a expiré après une période d’inactivité.
+                    Veuillez vous reconnecter.
                 </div>
 
             <?php endif; ?>
