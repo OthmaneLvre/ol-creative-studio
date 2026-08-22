@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDeleteConfirmations();
     initTagFields();
     initProjectSlug();
-
+    initImagePreviews();
 });
 
 
@@ -359,5 +359,173 @@ function slugify(value) {
             /^-+|-+$/g,
             ''
         );
+
+}
+
+/* =========================================================
+   IMAGE PREVIEWS
+   ========================================================= */
+
+function initImagePreviews() {
+
+    initSingleImagePreviews();
+    initGalleryPreviews();
+
+}
+
+
+function initSingleImagePreviews() {
+
+    const inputs = document.querySelectorAll(
+        '[data-image-preview-input]'
+    );
+
+    for (const input of inputs) {
+
+        const targetId =
+            input.dataset.imagePreviewTarget;
+
+        if (!targetId) {
+            continue;
+        }
+
+        const target =
+            document.getElementById(targetId);
+
+        if (!target) {
+            continue;
+        }
+
+        let currentUrl = null;
+
+        input.addEventListener('change', () => {
+
+            if (currentUrl) {
+                URL.revokeObjectURL(currentUrl);
+                currentUrl = null;
+            }
+
+            target.innerHTML = '';
+            target.hidden = true;
+
+            const file =
+                input.files?.[0];
+
+            if (!file) {
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                return;
+            }
+
+            currentUrl =
+                URL.createObjectURL(file);
+
+            const image =
+                document.createElement('img');
+
+            image.src = currentUrl;
+            image.alt = 'Prévisualisation de l’image sélectionnée';
+
+            target.appendChild(image);
+            target.hidden = false;
+
+        });
+
+    }
+
+}
+
+function initGalleryPreviews() {
+
+    const inputs = document.querySelectorAll(
+        '[data-gallery-preview-input]'
+    );
+
+    for (const input of inputs) {
+
+        const targetId =
+            input.dataset.galleryPreviewTarget;
+
+        if (!targetId) {
+            continue;
+        }
+
+        const target =
+            document.getElementById(targetId);
+
+        if (!target) {
+            continue;
+        }
+
+        const label =
+            target.parentElement?.querySelector(
+                '[data-gallery-preview-label]'
+            );
+
+        let objectUrls = [];
+
+        input.addEventListener('change', () => {
+
+            for (const url of objectUrls) {
+                URL.revokeObjectURL(url);
+            }
+
+            objectUrls = [];
+
+            target.innerHTML = '';
+            target.hidden = true;
+
+            if (label) {
+                label.hidden = true;
+            }
+
+            const files =
+                Array.from(input.files ?? []);
+
+            const imageFiles =
+                files.filter(
+                    (file) =>
+                        file.type.startsWith('image/')
+                );
+
+            if (!imageFiles.length) {
+                return;
+            }
+
+            for (const file of imageFiles) {
+
+                const url =
+                    URL.createObjectURL(file);
+
+                objectUrls.push(url);
+
+                const figure =
+                    document.createElement('figure');
+
+                figure.className =
+                    'admin-upload-gallery__item';
+
+                const image =
+                    document.createElement('img');
+
+                image.src = url;
+                image.alt =
+                    'Prévisualisation d’une image sélectionnée';
+
+                figure.appendChild(image);
+                target.appendChild(figure);
+            }
+
+            if (label) {
+                label.hidden = false;
+            }
+
+            target.hidden = false;
+
+        });
+
+    }
 
 }

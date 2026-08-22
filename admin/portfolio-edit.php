@@ -1586,33 +1586,8 @@ $featuredChecked =
 
                         <div class="admin-field">
 
-                            <label>
-                                Cover actuelle
-                            </label>
-
-                            <?php if (
-                                !empty(
-                                    $project['image']
-                                )
-                            ): ?>
-
-                                <div class="admin-media-preview">
-
-                                    <img
-                                        src="/admin/uploads/creation/<?= htmlspecialchars(
-                                            $project['image'],
-                                            ENT_QUOTES,
-                                            'UTF-8'
-                                        ) ?>"
-                                        alt=""
-                                    >
-
-                                </div>
-
-                            <?php endif; ?>
-
                             <label for="image">
-                                Remplacer la cover
+                                Cover principale
                             </label>
 
                             <input
@@ -1620,7 +1595,39 @@ $featuredChecked =
                                 id="image"
                                 name="image"
                                 accept="image/jpeg,image/png,image/webp"
+                                data-image-preview-input
+                                data-image-preview-target="edit-cover-preview"
                             >
+
+                            <span class="admin-field__help">
+                                JPG, PNG ou WebP · 8 Mo maximum.
+                                Sélectionner une nouvelle image remplacera la cover actuelle.
+                            </span>
+
+                            <div
+                                class="admin-upload-preview admin-upload-preview--cover"
+                                id="edit-cover-preview"
+                                data-image-preview
+                            >
+
+                                <?php if (!empty($project['image'])): ?>
+
+                                    <img
+                                        src="/admin/uploads/creation/<?= htmlspecialchars(
+                                            $project['image'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>"
+                                        alt="Cover actuelle de <?= htmlspecialchars(
+                                            $project['titre'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>"
+                                    >
+
+                                <?php endif; ?>
+
+                            </div>
 
                         </div>
 
@@ -1697,7 +1704,27 @@ $featuredChecked =
                                 name="gallery[]"
                                 accept="image/jpeg,image/png,image/webp"
                                 multiple
+                                data-gallery-preview-input
+                                data-gallery-preview-target="edit-gallery-preview"
                             >
+
+                            <span class="admin-field__help">
+                                Les nouvelles images seront ajoutées à la galerie existante.
+                            </span>
+
+                            <span
+                                class="admin-upload-preview-label"
+                                data-gallery-preview-label
+                                hidden
+                            >
+                                Nouvelles images sélectionnées
+                            </span>
+
+                            <div
+                                class="admin-upload-gallery"
+                                id="edit-gallery-preview"
+                                data-gallery-preview
+                            ></div>
 
                         </div>
 

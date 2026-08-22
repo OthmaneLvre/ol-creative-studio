@@ -1380,7 +1380,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="admin-form-grid">
 
-
                             <div class="admin-field">
 
                                 <label for="image">
@@ -1393,14 +1392,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     name="image"
                                     accept="image/jpeg,image/png,image/webp"
                                     required
+                                    data-image-preview-input
+                                    data-image-preview-target="cover-preview"
                                 >
 
                                 <span class="admin-field__help">
                                     JPG, PNG ou WebP · 8 Mo maximum.
                                 </span>
 
-                            </div>
+                                <div
+                                    class="admin-upload-preview"
+                                    id="cover-preview"
+                                    data-image-preview
+                                    hidden
+                                ></div>
 
+                            </div>
 
                             <div class="admin-field">
 
@@ -1414,12 +1421,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     name="gallery[]"
                                     accept="image/jpeg,image/png,image/webp"
                                     multiple
+                                    data-gallery-preview-input
+                                    data-gallery-preview-target="gallery-preview"
                                 >
 
                                 <span class="admin-field__help">
-                                    Plusieurs fichiers peuvent
-                                    être sélectionnés.
+                                    Plusieurs fichiers peuvent être sélectionnés.
                                 </span>
+
+                                <div
+                                    class="admin-upload-gallery"
+                                    id="gallery-preview"
+                                    data-gallery-preview
+                                    hidden
+                                ></div>
 
                             </div>
 
