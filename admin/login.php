@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/includes/admin-log.php';
+require_once __DIR__ . '/includes/login-rate-limit.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,11 @@ if (
 $error = '';
 $username = '';
 
+$ipAddress =
+    getLoginIp();
+
+clearOldLoginAttempts($pdo);
+
 $resetSuccess =
     isset($_GET['reset']) &&
     $_GET['reset'] === 'success';
@@ -38,36 +44,110 @@ $sessionExpired =
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $csrf = $_POST['csrf'] ?? '';
+    /*
+    |--------------------------------------------------------------------------
+    | CSRF
+    |--------------------------------------------------------------------------
+    */
+
+    $csrf =
+        $_POST['csrf']
+        ?? '';
 
     if (
         !is_string($csrf) ||
-        !hash_equals($_SESSION['csrf_token'], $csrf)
+        !hash_equals(
+            $_SESSION['csrf_token'],
+            $csrf
+        )
     ) {
-        $error = 'Requête invalide. Veuillez réessayer.';
+
+        $error =
+            'Requête invalide. Veuillez réessayer.';
+
     } else {
 
-        $username = trim((string) ($_POST['username'] ?? ''));
-        $password = (string) ($_POST['password'] ?? '');
+        /*
+        |--------------------------------------------------------------------------
+        | Identifiants
+        |--------------------------------------------------------------------------
+        */
 
-        if ($username === '' || $password === '') {
+        $username =
+            trim(
+                (string) (
+                    $_POST['username']
+                    ?? ''
+                )
+            );
 
-            $error = 'Veuillez renseigner vos identifiants.';
+        $password =
+            (string) (
+                $_POST['password']
+                ?? ''
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Rate limiting
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            isLoginRateLimited(
+                $pdo,
+                $ipAddress
+            )
+        ) {
+
+            $error =
+                'Trop de tentatives de connexion. '
+                . 'Veuillez réessayer dans quelques minutes.';
+
+        } elseif (
+            $username === '' ||
+            $password === ''
+        ) {
+
+            $error =
+                'Veuillez renseigner vos identifiants.';
 
         } else {
 
-            $stmt = $pdo->prepare(
-                'SELECT id, username, password
-                 FROM admin_users
-                 WHERE username = :username
-                 LIMIT 1'
-            );
+            /*
+            |--------------------------------------------------------------------------
+            | Administrateur
+            |--------------------------------------------------------------------------
+            */
+
+            $stmt =
+                $pdo->prepare(
+                    'SELECT
+                        id,
+                        username,
+                        password
+                     FROM admin_users
+                     WHERE username = :username
+                     LIMIT 1'
+                );
 
             $stmt->execute([
-                ':username' => $username,
+                ':username' =>
+                    $username,
             ]);
 
-            $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+            $admin =
+                $stmt->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Connexion réussie
+            |--------------------------------------------------------------------------
+            */
 
             if (
                 $admin &&
@@ -79,16 +159,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 /*
                 |--------------------------------------------------------------------------
-                | Protection contre la fixation de session
+                | Protection fixation session
                 |--------------------------------------------------------------------------
                 */
 
                 session_regenerate_id(true);
 
-                $_SESSION['admin_logged'] = true;
-                $_SESSION['admin_id'] = (int) $admin['id'];
-                $_SESSION['admin_name'] = $admin['username'];
-                $_SESSION['admin_last_activity'] = time();
+                $_SESSION['admin_logged'] =
+                    true;
+
+                $_SESSION['admin_id'] =
+                    (int) $admin['id'];
+
+                $_SESSION['admin_name'] =
+                    (string) $admin['username'];
+
+                $_SESSION['admin_last_activity'] =
+                    time();
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Tentative réussie
+                |--------------------------------------------------------------------------
+                */
+
+                recordLoginAttempt(
+                    $pdo,
+                    $ipAddress,
+                    (string) $admin['username'],
+                    true
+                );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Reset des échecs de cette IP
+                |--------------------------------------------------------------------------
+                */
+
+                $clearStmt =
+                    $pdo->prepare(
+                        'DELETE FROM admin_login_attempts
+                         WHERE ip_address = :ip_address
+                         AND success = 0'
+                    );
+
+                $clearStmt->execute([
+                    ':ip_address' =>
+                        $ipAddress,
+                ]);
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Log admin
+                |--------------------------------------------------------------------------
+                */
 
                 writeAdminLog(
                     $pdo,
@@ -98,39 +225,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     (string) $admin['username']
                 );
 
+
                 /*
                 |--------------------------------------------------------------------------
-                | Nouveau token après connexion
+                | Nouveau CSRF
                 |--------------------------------------------------------------------------
                 */
 
-                $_SESSION['csrf_token'] = bin2hex(
-                    random_bytes(32)
+                $_SESSION['csrf_token'] =
+                    bin2hex(
+                        random_bytes(32)
+                    );
+
+                header(
+                    'Location: /admin/dashboard.php'
                 );
 
-                header('Location: /admin/dashboard.php');
                 exit;
             }
 
+
             /*
             |--------------------------------------------------------------------------
-            | Message volontairement générique
+            | Connexion échouée
             |--------------------------------------------------------------------------
             */
 
-            $error = 'Identifiants incorrects.';
+            recordLoginAttempt(
+                $pdo,
+                $ipAddress,
+                $username,
+                false
+            );
+
+            writeAdminLog(
+                $pdo,
+                'auth.login_failed',
+                'admin_user',
+                null,
+                $username !== ''
+                    ? $username
+                    : null
+            );
+
+            $error =
+                'Identifiants incorrects.';
         }
     }
 
+
     /*
     |--------------------------------------------------------------------------
-    | Rotation du token après POST échoué
+    | Rotation CSRF après POST échoué
     |--------------------------------------------------------------------------
     */
 
-    $_SESSION['csrf_token'] = bin2hex(
-        random_bytes(32)
-    );
+    $_SESSION['csrf_token'] =
+        bin2hex(
+            random_bytes(32)
+        );
 }
 
 ?>
