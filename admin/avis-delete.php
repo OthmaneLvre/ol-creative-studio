@@ -34,9 +34,15 @@ if (
         $csrf
     )
 ) {
-    header(
-        'Location: /admin/avis.php?error=csrf'
+    setFlash(
+        'error',
+        'La requête de suppression est invalide.'
     );
+
+    header(
+        'Location: /admin/avis.php'
+    );
+
     exit;
 }
 
@@ -55,9 +61,15 @@ $id =
     );
 
 if (!$id || $id < 1) {
-    header(
-        'Location: /admin/avis.php?error=invalid'
+    setFlash(
+        'error',
+        'L’avis demandé est invalide.'
     );
+
+    header(
+        'Location: /admin/avis.php'
+    );
+
     exit;
 }
 
@@ -85,9 +97,16 @@ $review =
     $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$review) {
-    header(
-        'Location: /admin/avis.php?error=notfound'
+
+    setFlash(
+        'error',
+        'L’avis demandé est introuvable.'
     );
+
+    header(
+        'Location: /admin/avis.php'
+    );
+
     exit;
 }
 
@@ -147,9 +166,13 @@ try {
             random_bytes(32)
         );
 
+    setFlash(
+        'success',
+        'L’avis client a bien été supprimé.'
+    );
 
     header(
-        'Location: /admin/avis.php?deleted=1'
+        'Location: /admin/avis.php'
     );
 
     exit;
@@ -159,6 +182,11 @@ try {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
+
+    setFlash(
+        'error',
+        'Impossible de supprimer l’avis client.'
+    );
 
     header(
         'Location: /admin/avis.php?error=delete'

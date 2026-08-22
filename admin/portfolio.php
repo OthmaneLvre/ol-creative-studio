@@ -113,31 +113,29 @@ $adminActivePage = 'portfolio';
             <div class="admin-content">
 
                 <!-- =====================================================
-                    MESSAGES DE RETOUR
+                    FLASH MESSAGE
                     ===================================================== -->
 
-                <?php if (isset($_GET['created'])): ?>
+                <?php $flash = getFlash(); ?>
 
-                    <div class="admin-alert admin-alert--success">
-                        Le projet a bien été créé.
-                    </div>
+                <?php if ($flash !== null): ?>
 
-                <?php elseif (isset($_GET['updated'])): ?>
-
-                    <div class="admin-alert admin-alert--success">
-                        Le projet a bien été mis à jour.
-                    </div>
-
-                <?php elseif (isset($_GET['deleted'])): ?>
-
-                    <div class="admin-alert admin-alert--success">
-                        Le projet a bien été supprimé.
-                    </div>
-
-                <?php elseif (isset($_GET['error'])): ?>
-
-                    <div class="admin-alert admin-alert--error">
-                        Une erreur est survenue. Veuillez réessayer.
+                    <div
+                        class="admin-alert admin-alert--<?= htmlspecialchars(
+                            $flash['type'],
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ) ?>"
+                        role="<?= $flash['type'] === 'error'
+                            ? 'alert'
+                            : 'status'
+                        ?>"
+                    >
+                        <?= htmlspecialchars(
+                            $flash['message'],
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ) ?>
                     </div>
 
                 <?php endif; ?>
@@ -175,7 +173,6 @@ $adminActivePage = 'portfolio';
                     </a>
 
                 </section>
-
 
                 <!-- =====================================================
                      TOOLBAR

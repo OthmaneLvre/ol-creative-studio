@@ -917,8 +917,13 @@ if (
                         random_bytes(32)
                     );
 
+                setFlash(
+                    'success',
+                    'Le projet a bien été mis à jour.'
+                );
+
                 header(
-                    'Location: /admin/portfolio.php?updated=1'
+                    'Location: /admin/portfolio.php'
                 );
 
                 exit;

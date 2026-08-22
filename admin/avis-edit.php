@@ -367,8 +367,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         random_bytes(32)
                     );
 
+                setFlash(
+                    'success',
+                    'L’avis client a bien été modifié.'
+                );
+
                 header(
-                    'Location: /admin/avis.php?updated=1'
+                    'Location: /admin/avis.php'
                 );
 
                 exit;

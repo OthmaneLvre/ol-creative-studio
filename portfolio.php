@@ -75,7 +75,7 @@ require_once 'php/db.php'; ?>
     $sql = "
         SELECT *
         FROM portfolio
-        ORDER BY id DESC
+        ORDER BY id ASC, date_creation DESC
     ";
 
     $stmt = $pdo->query($sql);

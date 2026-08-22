@@ -696,8 +696,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['csrf_token'] =
                     bin2hex(random_bytes(32));
 
+                setFlash(
+                    'success',
+                    'Le projet a été ajouté avec succès.'
+                );
+
                 header(
-                    'Location: /admin/portfolio.php?created=1'
+                    'Location: /admin/portfolio.php'
                 );
 
                 exit;

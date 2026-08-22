@@ -32,9 +32,15 @@ if (
         $csrf
     )
 ) {
-    header(
-        'Location: /admin/portfolio.php?error=csrf'
+    setFlash(
+        'error',
+        'La requête de suppression est invalide.'
     );
+
+    header(
+        'Location: /admin/portfolio.php'
+    );
+
     exit;
 }
 
@@ -53,9 +59,15 @@ $id =
     );
 
 if (!$id || $id < 1) {
-    header(
-        'Location: /admin/portfolio.php?error=invalid'
+    setFlash(
+        'error',
+        'Le projet demandé est invalide.'
     );
+
+    header(
+        'Location: /admin/portfolio.php'
+    );
+
     exit;
 }
 
@@ -84,9 +96,15 @@ $project =
     $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$project) {
-    header(
-        'Location: /admin/portfolio.php?error=notfound'
+    setFlash(
+        'error',
+        'Le projet demandé est introuvable.'
     );
+
+    header(
+        'Location: /admin/portfolio.php'
+    );
+
     exit;
 }
 
@@ -205,8 +223,13 @@ try {
     |--------------------------------------------------------------------------
     */
 
+    setFlash(
+        'success',
+        'Le projet a bien été supprimé.'
+    );
+
     header(
-        'Location: /admin/portfolio.php?deleted=1'
+        'Location: /admin/portfolio.php'
     );
 
     exit;
@@ -217,8 +240,13 @@ try {
         $pdo->rollBack();
     }
 
+    setFlash(
+        'error',
+        'Impossible de supprimer le projet.'
+    );
+
     header(
-        'Location: /admin/portfolio.php?error=delete'
+        'Location: /admin/portfolio.php'
     );
 
     exit;

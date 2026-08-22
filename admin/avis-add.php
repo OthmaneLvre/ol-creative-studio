@@ -307,9 +307,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 | Redirection
                 |--------------------------------------------------------------------------
                 */
+                setFlash(
+                    'success',
+                    "L'avis client a bien été ajouté."
+                );
 
                 header(
-                    'Location: /admin/avis.php?created=1'
+                    'Location: /admin/avis.php'
                 );
 
                 exit;

@@ -782,7 +782,7 @@ include_once __DIR__ . '/partials/header.php';
     $query = $pdo->query("
         SELECT *
         FROM portfolio
-        ORDER BY id DESC
+        ORDER BY ordre ASCn date_creation DESC
         LIMIT 3
     ");
 
