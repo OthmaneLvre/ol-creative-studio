@@ -2250,3 +2250,41 @@ select {
 .admin-upload-preview-label[hidden] {
     display: none;
 }
+
+/* =========================================================
+   CHARACTER COUNTERS
+   ========================================================= */
+
+.admin-field__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.admin-character-counter {
+    flex: 0 0 auto;
+
+    color: var(--admin-gray-500);
+
+    font-size: 0.68rem;
+    font-weight: 700;
+}
+
+.admin-character-counter.is-warning {
+    color: #8a6500;
+}
+
+.admin-character-counter.is-limit {
+    color: var(--admin-error);
+}
+
+@media (max-width: 600px) {
+
+    .admin-field__footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+}

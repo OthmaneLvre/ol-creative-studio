@@ -1527,7 +1527,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             </div>
 
-
                             <div class="admin-field admin-field--full">
 
                                 <label for="meta_description">
@@ -1537,9 +1536,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <textarea
                                     id="meta_description"
                                     name="meta_description"
-                                    rows="3"
                                     maxlength="255"
-                                    placeholder="Description SEO du projet..."
+                                    data-character-counter
+                                    data-character-counter-target="meta-description-counter"
                                 ><?= htmlspecialchars(
                                     (string) (
                                         $_POST['meta_description']
@@ -1549,8 +1548,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     'UTF-8'
                                 ) ?></textarea>
 
-                            </div>
+                                <div class="admin-field__footer">
 
+                                    <span class="admin-field__help">
+                                        Idéalement autour de 150 à 160 caractères pour le SEO.
+                                    </span>
+
+                                    <span
+                                        class="admin-character-counter"
+                                        id="meta-description-counter"
+                                        aria-live="polite"
+                                    >
+                                        0 / 255
+                                    </span>
+
+                                </div>
+
+                            </div>
 
                             <div class="admin-field">
 

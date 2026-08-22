@@ -1798,7 +1798,6 @@ $featuredChecked =
 
                         </div>
 
-
                         <div class="admin-field admin-field--full">
 
                             <label for="meta_description">
@@ -1809,11 +1808,29 @@ $featuredChecked =
                                 id="meta_description"
                                 name="meta_description"
                                 maxlength="255"
+                                data-character-counter
+                                data-character-counter-target="meta-description-counter"
                             ><?= htmlspecialchars(
                                 (string) $form['meta_description'],
                                 ENT_QUOTES,
                                 'UTF-8'
                             ) ?></textarea>
+
+                            <div class="admin-field__footer">
+
+                                <span class="admin-field__help">
+                                    Idéalement autour de 150 à 160 caractères pour le SEO.
+                                </span>
+
+                                <span
+                                    class="admin-character-counter"
+                                    id="meta-description-counter"
+                                    aria-live="polite"
+                                >
+                                    0 / 255
+                                </span>
+
+                            </div>
 
                         </div>
 

@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initTagFields();
     initProjectSlug();
     initImagePreviews();
+    initCharacterCounters();
+
 });
 
 
@@ -525,6 +527,69 @@ function initGalleryPreviews() {
             target.hidden = false;
 
         });
+
+    }
+
+}
+
+/* =========================================================
+   CHARACTER COUNTERS
+   ========================================================= */
+
+function initCharacterCounters() {
+
+    const fields = document.querySelectorAll(
+        '[data-character-counter]'
+    );
+
+    for (const field of fields) {
+
+        const targetId =
+            field.dataset.characterCounterTarget;
+
+        if (!targetId) {
+            continue;
+        }
+
+        const counter =
+            document.getElementById(targetId);
+
+        if (!counter) {
+            continue;
+        }
+
+        const maxLength =
+            Number(field.getAttribute('maxlength')) || 0;
+
+        const updateCounter = () => {
+
+            const length =
+                field.value.length;
+
+            counter.textContent =
+                maxLength > 0
+                    ? `${length} / ${maxLength}`
+                    : String(length);
+
+            counter.classList.toggle(
+                'is-warning',
+                maxLength > 0 &&
+                length >= Math.floor(maxLength * 0.85)
+            );
+
+            counter.classList.toggle(
+                'is-limit',
+                maxLength > 0 &&
+                length >= maxLength
+            );
+        };
+
+        field.addEventListener(
+            'input',
+            updateCounter
+        );
+
+        updateCounter();
 
     }
 
