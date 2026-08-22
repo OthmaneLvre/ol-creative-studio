@@ -19,7 +19,19 @@ $categories = [
     'vitrine'     => 'Sites vitrines',
     'ecommerce'   => 'Boutiques en ligne',
     'application' => 'Applications web',
-    'identite'    => 'Logos & identités visuelles',
+    'identite'    => 'Identités visuelles',
+    'landing'     => 'Landing pages',
+    'refonte'     => 'Refontes de sites',
+    'seo'         => 'SEO & optimisation',
+    'maintenance' => 'Maintenance & évolutions',
+    'branding'    => 'Branding & direction artistique',
+    'print'       => 'Supports print',
+    'autre'       => 'Autres projets',
+];
+
+$projectTypes = [
+    'client'  => 'Projet client',
+    'concept' => 'Projet conceptuel',
 ];
 
 $uploadDirectory =
@@ -251,6 +263,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ?? ''
             );
 
+        $projectType =
+            (string) (
+                $_POST['project_type']
+                ?? 'client'
+            );
+
         $description =
             trim(
                 (string) (
@@ -376,6 +394,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $error =
                 'La catégorie sélectionnée est invalide.';
+
+        } elseif (
+            !array_key_exists(
+                $projectType,
+                $projectTypes
+            )
+        ) {
+
+            $error =
+                'Le type de projet sélectionné est invalide.';
 
         } elseif (
             $year !== '' &&
@@ -599,7 +627,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         featured,
                         ordre,
                         statut,
-                        categorie
+                        categorie,
+                        project_type
                     )
                     VALUES (
                         :titre,
@@ -621,7 +650,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         :featured,
                         :ordre,
                         :statut,
-                        :categorie
+                        :categorie,
+                        :project_type
                     )'
                 );
 
@@ -714,6 +744,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     ':categorie' =>
                         $category,
+
+                    ':project_type' =>
+                        $projectType,
                 ]);
 
                 $pdo->commit();
@@ -1029,6 +1062,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             </div>
 
+                            <div class="admin-field">
+
+                                <label for="project_type">
+                                    Type de projet *
+                                </label>
+
+                                <select
+                                    id="project_type"
+                                    name="project_type"
+                                    required
+                                >
+                                    <?php foreach ($projectTypes as $value => $label): ?>
+
+                                        <option
+                                            value="<?= htmlspecialchars(
+                                                $value,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            <?= (
+                                                ($_POST['project_type'] ?? 'client')
+                                                === $value
+                                            )
+                                                ? 'selected'
+                                                : ''
+                                            ?>
+                                        >
+                                            <?= htmlspecialchars(
+                                                $label,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>
+                                        </option>
+
+                                    <?php endforeach; ?>
+                                </select>
+
+                            </div>
 
                             <div class="admin-field">
 

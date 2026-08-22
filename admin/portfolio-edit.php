@@ -19,7 +19,19 @@ $categories = [
     'vitrine'     => 'Sites vitrines',
     'ecommerce'   => 'Boutiques en ligne',
     'application' => 'Applications web',
-    'identite'    => 'Logos & identités visuelles',
+    'identite'    => 'Identités visuelles',
+    'landing'     => 'Landing pages',
+    'refonte'     => 'Refontes de sites',
+    'seo'         => 'SEO & optimisation',
+    'maintenance' => 'Maintenance & évolutions',
+    'branding'    => 'Branding & direction artistique',
+    'print'       => 'Supports print',
+    'autre'       => 'Autres projets',
+];
+
+$projectTypes = [
+    'client'  => 'Projet client',
+    'concept' => 'Projet conceptuel',
 ];
 
 $uploadDirectory =
@@ -385,6 +397,12 @@ if (
                 ?? ''
             );
 
+        $projectType =
+            (string) (
+                $_POST['project_type']
+                ?? 'client'
+            );
+
         $description =
             trim(
                 (string) (
@@ -512,6 +530,16 @@ if (
 
             $error =
                 'La catégorie sélectionnée est invalide.';
+
+        } elseif (
+            !array_key_exists(
+                $projectType,
+                $projectTypes
+            )
+        ) {
+
+            $error =
+                'Le type de projet sélectionné est invalide.';
 
         } elseif (
             $year !== '' &&
@@ -796,7 +824,8 @@ if (
                             featured = :featured,
                             statut = :statut,
                             ordre = :ordre,
-                            categorie = :categorie
+                            categorie = :categorie,
+                            project_type = :project_type
                          WHERE id = :id'
                     );
 
@@ -890,6 +919,9 @@ if (
                     ':categorie' =>
                         $category,
 
+                    ':project_type' =>
+                        $projectType,
+
                     ':id' =>
                         $id,
                 ]);
@@ -898,9 +930,9 @@ if (
 
                 writeAdminLog(
                     $pdo,
-                    'portfolio.created',
+                    'portfolio.updated',
                     'portfolio',
-                    (int) $pdo->lastInsertId(),
+                    (int) $id,
                     $title
                 );
 
@@ -1034,6 +1066,11 @@ $form = [
         ?? $project['categorie']
         ?? '',
 
+    'project_type' =>
+        $_POST['project_type']
+        ?? $project['project_type']
+        ?? 'client',
+        
     'description' =>
         $_POST['description']
         ?? $project['description']
@@ -1340,6 +1377,49 @@ $featuredChecked =
 
                         </div>
 
+                        <div class="admin-field">
+
+                            <label for="project_type">
+                                Type de projet *
+                            </label>
+
+                            <select
+                                id="project_type"
+                                name="project_type"
+                                required
+                            >
+
+                                <?php foreach (
+                                    $projectTypes
+                                    as $value => $label
+                                ): ?>
+
+                                    <option
+                                        value="<?= htmlspecialchars(
+                                            $value,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>"
+                                        <?= (
+                                            $form['project_type']
+                                            === $value
+                                        )
+                                            ? 'selected'
+                                            : ''
+                                        ?>
+                                    >
+                                        <?= htmlspecialchars(
+                                            $label,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+                                    </option>
+
+                                <?php endforeach; ?>
+
+                            </select>
+
+                        </div>
 
                         <div class="admin-field">
 
