@@ -76,7 +76,10 @@ require_once 'php/db.php'; ?>
         SELECT *
         FROM portfolio
         WHERE statut = 'published'
-        ORDER BY id ASC, date_creation DESC
+        ORDER BY
+            ordre ASC,
+            date_creation DESC,
+            id DESC
     ";
 
     $stmt = $pdo->query($sql);

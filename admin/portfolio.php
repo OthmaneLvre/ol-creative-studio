@@ -279,7 +279,7 @@ $adminActivePage = 'portfolio';
 
                         <div class="admin-portfolio-table">
 
-                            <?php foreach ($projects as $project): ?>
+                            <?php foreach ($projects as $index => $project): ?>
 
                                 <?php
 
@@ -295,6 +295,12 @@ $adminActivePage = 'portfolio';
 
                                 $isPublished =
                                     ($project['statut'] ?? 'draft') === 'published';
+                                
+                                $canMoveUp =
+                                    $index > 0;
+
+                                $canMoveDown =
+                                    $index < ($totalProjects - 1);
                                 ?>
 
 
@@ -395,7 +401,6 @@ $adminActivePage = 'portfolio';
 
                                     </div>
 
-
                                     <!-- ORDER -->
 
                                     <div
@@ -403,7 +408,99 @@ $adminActivePage = 'portfolio';
                                         data-label="Ordre"
                                     >
 
-                                        <?= (int) ($project['ordre'] ?? 0) ?>
+                                        <div class="admin-order-controls">
+
+                                            <form
+                                                method="POST"
+                                                action="/admin/portfolio-order.php"
+                                            >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="csrf"
+                                                    value="<?= htmlspecialchars(
+                                                        $_SESSION['csrf_token'],
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="id"
+                                                    value="<?= (int) $project['id'] ?>"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="direction"
+                                                    value="up"
+                                                >
+
+                                                <button
+                                                    type="submit"
+                                                    class="admin-order-button"
+                                                    aria-label="Monter <?= htmlspecialchars(
+                                                        $project['titre'],
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>"
+                                                    <?= !$canMoveUp ? 'disabled' : '' ?>
+                                                >
+                                                    ↑
+                                                </button>
+
+                                            </form>
+
+
+                                            <span class="admin-order-value">
+                                                <?= (int) ($project['ordre'] ?? 0) ?>
+                                            </span>
+
+
+                                            <form
+                                                method="POST"
+                                                action="/admin/portfolio-order.php"
+                                            >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="csrf"
+                                                    value="<?= htmlspecialchars(
+                                                        $_SESSION['csrf_token'],
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="id"
+                                                    value="<?= (int) $project['id'] ?>"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="direction"
+                                                    value="down"
+                                                >
+
+                                                <button
+                                                    type="submit"
+                                                    class="admin-order-button"
+                                                    aria-label="Descendre <?= htmlspecialchars(
+                                                        $project['titre'],
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>"
+                                                    <?= !$canMoveDown ? 'disabled' : '' ?>
+                                                >
+                                                    ↓
+                                                </button>
+
+                                            </form>
+
+                                        </div>
 
                                     </div>
 
