@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/includes/bootstrap.php';
-
+require_once __DIR__ . '/includes/admin-log.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -199,6 +199,8 @@ if (
                 ]);
 
 
+
+
                 /*
                 |--------------------------------------------------------------------------
                 | Suppression de tous les tokens de cet administrateur
@@ -219,6 +221,12 @@ if (
 
                 $pdo->commit();
 
+                writeAdminLog(
+                    $pdo,
+                    'auth.password_reset',
+                    'admin_user',
+                    (int) $reset['admin_id']
+                );
 
                 /*
                 |--------------------------------------------------------------------------

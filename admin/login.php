@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/admin-log.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +84,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['admin_logged'] = true;
                 $_SESSION['admin_id'] = (int) $admin['id'];
                 $_SESSION['admin_name'] = $admin['username'];
+
+                writeAdminLog(
+                    $pdo,
+                    'auth.login_success',
+                    'admin_user',
+                    (int) $admin['id'],
+                    (string) $admin['username']
+                );
 
                 /*
                 |--------------------------------------------------------------------------

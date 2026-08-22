@@ -896,6 +896,14 @@ if (
 
                 $pdo->commit();
 
+                writeAdminLog(
+                    $pdo,
+                    'portfolio.created',
+                    'portfolio',
+                    (int) $pdo->lastInsertId(),
+                    $title
+                );
+
                 /*
                 |--------------------------------------------------------------------------
                 | Nettoyage ancienne cover

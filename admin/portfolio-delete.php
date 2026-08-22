@@ -176,6 +176,14 @@ try {
 
     $pdo->commit();
 
+    writeAdminLog(
+        $pdo,
+        'portfolio.deleted',
+        'portfolio',
+        $id,
+        null
+    );
+
 
     /*
     |--------------------------------------------------------------------------

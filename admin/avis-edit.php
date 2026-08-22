@@ -335,6 +335,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $id,
                 ]);
 
+                writeAdminLog(
+                    $pdo,
+                    'review.updated',
+                    'avis',
+                    $id,
+                    $name
+                );
 
                 /*
                 |--------------------------------------------------------------------------

@@ -718,6 +718,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $pdo->commit();
 
+                writeAdminLog(
+                    $pdo,
+                    'portfolio.created',
+                    'portfolio',
+                    (int) $pdo->lastInsertId(),
+                    $title
+                );
+
                 /*
                 |--------------------------------------------------------------------------
                 | Nouveau token + redirection

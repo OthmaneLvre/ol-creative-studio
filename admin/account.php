@@ -160,6 +160,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         (int) $admin['id'],
                 ]);
 
+                writeAdminLog(
+                    $pdo,
+                    'account.password_changed',
+                    'admin_user',
+                    (int) $admin['id']
+                );
+
 
                 /*
                 |--------------------------------------------------------------------------

@@ -83,6 +83,7 @@ if (!$id || $id < 1) {
 $stmt = $pdo->prepare(
     'SELECT
         id,
+        nom,
         avatar
      FROM avis
      WHERE id = :id
@@ -133,7 +134,14 @@ try {
 
     $pdo->commit();
 
-
+    writeAdminLog(
+        $pdo,
+        'review.deleted',
+        'avis',
+        $id,
+        (string) $review['nom']
+    );
+    
     /*
     |--------------------------------------------------------------------------
     | Avatar

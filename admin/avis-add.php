@@ -289,6 +289,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'validé',
                 ]);
 
+                $reviewId =
+                    (int) $pdo->lastInsertId();
+
+                writeAdminLog(
+                    $pdo,
+                    'review.created',
+                    'avis',
+                    $reviewId,
+                    $name
+                );
+
 
                 /*
                 |--------------------------------------------------------------------------
