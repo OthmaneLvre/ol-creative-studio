@@ -282,6 +282,13 @@
                         CGU
                     </a>
 
+                    <a
+                        href="#cookie-settings"
+                        data-cookie-settings
+                    >
+                        Gérer mes cookies
+                    </a>
+
                 </div>
 
                 <a
@@ -380,32 +387,97 @@
 ></script>
 
 <script>
-function loadGoogleAnalytics() {
+window.dataLayer =
+    window.dataLayer || [];
 
-    const script = document.createElement('script');
+window.gtag =
+    window.gtag ||
+    function () {
+        window.dataLayer.push(arguments);
+    };
+
+window.gtag(
+    'consent',
+    'default',
+    {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied'
+    }
+);
+</script>
+
+<script>
+window.loadGoogleAnalytics = function () {
+
+    const measurementId =
+        'G-SVKMC2KRPX';
+
+    /*
+    |--------------------------------------------------------------------------
+    | Évite un double chargement
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        document.querySelector(
+            `script[data-google-analytics="${measurementId}"]`
+        )
+    ) {
+        return;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google Analytics
+    |--------------------------------------------------------------------------
+    */
+
+    const script =
+        document.createElement('script');
 
     script.src =
-        'https://www.googletagmanager.com/gtag/js?id=G-SVKMC2KRPX';
+        'https://www.googletagmanager.com/gtag/js?id='
+        + encodeURIComponent(measurementId);
 
     script.async = true;
-    script.defer = true;
+
+    script.dataset.googleAnalytics =
+        measurementId;
 
     document.head.appendChild(script);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Data Layer
+    |--------------------------------------------------------------------------
+    */
 
     window.dataLayer =
         window.dataLayer || [];
 
-    function gtag() {
-        window.dataLayer.push(arguments);
-    }
+    window.gtag =
+        window.gtag ||
+        function () {
+            window.dataLayer.push(arguments);
+        };
 
-    gtag('js', new Date());
-
-    gtag(
-        'config',
-        'G-SVKMC2KRPX'
+    window.gtag(
+        'js',
+        new Date()
     );
-}
+
+    window.gtag(
+        'config',
+        measurementId,
+        {
+            anonymize_ip: true
+        }
+    );
+};
 </script>
 
 </body>
