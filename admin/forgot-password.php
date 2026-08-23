@@ -5,6 +5,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/bootstrap.php';
 require_once __DIR__ . '/../php/mailer.php';
 
+require_once __DIR__
+    . '/../php/emails/password-reset.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -246,7 +248,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $subject =
                         'Réinitialisation de votre mot de passe — OL Creative Studio';
 
-                    $body =
+
+                    $htmlBody =
+                        renderPasswordResetEmail(
+                            (string) $admin['username'],
+                            $resetUrl
+                        );
+
+
+                    $textBody =
                         "Bonjour "
                         . $admin['username']
                         . ",\n\n"
@@ -262,16 +272,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         . "vous pouvez ignorer cet email.\n\n"
                         . "OL Creative Studio";
 
-
                     $mailSent =
                         sendMail(
                             (string) $admin['email'],
                             (string) $admin['username'],
                             $subject,
-                            $body
+                            $htmlBody,
+                            $textBody
                         );
-
-
                     /*
                     |--------------------------------------------------------------------------
                     | Erreur d'envoi

@@ -94,6 +94,12 @@ $ip = $_SERVER['REMOTE_ADDR'] ?? '';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/mailer.php';
 
+require_once __DIR__
+    . '/emails/contact-notification.php';
+
+require_once __DIR__
+    . '/emails/contact-confirmation.php';
+
 try {
 
     $sql = "
@@ -168,7 +174,19 @@ $budgetDisplay =
         ? $budget
         : 'Non renseigné';
 
-$bodyOwner = <<<TEXT
+$htmlOwner =
+    renderContactNotificationEmail(
+        $prenom,
+        $nom,
+        $email,
+        $telephoneDisplay,
+        $objet,
+        $budgetDisplay,
+        $message,
+        $ip
+    );
+
+$textOwner = <<<TEXT
 Nouveau message reçu depuis le formulaire OL Creative Studio.
 
 Prénom : {$prenom}
@@ -190,7 +208,8 @@ $ownerMailSent = sendMail(
     $toOwner,
     'OL Creative Studio',
     $subjectOwner,
-    $bodyOwner,
+    $htmlOwner,
+    $textOwner,
     $email,
     "{$prenom} {$nom}"
 );
@@ -218,12 +237,19 @@ if (!$ownerMailSent) {
 $subjectClient =
     'Votre demande a bien été reçue – OL Creative Studio';
 
-$bodyClient = <<<TEXT
+$htmlClient =
+    renderContactConfirmationEmail(
+        $prenom,
+        $objet,
+        $budgetDisplay,
+        $message
+    );
+
+$textClient = <<<TEXT
 Bonjour {$prenom},
 
-Merci pour votre message. Votre demande a bien été reçue par OL Creative Studio.
-
-Récapitulatif :
+Merci pour votre message.
+Votre demande a bien été reçue par OL Creative Studio.
 
 Projet : {$objet}
 Budget : {$budgetDisplay}
@@ -244,7 +270,8 @@ $clientMailSent = sendMail(
     $email,
     "{$prenom} {$nom}",
     $subjectClient,
-    $bodyClient
+    $htmlClient,
+    $textClient
 );
 
 if (!$clientMailSent) {
