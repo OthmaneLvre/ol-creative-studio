@@ -85,20 +85,30 @@ require_once 'php/db.php'; ?>
     $stmt = $pdo->query($sql);
     $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $categoryLabels = [
-        'figma' => 'Maquette Figma',
-        'vitrine' => 'Site vitrine',
-        'ecom' => 'E-commerce',
-        'ecommerce' => 'E-commerce',
-        'app' => 'Application web',
-        'logo' => 'Identité visuelle',
-    ];
+$categoryLabels = [
+    'figma'       => 'Maquettes Figma',
+    'vitrine'     => 'Sites vitrines',
+    'ecommerce'   => 'Boutiques en ligne',
+    'application' => 'Applications web',
+    'identite'    => 'Identités visuelles',
+    'landing'     => 'Landing pages',
+    'refonte'     => 'Refontes de sites',
+    'seo'         => 'SEO & optimisation',
+    'maintenance' => 'Maintenance & évolutions',
+    'branding'    => 'Branding & direction artistique',
+    'print'       => 'Supports print',
+    'autre'       => 'Autres projets',
+];
 
     $existingCategories = [];
 
     foreach ($projects as $project) {
 
-        $category = $project['categorie'] ?? '';
+        $category =
+            (string) (
+                $project['categorie']
+                ?? ''
+            );
 
         if (
             $category !== '' &&
@@ -197,7 +207,11 @@ require_once 'php/db.php'; ?>
                             STR_PAD_LEFT
                         );
 
-                        $category = $project['categorie'] ?? '';
+                        $category =
+                            (string) (
+                                $project['categorie']
+                                ?? ''
+                            );
 
                         $categoryLabel =
                             $categoryLabels[$category]
