@@ -12,9 +12,21 @@ $id = (int) $_GET['id'];
 $categories = [
     'figma'       => 'Maquettes Figma',
     'vitrine'     => 'Sites vitrines',
-    'ecommerce'   => 'E-commerce',
+    'ecommerce'   => 'Boutiques en ligne',
     'application' => 'Applications web',
     'identite'    => 'Identités visuelles',
+    'landing'     => 'Landing pages',
+    'refonte'     => 'Refontes de sites',
+    'seo'         => 'SEO & optimisation',
+    'maintenance' => 'Maintenance & évolutions',
+    'branding'    => 'Branding & direction artistique',
+    'print'       => 'Supports print',
+    'autre'       => 'Autres projets',
+];
+
+$projectTypes = [
+    'client'  => 'Projet client',
+    'concept' => 'Projet conceptuel',
 ];
 
 $stmt = $pdo->prepare(
@@ -36,10 +48,28 @@ if (!$project) {
     exit;
 }
 
-$categoryKey = $project['categorie'] ?? '';
-$categoryLabel = $categories[$categoryKey] ?? 'Projet';
+$categoryKey =
+    (string) ($project['categorie'] ?? '');
 
-$isLogo = $categoryKey === 'identite';
+$categoryLabel =
+    $categories[$categoryKey]
+    ?? 'Projet';
+
+$projectTypeKey =
+    (string) (
+        $project['project_type']
+        ?? 'client'
+    );
+
+$projectTypeLabel =
+    $projectTypes[$projectTypeKey]
+    ?? 'Projet';
+
+$isConceptProject =
+    $projectTypeKey === 'concept';
+
+$isLogo =
+    $categoryKey === 'identite';
 
 $gallery = [];
 
@@ -143,12 +173,37 @@ include_once __DIR__ . '/partials/header.php';
             <div class="project-hero__heading">
 
                 <p class="project-hero__eyebrow reveal">
-                    <?= htmlspecialchars($categoryLabel) ?>
+
+                    <?= htmlspecialchars(
+                        $categoryLabel,
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
+
+                    <?php if ($isConceptProject): ?>
+
+                        <span aria-hidden="true">•</span>
+
+                        <?= htmlspecialchars(
+                            $projectTypeLabel,
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ) ?>
+
+                    <?php endif; ?>
 
                     <?php if (!empty($project['annee'])): ?>
+
                         <span aria-hidden="true">•</span>
-                        <?= htmlspecialchars((string) $project['annee']) ?>
+
+                        <?= htmlspecialchars(
+                            (string) $project['annee'],
+                            ENT_QUOTES,
+                            'UTF-8'
+                        ) ?>
+
                     <?php endif; ?>
+
                 </p>
 
                 <h1 class="project-hero__title reveal reveal--large">

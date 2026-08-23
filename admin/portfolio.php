@@ -12,11 +12,29 @@ require_once __DIR__ . '/includes/auth.php';
 */
 
 $categories = [
-    'figma'     => 'Maquettes Figma',
-    'vitrine'   => 'Sites vitrines',
-    'ecommerce' => 'Boutiques en ligne',
-    'app'       => 'Applications',
-    'logo'      => 'Logos & identités visuelles',
+    'figma'       => 'Maquettes Figma',
+    'vitrine'     => 'Sites vitrines',
+    'ecommerce'   => 'Boutiques en ligne',
+    'application' => 'Applications web',
+    'identite'    => 'Identités visuelles',
+    'landing'     => 'Landing pages',
+    'refonte'     => 'Refontes de sites',
+    'seo'         => 'SEO & optimisation',
+    'maintenance' => 'Maintenance & évolutions',
+    'branding'    => 'Branding & direction artistique',
+    'print'       => 'Supports print',
+    'autre'       => 'Autres projets',
+];
+
+/*
+|--------------------------------------------------------------------------
+| Types de projet
+|--------------------------------------------------------------------------
+*/
+
+$projectTypes = [
+    'client'  => 'Projet client',
+    'concept' => 'Projet conceptuel',
 ];
 
 
@@ -34,6 +52,7 @@ $stmt = $pdo->query(
         client,
         annee,
         categorie,
+        project_type,
         image,
         featured,
         statut,
@@ -295,6 +314,16 @@ $adminActivePage = 'portfolio';
 
                                 $isPublished =
                                     ($project['statut'] ?? 'draft') === 'published';
+
+                                $projectTypeKey =
+                                    (string) ($project['project_type'] ?? 'client');
+
+                                $projectTypeLabel =
+                                    $projectTypes[$projectTypeKey]
+                                    ?? ucfirst($projectTypeKey);
+
+                                $isConceptProject =
+                                    $projectTypeKey === 'concept';
                                 
                                 $canMoveUp =
                                     $index > 0;
@@ -524,6 +553,19 @@ $adminActivePage = 'portfolio';
 
                                                 <span class="admin-badge admin-badge--draft">
                                                     Brouillon
+                                                </span>
+
+                                            <?php endif; ?>
+
+
+                                            <?php if ($isConceptProject): ?>
+
+                                                <span class="admin-badge admin-badge--concept">
+                                                    <?= htmlspecialchars(
+                                                        $projectTypeLabel,
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>
                                                 </span>
 
                                             <?php endif; ?>

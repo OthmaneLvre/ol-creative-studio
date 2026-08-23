@@ -1826,7 +1826,7 @@ select {
 
     overflow: hidden;
 
-    background: var(--admin-navy);
+    background: var(--admin-navy-950);
     border-radius: 50%;
 
     color: var(--admin-white);
@@ -1855,7 +1855,7 @@ select {
 .admin-review-card__identity h2 {
     margin: 0 0 4px;
 
-    color: var(--admin-navy);
+    color: var(--admin-navy-950);
 
     font-family: var(--admin-font-display);
     font-size: 25px;
@@ -1890,7 +1890,7 @@ select {
 .admin-review-card__quote p {
     margin: 0;
 
-    color: var(--admin-text);
+    color: var(--admin-gray-700);
 
     font-size: 15px;
     line-height: 1.75;
@@ -1925,7 +1925,7 @@ select {
     background: transparent;
     border: 0;
 
-    color: var(--admin-navy);
+    color: var(--admin-navy-950);
 
     font: inherit;
     font-size: 13px;
@@ -1943,7 +1943,7 @@ select {
 }
 
 .admin-action-link--danger {
-    color: var(--admin-text-muted);
+    color: var(--admin-gray-500);
 }
 
 .admin-action-link--danger:hover {
@@ -1968,7 +1968,7 @@ select {
 .admin-empty-state h2 {
     margin: 12px 0 10px;
 
-    color: var(--admin-navy);
+    color: var(--admin-navy-950);
 
     font-family: var(--admin-font-display);
     font-size: clamp(30px, 3vw, 42px);
@@ -1981,7 +1981,7 @@ select {
 
     margin: 0 auto 26px;
 
-    color: var(--admin-text-muted);
+    color: var(--admin-gray-500);
 
     font-size: 14px;
     line-height: 1.7;
@@ -2104,7 +2104,7 @@ select {
 
 .admin-badge--draft {
     background: rgba(114, 123, 134, 0.12);
-    color: var(--admin-text-muted);
+    color: var(--admin-gray-500);
 }
 
 .admin-badge--featured {
@@ -2325,9 +2325,9 @@ select {
     cursor: pointer;
 
     transition:
-        background-color var(--admin-transition),
-        border-color var(--admin-transition),
-        color var(--admin-transition);
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .admin-order-button:hover:not(:disabled) {
@@ -2349,4 +2349,9 @@ select {
     font-size: 0.75rem;
     font-weight: 800;
     text-align: center;
+}
+
+.admin-badge--concept {
+    background: rgba(27, 154, 170, 0.12);
+    color: var(--admin-cyan-500);
 }
