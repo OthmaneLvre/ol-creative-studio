@@ -156,6 +156,219 @@ function initProcessTimeline() {
     activateStep(0);
 }
 
+/*
+|--------------------------------------------------------------------------
+| SERVICES — FAQ
+|--------------------------------------------------------------------------
+*/
+
+function initFaq() {
+
+    const faq =
+        document.querySelector(
+            '[data-faq]'
+        );
+
+    if (!faq) {
+        return;
+    }
+
+    const triggers =
+        faq.querySelectorAll(
+            '[data-faq-trigger]'
+        );
+
+
+    const closeItem = (
+        trigger,
+        answer
+    ) => {
+
+        trigger.setAttribute(
+            'aria-expanded',
+            'false'
+        );
+
+        trigger
+            .closest(
+                '.services-faq__item'
+            )
+            ?.classList.remove(
+                'is-open'
+            );
+
+        answer.style.height =
+            `${answer.scrollHeight}px`;
+
+        requestAnimationFrame(() => {
+            answer.style.height = '0px';
+            answer.style.opacity = '0';
+        });
+
+        const handleTransitionEnd = () => {
+            answer.hidden = true;
+            answer.style.height = '';
+            answer.style.opacity = '';
+
+            answer.removeEventListener(
+                'transitionend',
+                handleTransitionEnd
+            );
+        };
+
+        answer.addEventListener(
+            'transitionend',
+            handleTransitionEnd
+        );
+    };
+
+
+    const openItem = (
+        trigger,
+        answer
+    ) => {
+
+        answer.hidden = false;
+
+        answer.style.height = '0px';
+        answer.style.opacity = '0';
+
+        trigger.setAttribute(
+            'aria-expanded',
+            'true'
+        );
+
+        trigger
+            .closest(
+                '.services-faq__item'
+            )
+            ?.classList.add(
+                'is-open'
+            );
+
+        requestAnimationFrame(() => {
+            answer.style.height =
+                `${answer.scrollHeight}px`;
+
+            answer.style.opacity = '1';
+        });
+
+        const handleTransitionEnd = () => {
+            answer.style.height = 'auto';
+
+            answer.removeEventListener(
+                'transitionend',
+                handleTransitionEnd
+            );
+        };
+
+        answer.addEventListener(
+            'transitionend',
+            handleTransitionEnd
+        );
+    };
+
+
+    for (const trigger of triggers) {
+
+        trigger.addEventListener(
+            'click',
+            () => {
+
+                const answerId =
+                    trigger.getAttribute(
+                        'aria-controls'
+                    );
+
+                if (!answerId) {
+                    return;
+                }
+
+                const answer =
+                    document.getElementById(
+                        answerId
+                    );
+
+                if (!answer) {
+                    return;
+                }
+
+                const isOpen =
+                    trigger.getAttribute(
+                        'aria-expanded'
+                    ) === 'true';
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Fermer les autres
+                |--------------------------------------------------------------------------
+                */
+
+                for (
+                    const otherTrigger
+                    of triggers
+                ) {
+
+                    if (
+                        otherTrigger
+                        === trigger
+                    ) {
+                        continue;
+                    }
+
+                    if (
+                        otherTrigger.getAttribute(
+                            'aria-expanded'
+                        ) !== 'true'
+                    ) {
+                        continue;
+                    }
+
+                    const otherAnswerId =
+                        otherTrigger.getAttribute(
+                            'aria-controls'
+                        );
+
+                    if (!otherAnswerId) {
+                        continue;
+                    }
+
+                    const otherAnswer =
+                        document.getElementById(
+                            otherAnswerId
+                        );
+
+                    if (otherAnswer) {
+                        closeItem(
+                            otherTrigger,
+                            otherAnswer
+                        );
+                    }
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Item courant
+                |--------------------------------------------------------------------------
+                */
+
+                if (isOpen) {
+                    closeItem(
+                        trigger,
+                        answer
+                    );
+                } else {
+                    openItem(
+                        trigger,
+                        answer
+                    );
+                }
+            }
+        );
+    }
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -167,5 +380,6 @@ document.addEventListener(
     'DOMContentLoaded',
     () => {
         initProcessTimeline();
+        initFaq();
     }
 );

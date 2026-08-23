@@ -1,6 +1,98 @@
 <?php
+
 $pageTitle = "Services en création web & identité visuelle";
-$pageDescription = "Découvrez mes services de création de sites internet, identité visuelle, graphisme et maintenance web pour entreprises et indépendants.";
+
+$pageDescription =
+    "Découvrez mes services de création de sites internet, "
+    . "identité visuelle, graphisme et maintenance web "
+    . "pour entreprises et indépendants.";
+
+
+$faqs = [
+    [
+        'question' =>
+            'Combien coûte la création d’un site internet ?',
+
+        'answer' =>
+            'Le prix dépend du type de projet, du nombre de pages, '
+            . 'des fonctionnalités et du niveau de personnalisation. '
+            . 'Chaque projet fait l’objet d’un devis sur mesure '
+            . 'après un premier échange.',
+    ],
+    [
+        'question' =>
+            'Combien de temps faut-il pour créer un site web ?',
+
+        'answer' =>
+            'Un site vitrine peut généralement être réalisé '
+            . 'en quelques semaines. Un projet e-commerce ou '
+            . 'une application web demande davantage de temps '
+            . 'selon les fonctionnalités, les contenus et '
+            . 'les validations nécessaires.',
+    ],
+    [
+        'question' =>
+            'Travaillez-vous uniquement avec des entreprises à Céret ?',
+
+        'answer' =>
+            'Non. OL Creative Studio accompagne des entreprises, '
+            . 'indépendants et associations à Céret, '
+            . 'dans les Pyrénées-Orientales et à distance '
+            . 'partout en France.',
+    ],
+    [
+        'question' =>
+            'Pouvez-vous refaire un site internet existant ?',
+
+        'answer' =>
+            'Oui. Une refonte peut concerner le design, '
+            . 'l’expérience utilisateur, les performances, '
+            . 'le référencement naturel, la structure technique '
+            . 'ou l’ensemble du site.',
+    ],
+    [
+        'question' =>
+            'Proposez-vous la création de boutiques en ligne ?',
+
+        'answer' =>
+            'Oui. Je développe des boutiques en ligne sur mesure '
+            . 'avec catalogue produits, panier, paiement sécurisé, '
+            . 'gestion des commandes et espace d’administration '
+            . 'selon les besoins du projet.',
+    ],
+    [
+        'question' =>
+            'Est-ce que le référencement SEO est inclus ?',
+
+        'answer' =>
+            'Les bonnes pratiques SEO techniques sont intégrées '
+            . 'dès la conception : structure HTML, performances, '
+            . 'balises essentielles, responsive et optimisation '
+            . 'de base. Un accompagnement SEO plus complet '
+            . 'peut également être prévu.',
+    ],
+    [
+        'question' =>
+            'Proposez-vous la maintenance après la mise en ligne ?',
+
+        'answer' =>
+            'Oui. Un accompagnement peut être prévu après '
+            . 'la mise en ligne pour les mises à jour, corrections, '
+            . 'évolutions, sauvegardes et optimisations du site.',
+    ],
+    [
+        'question' =>
+            'Puis-je gérer moi-même mon site après sa création ?',
+
+        'answer' =>
+            'Oui. Lorsque le projet le nécessite, un espace '
+            . 'd’administration peut être développé afin de gérer '
+            . 'simplement les contenus, projets, produits '
+            . 'ou autres données du site.',
+    ],
+];
+
+
 include_once 'partials/header.php';
 ?>
 
@@ -592,6 +684,149 @@ include_once 'partials/header.php';
         </div>
 
     </section>
+
+    <!-- =========================== FAQ =========================== -->
+
+    <section
+        class="services-faq"
+        id="faq"
+    >
+
+        <div class="container">
+
+            <div class="services-faq__header">
+
+                <div class="reveal">
+
+                    <span class="services-faq__eyebrow">
+                        05 · Questions fréquentes
+                    </span>
+
+                    <h2 class="services-faq__title">
+                        Avant de commencer
+                        <em>votre projet.</em>
+                    </h2>
+
+                </div>
+
+                <p
+                    class="
+                        services-faq__intro
+                        reveal
+                        reveal--delay-100
+                    "
+                >
+                    Budget, délais, accompagnement ou fonctionnement :
+                    voici les réponses aux questions les plus fréquentes
+                    avant de lancer un projet avec OL Creative Studio.
+                </p>
+
+            </div>
+
+
+            <div
+                class="services-faq__list"
+                data-faq
+            >
+
+                <?php foreach ($faqs as $index => $faq): ?>
+
+                    <?php
+                    $faqId = 'faq-answer-' . $index;
+                    ?>
+
+                    <article class="services-faq__item reveal">
+
+                        <h3 class="services-faq__question">
+
+                            <button
+                                type="button"
+                                class="services-faq__trigger"
+                                aria-expanded="false"
+                                aria-controls="<?= $faqId ?>"
+                                data-faq-trigger
+                            >
+
+                                <span>
+                                    <?= htmlspecialchars(
+                                        $faq['question'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>
+                                </span>
+
+                                <span
+                                    class="services-faq__icon"
+                                    aria-hidden="true"
+                                >
+                                    +
+                                </span>
+
+                            </button>
+
+                        </h3>
+
+
+                        <div
+                            id="<?= $faqId ?>"
+                            class="services-faq__answer"
+                            data-faq-answer
+                            hidden
+                        >
+
+                            <p>
+                                <?= htmlspecialchars(
+                                    $faq['answer'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>
+                            </p>
+
+                        </div>
+
+                    </article>
+
+                <?php endforeach; ?>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <?php
+
+    $faqSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'FAQPage',
+        'mainEntity' => array_map(
+            static function (array $faq): array {
+                return [
+                    '@type' => 'Question',
+                    'name' => $faq['question'],
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => $faq['answer'],
+                    ],
+                ];
+            },
+            $faqs
+        ),
+    ];
+
+    ?>
+
+    <script type="application/ld+json">
+    <?= json_encode(
+        $faqSchema,
+        JSON_UNESCAPED_UNICODE
+        | JSON_UNESCAPED_SLASHES
+        | JSON_HEX_TAG
+        | JSON_HEX_AMP
+        | JSON_HEX_APOS
+        | JSON_HEX_QUOT
+    ) ?>
+    </script>
 
 </main>
 
