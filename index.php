@@ -1153,6 +1153,6 @@ include_once __DIR__ . '/partials/header.php';
 
 <?php
 $hideFooterCta = true;
-include_once 'partials/footer.php';
+include_once __DIR__ . '/partials/footer.php';
 ?>
 

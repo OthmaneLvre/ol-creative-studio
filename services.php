@@ -93,7 +93,8 @@ $faqs = [
 ];
 
 
-include_once 'partials/header.php';
+include_once __DIR__ . '/partials/header.php';
+
 ?>
 
 <main class="page-content">
@@ -835,4 +836,4 @@ include_once 'partials/header.php';
     src="/assets/js/pages/services.js"
 ></script>
 
-<?php include_once 'partials/footer.php'; ?>
+<?php include_once __DIR__ . '/partials/footer.php'; ?>

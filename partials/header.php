@@ -50,6 +50,20 @@
 
     <meta name="description" content="<?= htmlspecialchars($finalDescription) ?>">
 
+    <?php
+        $finalRobots =
+            $pageRobots ?? 'index, follow';
+        ?>
+
+        <meta
+            name="robots"
+            content="<?= htmlspecialchars(
+                $finalRobots,
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+        >
+
     <link rel="canonical" href="<?= htmlspecialchars($canonical) ?>">
 
     <!-- OpenGraph -->
@@ -132,7 +146,12 @@
 
     <!-- PAGE-SPECIFIC CSS (AVEC VERSIONING) -->
     <?php
-        $page = basename($_SERVER["PHP_SELF"], ".php");
+        $page =
+            $pageCssKey
+            ?? basename(
+                $_SERVER['PHP_SELF'],
+                '.php'
+            );
         
         $pageCssMap = [
             'index' => 'home',
@@ -144,6 +163,7 @@
             'politique-confidentialite' => 'legal',
             'cgv' => 'legal',
             'cgu' => 'legal',
+            '404' => 'error',
         ];
 
         if (isset($pageCssMap[$page])) {

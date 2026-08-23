@@ -215,7 +215,7 @@ include_once '../partials/header.php';
                         Les traitements de données personnelles
                         réalisés depuis le site sont détaillés dans
                         la
-                        <a href="/politique-confidentialite.php">
+                        <a href="/docs/politique-confidentialite.php">
                             politique de confidentialité
                         </a>.
                     </p>
@@ -263,4 +263,4 @@ include_once '../partials/header.php';
 
 </main>
 
-<?php include_once '../partials/footer.php'; ?>
+<?php include_once __DIR__ . '/../partials/footer.php'; ?>

@@ -68,9 +68,7 @@ if ($slug !== '') {
 
 } else {
 
-    header(
-        'Location: /portfolio.php'
-    );
+    require_once __DIR__ . '/404.php';
 
     exit;
 }
@@ -88,9 +86,7 @@ $project = $stmt->fetch(
 
 if (!$project) {
 
-    header(
-        'Location: /portfolio.php'
-    );
+    require_once __DIR__ . '/404.php';
 
     exit;
 }
