@@ -507,6 +507,7 @@
 
 .contact-alert {
     position: relative;
+    z-index: 1;
 
     padding: 15px 0;
 
@@ -528,6 +529,16 @@
     background: rgba(214, 69, 69, .1);
 
     color: var(--color-error);
+}
+
+/*
+|--------------------------------------------------------------------------
+| Décalage sous le header fixe
+|--------------------------------------------------------------------------
+*/
+
+.page-content > .contact-alert:first-child {
+    margin-top: clamp(5.5rem, 7vw, 7rem);
 }
 
 
