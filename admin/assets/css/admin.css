@@ -425,6 +425,14 @@ select {
     font-weight: 700;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 3px solid rgba(27, 154, 170, 0.4);
+    outline-offset: 3px;
+}
 
 /* =========================================================
    DASHBOARD INTRO
@@ -762,10 +770,11 @@ select {
     resize: vertical;
 }
 
-.admin-field input:focus,
-.admin-field textarea:focus,
-.admin-field select:focus {
-    outline: none;
+.admin-field input:focus-visible,
+.admin-field textarea:focus-visible,
+.admin-field select:focus-visible {
+    outline: 3px solid rgba(27, 154, 170, 0.16);
+    outline-offset: 2px;
 
     background: var(--admin-white);
     border-color: var(--admin-cyan-500);
@@ -1182,6 +1191,9 @@ select {
     font-size: 0.78rem;
     font-weight: 700;
 
+    min-height: 40px;
+    padding-inline: 0.25rem;
+
     text-decoration: none;
 
     cursor: pointer;
@@ -1193,8 +1205,8 @@ select {
     display: grid;
     place-items: center;
 
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
 
     border: var(--admin-border);
     border-radius: 50%;
@@ -1302,6 +1314,13 @@ select {
         gap: 2rem;
     }
 
+    .admin-sidebar__nav {
+        padding-bottom: 0.35rem;
+
+        scrollbar-width: thin;
+        overscroll-behavior-x: contain;
+    }
+
 }
 
 
@@ -1337,6 +1356,18 @@ select {
 
     .admin-portfolio-item__actions {
         justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .admin-action-link,
+    .admin-icon-action {
+        min-height: 44px;
+    }
+
+    .admin-order-button {
+        width: 44px;
+        height: 44px;
     }
 
 }
@@ -2244,8 +2275,8 @@ select {
     display: inline-grid;
     place-items: center;
 
-    width: 1.8rem;
-    height: 1.8rem;
+    width: 2.5rem;
+    height: 2.5rem;
 
     padding: 0;
 
@@ -2291,4 +2322,17 @@ select {
 .admin-badge--concept {
     background: rgba(27, 154, 170, 0.12);
     color: var(--admin-cyan-500);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
 }
