@@ -30,9 +30,16 @@ export function initIntro() {
         introSeen = false;
     }
 
-
     const hideIntro = () => {
-        intro.classList.add('is-hidden');
+        intro.classList.remove(
+            'has-failsafe',
+            'is-running',
+            'is-leaving'
+        );
+
+        intro.classList.add(
+            'is-hidden'
+        );
 
         document.body.classList.remove(
             'has-site-intro'
@@ -63,6 +70,10 @@ export function initIntro() {
 
     document.body.classList.add(
         'has-site-intro'
+    );
+
+    intro.classList.add(
+        'has-failsafe'
     );
 
     window.setTimeout(() => {

@@ -56,6 +56,22 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/favicon/apple-touch-icon.png">
     <meta name="theme-color" content="#0D1B2A">
 
+    <script>
+        try {
+            if (
+                sessionStorage.getItem('ol_intro_seen')
+                === 'true'
+            ) {
+                document.documentElement.classList.add(
+                    'site-intro-seen'
+                );
+            }
+        } catch {
+            // sessionStorage indisponible :
+            // aucun traitement nécessaire.
+        }
+    </script>
+
     <!-- GLOBAL CSS (minifié et combiné) -->
     <link rel="preload" href="/assets/css/main.css" as="style">
     <link rel="stylesheet" href="/assets/css/main.css">
