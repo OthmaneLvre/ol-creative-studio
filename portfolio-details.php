@@ -257,16 +257,73 @@ if ($nextProject) {
 */
 
 $pageTitle = !empty($project['titre'])
-    ? $project['titre'] . ' — Portfolio | OL Creative Studio'
-    : 'Projet — Portfolio | OL Creative Studio';
+    ? $project['titre'] . ' — Portfolio'
+    : 'Projet — Portfolio';
 
 $pageDescription = !empty($project['meta_description'])
     ? $project['meta_description']
     : 'Découvrez ce projet réalisé par OL Creative Studio.';
 
+$pageCanonical =
+    'https://olcreativestudio.fr/portfolio-details.php?slug='
+    . rawurlencode(
+        (string) $project['slug']
+    );
+
+$pageOgType = 'article';
+
+$pageOgImage =
+    'https://olcreativestudio.fr/admin/uploads/creation/'
+    . rawurlencode(
+        (string) $project['image']
+    );
+
+$projectSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'CreativeWork',
+    '@id' => $pageCanonical . '#creative-work',
+
+    'name' =>
+        (string) $project['titre'],
+
+    'url' =>
+        $pageCanonical,
+
+    'description' =>
+        $pageDescription,
+
+    'image' =>
+        $pageOgImage,
+
+    'creator' => [
+        '@type' => 'Organization',
+        '@id' =>
+            'https://olcreativestudio.fr/#business',
+        'name' =>
+            'OL Creative Studio',
+    ],
+];
+
+if (!empty($project['annee'])) {
+    $projectSchema['dateCreated'] =
+        (string) $project['annee'];
+}
+
 include_once __DIR__ . '/partials/header.php';
 
 ?>
+
+<script type="application/ld+json">
+<?= json_encode(
+    $projectSchema,
+    JSON_UNESCAPED_UNICODE
+    | JSON_UNESCAPED_SLASHES
+    | JSON_HEX_TAG
+    | JSON_HEX_AMP
+    | JSON_HEX_APOS
+    | JSON_HEX_QUOT
+) ?>
+</script>
 
 <section class="project-hero">
 

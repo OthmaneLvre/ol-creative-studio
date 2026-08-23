@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = "Contact – OL Creative Studio";
+$pageTitle = "Contact";
 
 $pageDescription =
     "Contactez OL Creative Studio pour discuter de votre projet : "
@@ -432,7 +432,7 @@ include_once __DIR__ . '/partials/header.php';
                     <label for="consent">
                         J’accepte que les informations saisies soient
                         utilisées afin de répondre à ma demande.
-                        <a href="/confidentialite.php">
+                        <a href="/docs/politique-confidentialite.php">
                             Politique de confidentialité
                         </a>
                     </label>

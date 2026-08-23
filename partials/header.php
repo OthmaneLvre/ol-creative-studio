@@ -7,12 +7,36 @@
 
     <?php
         // Canonical propre
-        $canonical = "https://olcreativestudio.fr";
-        $uri = strtok($_SERVER["REQUEST_URI"], "?");
+        $siteUrl = 'https://olcreativestudio.fr';
 
-        if ($uri !== "/" && $uri !== "/index.php") {
-            $canonical .= $uri;
+        if (isset($pageCanonical)) {
+
+            $canonical = $pageCanonical;
+
+        } else {
+
+            $uri = strtok(
+                $_SERVER['REQUEST_URI'],
+                '?'
+            );
+
+            $canonical = $siteUrl;
+
+            if (
+                $uri !== '/' &&
+                $uri !== '/index.php'
+            ) {
+                $canonical .= $uri;
+            }
         }
+
+        $finalOgType =
+            $pageOgType ?? 'website';
+
+        $finalOgImage =
+            $pageOgImage
+            ?? $siteUrl
+                . '/assets/logo/logo_olCreativeStudio_1600.webp';
 
         // Titre et description par défaut optimisés SEO local
         $defaultTitle = "Développeur Web Freelance à Céret | OL Creative Studio";
@@ -29,25 +53,51 @@
     <link rel="canonical" href="<?= htmlspecialchars($canonical) ?>">
 
     <!-- OpenGraph -->
-    <meta property="og:title" content="<?= htmlspecialchars($finalTitle) ?>">
-    <meta property="og:description" content="<?= htmlspecialchars($finalDescription) ?>">
-    <meta property="og:url" content="<?= htmlspecialchars($canonical) ?>">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp">
+    <meta
+        property="og:title"
+        content="<?= htmlspecialchars($finalTitle) ?>"
+    >
+
+    <meta
+        property="og:description"
+        content="<?= htmlspecialchars($finalDescription) ?>"
+    >
+
+    <meta
+        property="og:url"
+        content="<?= htmlspecialchars($canonical) ?>"
+    >
+
+    <meta
+        property="og:type"
+        content="<?= htmlspecialchars($finalOgType) ?>"
+    >
+
+    <meta
+        property="og:image"
+        content="<?= htmlspecialchars($finalOgImage) ?>"
+    >
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?= htmlspecialchars($finalTitle) ?>">
-    <meta name="twitter:description" content="<?= htmlspecialchars($finalDescription) ?>">
-    <meta name="twitter:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp">
+    <meta
+        name="twitter:card"
+        content="summary_large_image"
+    >
 
-    <!-- Preload des fonts (amélioration performance SEO) -->
-    <link rel="preload" href="/assets/fonts/Manrope-Medium.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/fonts/Manrope-Regular.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/fonts/Manrope-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+    <meta
+        name="twitter:title"
+        content="<?= htmlspecialchars($finalTitle) ?>"
+    >
 
-    <link rel="preload" href="/assets/fonts/CormorantGaramond-Bold.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/fonts/CormorantGaramond-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <meta
+        name="twitter:description"
+        content="<?= htmlspecialchars($finalDescription) ?>"
+    >
+
+    <meta
+        name="twitter:image"
+        content="<?= htmlspecialchars($finalOgImage) ?>"
+    >
     
     <!-- FAVICONS -->
     <link rel="icon" href="/assets/logo/favicon/favicon.ico" sizes="any">
@@ -110,38 +160,48 @@
         }
     ?>
 
-    <!-- Schema LocalBusiness (boost SEO local) -->
+    <!-- Schema LocalBusiness -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
+        "@id": "https://olcreativestudio.fr/#business",
+
         "name": "OL Creative Studio",
-        "image": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
-        "logo": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
+
         "url": "https://olcreativestudio.fr",
+
+        "logo": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
+
+        "image": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
+
         "telephone": "+33767841013",
-        "description": "OL Creative Studio vous accompagne pour la création de sites web modernes, designs professionnels, identités visuelles et solutions digitales sur mesure à Céret et dans les Pyrénées-Orientales.",
+
+        "email": "contact@olcreativestudio.fr",
+
+        "description": "OL Creative Studio accompagne les entreprises, indépendants et associations dans la création de sites web, boutiques en ligne, identités visuelles et solutions digitales sur mesure à Céret et dans les Pyrénées-Orientales.",
 
         "address": {
             "@type": "PostalAddress",
-            "streetAddress": "",
             "addressLocality": "Céret",
-            "addressRegion": "Pyrénées-Orientales",
+            "addressRegion": "Occitanie",
             "postalCode": "66400",
             "addressCountry": "FR"
         },
 
         "areaServed": [
-            "Céret",
-            "Le Boulou",
-            "Amélie-les-bains",
-            "Perpignan",
-            "Pyrénées-Orientales",
-            "Occitanie"
-        ],
-        
-        "openingHours": [
-            "Mo-Su 00:00-23:59"
+            {
+                "@type": "City",
+                "name": "Céret"
+            },
+            {
+                "@type": "AdministrativeArea",
+                "name": "Pyrénées-Orientales"
+            },
+            {
+                "@type": "Country",
+                "name": "France"
+            }
         ],
 
         "priceRange": "€€",
@@ -149,7 +209,8 @@
         "sameAs": [
             "https://github.com/OthmaneLvre",
             "https://linkedin.com/in/olcreativestudio",
-            "https://www.upwork.com/freelancers/~012bfcf401f6a63a9c?mp_source=share"
+            "https://www.instagram.com/olcreativestudio",
+            "https://www.upwork.com/freelancers/~012bfcf401f6a63a9c"
         ]
     }
     </script>
