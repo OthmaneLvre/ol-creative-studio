@@ -21,13 +21,20 @@ body.has-site-intro {
     opacity: 1;
     visibility: visible;
 
-    /*
-     * Sécurité :
-     * même si JS plante après affichage,
-     * l'intro finit par sortir.
-     */
+    transform: scale(1);
+}
+
+html.site-intro-seen .site-intro {
+    display: none;
+}
+
+.site-intro.has-failsafe {
     animation:
-        intro-failsafe 0.8s var(--ease-expo) 6s forwards;
+        intro-failsafe
+        0.8s
+        var(--ease-expo)
+        6s
+        forwards;
 }
 
 .site-intro__inner {
@@ -193,10 +200,6 @@ body.has-site-intro {
    EXIT
    ========================================= */
 
-.site-intro {
-    transform: scale(1);
-}
-
 .site-intro.is-leaving {
     opacity: 0;
     transform: scale(1.025);
@@ -206,6 +209,10 @@ body.has-site-intro {
         opacity 0.75s ease,
         transform 0.9s var(--ease-expo),
         visibility 0s linear 0.75s;
+}
+
+.site-intro.is-hidden {
+    display: none;
 }
 
 .site-intro.is-leaving .site-intro__brand {
