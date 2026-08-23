@@ -5,6 +5,8 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+require_once __DIR__ . '/emails/template.php';
+
 
 /*
 |--------------------------------------------------------------------------
@@ -34,7 +36,8 @@ function sendMail(
     string $toEmail,
     string $toName,
     string $subject,
-    string $body,
+    string $htmlBody,
+    string $textBody,
     ?string $replyToEmail = null,
     ?string $replyToName = null
 ): bool {
@@ -126,10 +129,11 @@ function sendMail(
         |--------------------------------------------------------------------------
         */
 
-        $mail->isHTML(false);
+        $mail->isHTML(true);
 
         $mail->Subject = $subject;
-        $mail->Body = $body;
+        $mail->Body = $htmlBody;
+        $mail->AltBody = $textBody;
 
 
         /*
