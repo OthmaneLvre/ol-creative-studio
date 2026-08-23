@@ -1,0 +1,289 @@
+/* =========================================
+   SITE INTRO
+   ========================================= */
+
+body.has-site-intro {
+    overflow: hidden;
+}
+
+.site-intro {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-loader);
+
+    display: grid;
+    place-items: center;
+
+    overflow: hidden;
+
+    background: var(--color-navy-950);
+
+    opacity: 1;
+    visibility: visible;
+
+    /*
+     * Sécurité :
+     * même si JS plante après affichage,
+     * l'intro finit par sortir.
+     */
+    animation:
+        intro-failsafe 0.8s var(--ease-expo) 6s forwards;
+}
+
+.site-intro__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    padding-inline: var(--container-padding);
+}
+
+.site-intro__brand {
+    display: flex;
+    align-items: center;
+
+    overflow: hidden;
+}
+
+
+/* =========================================
+   MARK
+   ========================================= */
+
+.site-intro__mark {
+    display: block;
+
+    color: var(--color-white);
+
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 10vw, 8rem);
+    font-weight: var(--font-weight-medium);
+    line-height: 0.8;
+    letter-spacing: -0.06em;
+
+    opacity: 0;
+    transform: translateY(110%);
+}
+
+
+/* =========================================
+   LINE
+   ========================================= */
+
+.site-intro__line {
+    width: 0;
+    height: 1px;
+    margin-inline: 0;
+
+    background: var(--color-cyan-500);
+
+    opacity: 0;
+}
+
+
+/* =========================================
+   NAME
+   ========================================= */
+
+.site-intro__name {
+    display: block;
+
+    color: var(--color-gray-100);
+
+    font-family: var(--font-body);
+    font-size: clamp(0.7rem, 1.2vw, 0.9rem);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1;
+    letter-spacing: 0.18em;
+
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    opacity: 0;
+    transform: translateY(1rem);
+}
+
+
+/* =========================================
+   RUNNING
+   ========================================= */
+
+.site-intro.is-running .site-intro__mark {
+    animation:
+        intro-mark-in
+        1s
+        var(--ease-expo)
+        forwards;
+}
+
+.site-intro.is-running .site-intro__line {
+    animation:
+        intro-line-in
+        0.85s
+        var(--ease-expo)
+        0.55s
+        forwards;
+}
+
+.site-intro.is-running .site-intro__name {
+    animation:
+        intro-name-in
+        0.85s
+        var(--ease-expo)
+        1.05s
+        forwards;
+}
+
+
+/* =========================================
+   INTRO KEYFRAMES
+   ========================================= */
+
+@keyframes intro-mark-in {
+
+    from {
+        opacity: 0;
+        transform: translateY(110%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+@keyframes intro-line-in {
+
+    from {
+        width: 0;
+        margin-inline: 0;
+
+        opacity: 0;
+    }
+
+    to {
+        width: clamp(2.5rem, 6vw, 5rem);
+        margin-inline: clamp(1rem, 2.5vw, 2rem);
+
+        opacity: 1;
+    }
+
+}
+
+
+@keyframes intro-name-in {
+
+    from {
+        opacity: 0;
+        transform: translateY(1rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+}
+
+
+/* =========================================
+   EXIT
+   ========================================= */
+
+.site-intro {
+    transform: scale(1);
+}
+
+.site-intro.is-leaving {
+    opacity: 0;
+    transform: scale(1.025);
+    visibility: hidden;
+
+    transition:
+        opacity 0.75s ease,
+        transform 0.9s var(--ease-expo),
+        visibility 0s linear 0.75s;
+}
+
+.site-intro.is-leaving .site-intro__brand {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+
+    transition:
+        opacity 0.4s ease,
+        transform 0.6s var(--ease-expo);
+}
+
+/* =========================================
+   FAILSAFE
+   ========================================= */
+
+@keyframes intro-failsafe {
+
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 600px) {
+
+    .site-intro__brand {
+        flex-direction: column;
+    }
+
+    .site-intro__mark {
+        font-size: clamp(4.5rem, 25vw, 7rem);
+    }
+
+    .site-intro__name {
+        font-size: 0.68rem;
+        letter-spacing: 0.16em;
+    }
+
+    .site-intro.is-running .site-intro__line {
+        animation-name:
+            intro-line-in-mobile;
+    }
+
+}
+
+@keyframes intro-line-in-mobile {
+
+    from {
+        width: 0;
+        margin-block: 0;
+
+        opacity: 0;
+    }
+
+    to {
+        width: 3rem;
+        margin-block: 1.5rem;
+
+        opacity: 1;
+    }
+
+}
+
+/* =========================================
+   REDUCED MOTION
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .site-intro {
+        display: none;
+        animation: none;
+    }
+
+}
