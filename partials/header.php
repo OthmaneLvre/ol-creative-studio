@@ -150,6 +150,30 @@
 
 <body id="top">
 
+    <div
+        class="site-intro"
+        data-site-intro
+        aria-hidden="true"
+    >
+        <div class="site-intro__inner">
+
+            <div class="site-intro__brand">
+
+                <span class="site-intro__mark">
+                    OL
+                </span>
+
+                <span class="site-intro__line"></span>
+
+                <span class="site-intro__name">
+                    Creative Studio
+                </span>
+
+            </div>
+
+        </div>
+    </div>
+
 <?php
 $currentPage = basename($_SERVER['PHP_SELF']);
 

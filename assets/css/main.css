@@ -21,6 +21,7 @@
 @import url('./components/section-heading.css');
 @import url('./components/badges.css');
 @import url('./components/cookies.css');
+@import url('./components/intro.css');
 
 /* Animations */
 @import url('./animations/transitions.css');
