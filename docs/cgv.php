@@ -8,7 +8,7 @@ $pageDescription =
     . "devis, paiements, délais, responsabilités, propriété "
     . "intellectuelle et modalités des prestations.";
 
-include_once '../partials/header.php';
+include_once __DIR__ . '/../partials/header.php';
 
 ?>
 
@@ -553,4 +553,4 @@ include_once '../partials/header.php';
 
 </main>
 
-<?php include_once '../partials/footer.php'; ?>
+<?php include_once __DIR__ . '/../partials/footer.php'; ?>

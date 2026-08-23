@@ -1,8 +1,10 @@
 <?php
 $pageTitle = "Portfolio – Créateur de sites web & identités visuelles";
 $pageDescription = "Découvrez mes créations : sites vitrines, boutiques en ligne, maquettes Figma, applications web & mobiles et identités visuelles. Travaux professionnels réalisés pour entreprises et indépendants.";
-include 'partials/header.php';
-require_once 'php/db.php'; ?>
+include_once __DIR__ . '/partials/header.php';
+require_once __DIR__ . '/php/db.php';
+
+?>
 
 <main class="page-content">
 
