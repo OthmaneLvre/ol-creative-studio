@@ -48,6 +48,73 @@ include_once __DIR__ . '/partials/header.php';
 
     <?php endif; ?>
 
+    <?php if (
+        ($_GET['error'] ?? '')
+        === 'fields'
+    ): ?>
+
+        <div class="contact-alert contact-alert--error">
+            <div class="container">
+                <p>
+                    Certains champs sont invalides ou trop longs.
+                    Merci de vérifier votre saisie.
+                </p>
+            </div>
+        </div>
+
+    <?php endif; ?>
+
+
+    <?php if (
+        ($_GET['error'] ?? '')
+        === 'consent'
+    ): ?>
+
+        <div class="contact-alert contact-alert--error">
+            <div class="container">
+                <p>
+                    Vous devez accepter l’utilisation de vos informations
+                    afin d’envoyer votre demande.
+                </p>
+            </div>
+        </div>
+
+    <?php endif; ?>
+
+
+    <?php if (
+        ($_GET['error'] ?? '')
+        === 'rate'
+    ): ?>
+
+        <div class="contact-alert contact-alert--error">
+            <div class="container">
+                <p>
+                    Trop de demandes ont été envoyées récemment.
+                    Merci de patienter quelques minutes avant de réessayer.
+                </p>
+            </div>
+        </div>
+
+    <?php endif; ?>
+
+
+    <?php if (
+        ($_GET['error'] ?? '')
+        === 'server'
+    ): ?>
+
+        <div class="contact-alert contact-alert--error">
+            <div class="container">
+                <p>
+                    Une erreur est survenue lors de l’envoi.
+                    Merci de réessayer dans quelques instants.
+                </p>
+            </div>
+        </div>
+
+    <?php endif; ?>
+
 
     <!-- =========================== HERO =========================== -->
 
@@ -247,6 +314,8 @@ include_once __DIR__ . '/partials/header.php';
                             name="prenom"
                             id="prenom"
                             autocomplete="given-name"
+                            minlength="2"
+                            maxlength="80"
                             required
                         >
 
@@ -264,6 +333,8 @@ include_once __DIR__ . '/partials/header.php';
                             name="nom"
                             id="nom"
                             autocomplete="family-name"
+                            minlength="2"
+                            maxlength="80"
                             required
                         >
 
@@ -287,6 +358,7 @@ include_once __DIR__ . '/partials/header.php';
                             name="email"
                             id="email"
                             autocomplete="email"
+                            maxlength="190"
                             required
                         >
 
@@ -305,6 +377,7 @@ include_once __DIR__ . '/partials/header.php';
                             name="telephone"
                             id="telephone"
                             autocomplete="tel"
+                            maxlength="30"
                         >
 
                     </div>
@@ -410,6 +483,8 @@ include_once __DIR__ . '/partials/header.php';
                         name="message"
                         id="message"
                         rows="7"
+                        minlength="10"
+                        maxlength="5000"
                         placeholder="Votre activité, vos besoins, vos objectifs, vos délais..."
                         required
                     ></textarea>

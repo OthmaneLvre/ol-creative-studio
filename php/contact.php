@@ -46,6 +46,80 @@ $message = cleanInput($_POST['message'] ?? '');
 $consent = isset($_POST['consent'])
     && $_POST['consent'] === '1';
 
+/*
+|--------------------------------------------------------------------------
+| Limites
+|--------------------------------------------------------------------------
+*/
+
+if (
+    mb_strlen($prenom) > 80 ||
+    mb_strlen($nom) > 80 ||
+    mb_strlen($email) > 190 ||
+    mb_strlen($telephone) > 30 ||
+    mb_strlen($objet) > 100 ||
+    mb_strlen($budget) > 100 ||
+    mb_strlen($message) > 5000
+) {
+    header(
+        'Location: /contact.php?error=fields'
+    );
+
+    exit;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Valeurs autorisées
+|--------------------------------------------------------------------------
+*/
+
+$allowedProjects = [
+    'Site vitrine',
+    'E-commerce',
+    'Identité visuelle',
+    'Maintenance / SEO',
+    'Automatisation / outil métier',
+    'Refonte',
+    'Autre',
+];
+
+$allowedBudgets = [
+    '',
+    'Moins de 1 000 €',
+    '1 000 € – 2 500 €',
+    '2 500 € – 5 000 €',
+    '5 000 € et plus',
+];
+
+if (
+    !in_array(
+        $objet,
+        $allowedProjects,
+        true
+    )
+) {
+    header(
+        'Location: /contact.php?error=fields'
+    );
+
+    exit;
+}
+
+if (
+    !in_array(
+        $budget,
+        $allowedBudgets,
+        true
+    )
+) {
+    header(
+        'Location: /contact.php?error=fields'
+    );
+
+    exit;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +152,23 @@ if (!$consent) {
 
 /*
 |--------------------------------------------------------------------------
+| Dépendances
+|--------------------------------------------------------------------------
+*/
+
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/contact-rate-limit.php';
+
+require_once __DIR__
+    . '/emails/contact-notification.php';
+
+require_once __DIR__
+    . '/emails/contact-confirmation.php';
+
+
+/*
+|--------------------------------------------------------------------------
 | IP
 |--------------------------------------------------------------------------
 */
@@ -87,18 +178,36 @@ $ip = $_SERVER['REMOTE_ADDR'] ?? '';
 
 /*
 |--------------------------------------------------------------------------
-| Enregistrement BDD
+| Rate limiting
 |--------------------------------------------------------------------------
 */
 
-require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/mailer.php';
+if (
+    isContactRateLimited(
+        $pdo,
+        $ip,
+        5,
+        15
+    )
+) {
+    error_log(
+        '[CONTACT] Rate limit reached for IP: '
+        . $ip
+    );
 
-require_once __DIR__
-    . '/emails/contact-notification.php';
+    header(
+        'Location: /contact.php?error=rate'
+    );
 
-require_once __DIR__
-    . '/emails/contact-confirmation.php';
+    exit;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Enregistrement BDD
+|--------------------------------------------------------------------------
+*/
 
 try {
 
@@ -146,10 +255,15 @@ try {
 } catch (PDOException $e) {
 
     error_log(
-        '[CONTACT] Database error: ' .
-        $e->getMessage()
+        '[CONTACT] Database error: '
+        . $e->getMessage()
     );
 
+    header(
+        'Location: /contact.php?error=server'
+    );
+
+    exit;
 }
 
 
