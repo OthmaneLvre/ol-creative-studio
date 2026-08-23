@@ -1,13 +1,123 @@
 <?php
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/php/db.php';
 
-if (!isset($_GET['id']) || !ctype_digit($_GET['id'])) {
-    header('Location: portfolio.php');
+
+/*
+|--------------------------------------------------------------------------
+| Identification du projet
+|--------------------------------------------------------------------------
+*/
+
+$slug = trim(
+    (string) ($_GET['slug'] ?? '')
+);
+
+$id = filter_input(
+    INPUT_GET,
+    'id',
+    FILTER_VALIDATE_INT
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Recherche par slug
+|--------------------------------------------------------------------------
+*/
+
+if ($slug !== '') {
+
+    $stmt = $pdo->prepare(
+        "SELECT *
+         FROM portfolio
+         WHERE slug = :slug
+         AND statut = 'published'
+         LIMIT 1"
+    );
+
+    $stmt->execute([
+        ':slug' => $slug,
+    ]);
+
+} elseif (
+    $id !== false &&
+    $id !== null &&
+    $id > 0
+) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fallback par ID
+    |--------------------------------------------------------------------------
+    */
+
+    $stmt = $pdo->prepare(
+        "SELECT *
+         FROM portfolio
+         WHERE id = :id
+         AND statut = 'published'
+         LIMIT 1"
+    );
+
+    $stmt->execute([
+        ':id' => $id,
+    ]);
+
+} else {
+
+    header(
+        'Location: /portfolio.php'
+    );
+
     exit;
 }
 
-$id = (int) $_GET['id'];
+
+/*
+|--------------------------------------------------------------------------
+| Projet
+|--------------------------------------------------------------------------
+*/
+
+$project = $stmt->fetch(
+    PDO::FETCH_ASSOC
+);
+
+if (!$project) {
+
+    header(
+        'Location: /portfolio.php'
+    );
+
+    exit;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Canonicalisation des anciennes URLs par ID
+|--------------------------------------------------------------------------
+*/
+
+if (
+    $slug === '' &&
+    !empty($project['slug'])
+) {
+
+    header(
+        'Location: /portfolio-details.php?slug='
+        . rawurlencode(
+            (string) $project['slug']
+        ),
+        true,
+        301
+    );
+
+    exit;
+}
 
 $categories = [
     'figma'       => 'Maquettes Figma',
@@ -29,24 +139,13 @@ $projectTypes = [
     'concept' => 'Projet conceptuel',
 ];
 
-$stmt = $pdo->prepare(
-    "SELECT *
-     FROM portfolio
-     WHERE id = :id
-     AND statut = 'published'
-     LIMIT 1"
-);
+/*
+|--------------------------------------------------------------------------
+| ID interne du projet
+|--------------------------------------------------------------------------
+*/
 
-$stmt->execute([
-    ':id' => $id,
-]);
-
-$project = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$project) {
-    header('Location: portfolio.php');
-    exit;
-}
+$id = (int) $project['id'];
 
 $categoryKey =
     (string) ($project['categorie'] ?? '');
@@ -106,9 +205,8 @@ if (!empty($project['services'])) {
 | Projet suivant
 |--------------------------------------------------------------------------
 */
-
 $nextStmt = $pdo->prepare(
-    "SELECT id, titre, categorie, image
+    "SELECT id, slug, titre, categorie, image
      FROM portfolio
      WHERE ordre > :ordre
      AND statut = 'published'
@@ -124,7 +222,7 @@ $nextProject = $nextStmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$nextProject) {
     $nextStmt = $pdo->prepare(
-        "SELECT id, titre, categorie, image
+        "SELECT id, slug, titre, categorie, image
         FROM portfolio
         WHERE id != :id
         AND statut = 'published'
@@ -139,6 +237,19 @@ if (!$nextProject) {
     $nextProject = $nextStmt->fetch(PDO::FETCH_ASSOC);
 }
 
+$nextProjectUrl = null;
+
+if ($nextProject) {
+
+    $nextProjectUrl =
+        !empty($nextProject['slug'])
+            ? '/portfolio-details.php?slug='
+                . rawurlencode(
+                    (string) $nextProject['slug']
+                )
+            : '/portfolio-details.php?id='
+                . (int) $nextProject['id'];
+}
 /*
 |--------------------------------------------------------------------------
 | SEO
@@ -511,7 +622,11 @@ include_once __DIR__ . '/partials/header.php';
     <div class="container">
 
         <a
-            href="/portfolio-details.php?id=<?= (int) $nextProject['id'] ?>"
+            href="<?= htmlspecialchars(
+                $nextProjectUrl,
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
             class="project-next__link reveal"
         >
 
