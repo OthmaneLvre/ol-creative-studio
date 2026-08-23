@@ -643,26 +643,6 @@ select {
 
 
 /* =========================================================
-   EMPTY STATE
-   ========================================================= */
-
-.admin-empty-state {
-    padding: 4rem 2rem;
-
-    text-align: center;
-
-    background: var(--admin-off-white);
-    border-radius: var(--admin-radius-md);
-}
-
-.admin-empty-state p {
-    margin: 0 0 1.5rem;
-
-    color: var(--admin-gray-500);
-}
-
-
-/* =========================================================
    QUICK ACTIONS
    ========================================================= */
 
@@ -733,14 +713,6 @@ select {
     display: flex;
     flex-direction: column;
     gap: 2rem;
-}
-
-.admin-form-section {
-    padding: 2rem;
-
-    background: var(--admin-white);
-    border: var(--admin-border);
-    border-radius: var(--admin-radius-lg);
 }
 
 .admin-form-grid {
@@ -1207,7 +1179,7 @@ select {
     color: var(--admin-gray-700);
 
     font-family: var(--admin-font-body);
-    font-size: 0.73rem;
+    font-size: 0.78rem;
     font-weight: 700;
 
     text-decoration: none;
@@ -1779,7 +1751,7 @@ select {
     padding: 30px;
 
     background: var(--admin-white);
-    border: 1px solid var(--admin-border);
+    border: var(--admin-border);
     border-radius: 22px;
 
     box-shadow:
@@ -1831,7 +1803,7 @@ select {
 
     color: var(--admin-white);
 
-    font-family: var(--admin-font-display);
+    font-family: var(--admin-font-heading);
     font-size: 22px;
     line-height: 1;
 }
@@ -1857,14 +1829,14 @@ select {
 
     color: var(--admin-navy-950);
 
-    font-family: var(--admin-font-display);
+    font-family: var(--admin-font-heading);
     font-size: 25px;
     font-weight: 500;
     line-height: 1.05;
 }
 
 .admin-review-card__identity span {
-    color: var(--admin-cyan);
+    color: var(--admin-cyan-500);
 
     font-size: 11px;
     font-weight: 700;
@@ -1909,45 +1881,11 @@ select {
 
     padding-top: 20px;
 
-    border-top: 1px solid var(--admin-border);
+    border-top: var(--admin-border);
 }
 
 .admin-review-card__actions form {
     margin: 0;
-}
-
-.admin-action-link {
-    display: inline-flex;
-    align-items: center;
-
-    padding: 0;
-
-    background: transparent;
-    border: 0;
-
-    color: var(--admin-navy-950);
-
-    font: inherit;
-    font-size: 13px;
-    font-weight: 600;
-
-    text-decoration: none;
-
-    cursor: pointer;
-
-    transition: color 160ms ease;
-}
-
-.admin-action-link:hover {
-    color: var(--admin-cyan);
-}
-
-.admin-action-link--danger {
-    color: var(--admin-gray-500);
-}
-
-.admin-action-link--danger:hover {
-    color: var(--admin-error);
 }
 
 
@@ -1956,34 +1894,33 @@ select {
    ========================================================= */
 
 .admin-empty-state {
-    padding: 64px 32px;
+    padding: 4rem 2rem;
 
     background: var(--admin-white);
-    border: 1px solid var(--admin-border);
-    border-radius: 22px;
+    border: var(--admin-border);
+    border-radius: var(--admin-radius-lg);
 
     text-align: center;
 }
 
 .admin-empty-state h2 {
-    margin: 12px 0 10px;
+    margin: 0.75rem 0 0.65rem;
 
     color: var(--admin-navy-950);
 
-    font-family: var(--admin-font-display);
-    font-size: clamp(30px, 3vw, 42px);
+    font-family: var(--admin-font-heading);
+    font-size: clamp(1.9rem, 3vw, 2.6rem);
     font-weight: 500;
     line-height: 1.05;
 }
 
 .admin-empty-state p {
     max-width: 440px;
-
-    margin: 0 auto 26px;
+    margin: 0 auto 1.625rem;
 
     color: var(--admin-gray-500);
 
-    font-size: 14px;
+    font-size: 0.875rem;
     line-height: 1.7;
 }
 
@@ -2098,8 +2035,8 @@ select {
 }
 
 .admin-badge--published {
-    background: rgba(49, 180, 108, 0.12);
-    color: #176238;
+    background: #E8F5ED;
+    color: #0A3D22;
 }
 
 .admin-badge--draft {
@@ -2109,7 +2046,7 @@ select {
 
 .admin-badge--featured {
     background: rgba(27, 154, 170, 0.12);
-    color: var(--admin-cyan);
+    color: var(--admin-cyan-500);
 }
 
 /* =========================================================
@@ -2130,7 +2067,7 @@ select {
 
     padding: 1.5rem;
 
-    border: 1px solid var(--admin-border);
+    border: var(--admin-border);
     border-radius: 1rem;
 }
 
