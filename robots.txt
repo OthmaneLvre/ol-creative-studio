@@ -1,12 +1,10 @@
 User-agent: *
-Allow: /docs/mentions-legales.php
-Allow: /docs/politique-confidentialite.php
+
 
 # Blocage des dossiers internes (pas utiles pour Google)
 Disallow: /admin/
 Disallow: /php/
-Disallow: /assets/icons/
-Disallow: /assets/fonts/
 
+Sitemap: https://olcreativestudio.fr/sitemap.php
 # Sitemap principal
-Sitemap: https://olcreativestudio.fr/sitemap.xml
+Sitemap: https://olcreativestudio.fr/sitemap.php
