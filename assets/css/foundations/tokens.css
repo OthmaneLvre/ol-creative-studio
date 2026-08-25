@@ -61,6 +61,15 @@
     --font-body: "Manrope", sans-serif;
     --font-display: "Cormorant Garamond", serif;
 
+    /*
+   |--------------------------------------------------------------------------
+   | Aliases typographiques
+   |--------------------------------------------------------------------------
+   */
+
+   --font-primary: var(--font-body);
+   --font-secondary: var(--font-display);
+
     --font-size-xs: .75rem;
     --font-size-sm: .875rem;
     --font-size-base: 1rem;

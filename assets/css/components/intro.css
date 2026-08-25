@@ -31,9 +31,9 @@ html.site-intro-seen .site-intro {
 .site-intro.has-failsafe {
     animation:
         intro-failsafe
-        0.8s
+        0.5s
         var(--ease-expo)
-        6s
+        3s
         forwards;
 }
 
@@ -119,7 +119,7 @@ html.site-intro-seen .site-intro {
 .site-intro.is-running .site-intro__mark {
     animation:
         intro-mark-in
-        1s
+        0.55s
         var(--ease-expo)
         forwards;
 }
@@ -127,18 +127,18 @@ html.site-intro-seen .site-intro {
 .site-intro.is-running .site-intro__line {
     animation:
         intro-line-in
-        0.85s
+        0.45s
         var(--ease-expo)
-        0.55s
+        0.25s
         forwards;
 }
 
 .site-intro.is-running .site-intro__name {
     animation:
         intro-name-in
-        0.85s
+        0.45s
         var(--ease-expo)
-        1.05s
+        0.5s
         forwards;
 }
 
@@ -202,13 +202,13 @@ html.site-intro-seen .site-intro {
 
 .site-intro.is-leaving {
     opacity: 0;
-    transform: scale(1.025);
+    transform: scale(1.02);
     visibility: hidden;
 
     transition:
-        opacity 0.75s ease,
-        transform 0.9s var(--ease-expo),
-        visibility 0s linear 0.75s;
+        opacity 0.4s ease,
+        transform 0.5s var(--ease-expo),
+        visibility 0s linear 0.4s;
 }
 
 .site-intro.is-hidden {
@@ -217,11 +217,11 @@ html.site-intro-seen .site-intro {
 
 .site-intro.is-leaving .site-intro__brand {
     opacity: 0;
-    transform: translateY(-0.5rem);
+    transform: translateY(-0.35rem);
 
     transition:
-        opacity 0.4s ease,
-        transform 0.6s var(--ease-expo);
+        opacity 0.3s ease,
+        transform 0.4s var(--ease-expo);
 }
 
 /* =========================================

@@ -15,6 +15,7 @@ Thumbs.db
 # Environnement local
 .env
 /vendor/
+node_modules/
 
 # Cache éditeurs
 .vscode/

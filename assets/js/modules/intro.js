@@ -80,7 +80,7 @@ export function initIntro() {
         intro.classList.add(
             'is-running'
         );
-    }, 150);
+    }, 80);
 
 
     /*
@@ -104,7 +104,7 @@ export function initIntro() {
             // Rien à faire.
         }
 
-    }, 2200);
+    }, 1050);
 
 
     /*
@@ -115,6 +115,6 @@ export function initIntro() {
 
     window.setTimeout(
         hideIntro,
-        3000
+        1500
     );
 }
