@@ -49,6 +49,16 @@ $staticPages = [
         'priority' => '0.2',
     ],
     [
+        'path' => '/docs/cgv.php',
+        'changefreq' => 'yearly',
+        'priority' => '0.2',
+    ],
+    [
+        'path' => '/docs/cgu.php',
+        'changefreq' => 'yearly',
+        'priority' => '0.2',
+    ],
+    [
         'path' => '/docs/politique-confidentialite.php',
         'changefreq' => 'yearly',
         'priority' => '0.2',
