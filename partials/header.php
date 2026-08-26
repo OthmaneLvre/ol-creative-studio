@@ -136,48 +136,112 @@
         }
     </script>
 
-    <!-- GLOBAL CSS (minifié et combiné) -->
-    <link rel="preload" href="/assets/css/main.css" as="style">
-    <link rel="stylesheet" href="/assets/css/main.css">
-
-    <!-- Preload des images (amélioration performance SEO) -->
-    <link rel="preload" as="image" href="/assets/images/hero.webp" fetchpriority="high">
-
-
-    <!-- PAGE-SPECIFIC CSS (AVEC VERSIONING) -->
     <?php
-        $page =
-            $pageCssKey
-            ?? basename(
-                $_SERVER['PHP_SELF'],
-                '.php'
-            );
-        
-        $pageCssMap = [
-            'index' => 'home',
-            'services' => 'services',
-            'portfolio' => 'portfolio',
-            'portfolio-details' => 'portfolio-details',
-            'contact' => 'contact',
-            'mentions-legales' => 'legal',
-            'politique-confidentialite' => 'legal',
-            'cgv' => 'legal',
-            'cgu' => 'legal',
-            '404' => 'error',
-        ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | CSS de la page
+    |--------------------------------------------------------------------------
+    */
+
+    $page =
+        $pageCssKey
+        ?? basename(
+            $_SERVER['PHP_SELF'],
+            '.php'
+        );
+
+    $pageCssMap = [
+        'services' => 'services',
+        'portfolio' => 'portfolio',
+        'portfolio-details' => 'portfolio-details',
+        'contact' => 'contact',
+        'mentions-legales' => 'legal',
+        'politique-confidentialite' => 'legal',
+        'cgv' => 'legal',
+        'cgu' => 'legal',
+        '404' => 'error',
+    ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Home — bundle unique optimisé
+    |--------------------------------------------------------------------------
+    */
+
+    if ($page === 'index') {
+
+        $criticalCssFile =
+            $_SERVER['DOCUMENT_ROOT']
+            . '/assets/css/critical/home-critical.css';
+
+        $homeCssFile =
+            $_SERVER['DOCUMENT_ROOT']
+            . '/assets/css/dist/home.min.css';
+
+        if (file_exists($criticalCssFile)) {
+
+            echo '<link rel="stylesheet" href="/assets/css/critical/home-critical.css?v='
+                . filemtime($criticalCssFile)
+                . '">';
+        }
+
+        if (file_exists($homeCssFile)) {
+
+            echo '<link rel="preload" href="/assets/css/dist/home.min.css?v='
+                . filemtime($homeCssFile)
+                . '" as="style">';
+
+            echo '<link rel="stylesheet" href="/assets/css/dist/home.min.css?v='
+                . filemtime($homeCssFile)
+                . '" media="print" data-deferred-styles>';
+        }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Autres pages
+    |--------------------------------------------------------------------------
+    */
+
+    } else {
+
+        $globalCssFile =
+            $_SERVER['DOCUMENT_ROOT']
+            . '/assets/css/main.bundle.css';
+
+        if (file_exists($globalCssFile)) {
+
+            echo '<link rel="stylesheet" href="/assets/css/main.bundle.css?v='
+                . filemtime($globalCssFile)
+                . '">';
+        }
 
         if (isset($pageCssMap[$page])) {
-            $cssName = $pageCssMap[$page];
-            $cssFile = $_SERVER['DOCUMENT_ROOT'] . "/assets/css/pages/{$cssName}.css";
+
+            $cssName =
+                $pageCssMap[$page];
+
+            $cssFile =
+                $_SERVER['DOCUMENT_ROOT']
+                . "/assets/css/pages/{$cssName}.css";
 
             if (file_exists($cssFile)) {
+
                 echo '<link rel="stylesheet" href="/assets/css/pages/'
-                    . htmlspecialchars($cssName)
+                    . htmlspecialchars(
+                        $cssName,
+                        ENT_QUOTES,
+                        'UTF-8'
+                    )
                     . '.css?v='
                     . filemtime($cssFile)
                     . '">';
             }
         }
+    }
+
     ?>
 
     <!-- Schema LocalBusiness -->
@@ -239,8 +303,25 @@
     <script src="/assets/js/cookies.js" defer></script>
 
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){ dataLayer.push(arguments); }
+        window.dataLayer =
+            window.dataLayer || [];
+
+        window.gtag =
+            window.gtag ||
+            function () {
+                window.dataLayer.push(arguments);
+            };
+
+        window.gtag(
+            'consent',
+            'default',
+            {
+                analytics_storage: 'denied',
+                ad_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied'
+            }
+        );
     </script>
 
 </head>
@@ -308,7 +389,7 @@ function isActivePage(string $page, string $currentPage): string
                 <img
                     src="/assets/logo/light/logo-light@1x.webp"
                     srcset="
-                        /assets//logo/light/logo-light@1x.webp 65w,
+                        /assets/logo/light/logo-light@1x.webp 65w,
                         /assets/logo/light/logo-light@2x.webp 130w,
                     "
                     alt=""

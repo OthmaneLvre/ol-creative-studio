@@ -129,6 +129,8 @@
                             "
                             alt=""
                             class="site-footer__logo"
+                            width="1080"
+                            height="1080"
                         >
 
                     </a>
@@ -387,23 +389,17 @@
 ></script>
 
 <script>
-window.dataLayer =
-    window.dataLayer || [];
-
-window.gtag =
-    window.gtag ||
-    function () {
-        window.dataLayer.push(arguments);
-    };
 
 window.gtag(
-    'consent',
-    'default',
+    'js',
+    new Date()
+);
+
+window.gtag(
+    'config',
+    measurementId,
     {
-        analytics_storage: 'denied',
-        ad_storage: 'denied',
-        ad_user_data: 'denied',
-        ad_personalization: 'denied'
+        anonymize_ip: true
     }
 );
 </script>

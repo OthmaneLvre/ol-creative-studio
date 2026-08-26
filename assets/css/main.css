@@ -24,9 +24,5 @@
 @import url('./components/intro.css');
 
 /* Animations */
-@import url('./animations/transitions.css');
 @import url('./animations/reveal.css');
 
-/* Utilities */
-@import url('./utilities/spacing.css');
-@import url('./utilities/accessibility.css');

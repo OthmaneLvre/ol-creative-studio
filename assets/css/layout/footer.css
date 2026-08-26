@@ -165,7 +165,7 @@
 .site-footer__description {
     max-width: 38ch;
 
-    color: rgba(255, 255, 255, 0.68);
+    color: rgba(255, 255, 255, 0.72);
 
     font-size: var(--font-size-sm);
 
@@ -174,7 +174,7 @@
 
 
 .site-footer__location {
-    color: rgba(255, 255, 255, 0.42);
+    color: rgba(255, 255, 255, 0.62);
 
     font-size: var(--font-size-xs);
 
@@ -195,7 +195,7 @@
 
 
 .site-footer__label {
-    color: rgba(255, 255, 255, 0.42);
+    color: rgba(255, 255, 255, 0.62);
 
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
@@ -270,7 +270,7 @@
     border-top:
         1px solid rgba(255, 255, 255, 0.12);
 
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.62);
 
     font-size: var(--font-size-xs);
 }
@@ -296,6 +296,8 @@
     transition:
         color var(--duration-fast)
         var(--ease-standard);
+
+        color: rgba(255, 255, 255, 0.68);
 }
 
 
@@ -314,6 +316,8 @@
     justify-content: flex-end;
 
     gap: var(--space-2);
+    
+    color: rgba(255, 255, 255, 0.68);
 
     justify-self: end;
 
