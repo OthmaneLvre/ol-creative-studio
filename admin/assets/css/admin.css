@@ -2336,3 +2336,108 @@ select:focus-visible {
     }
 
 }
+
+/* ============================================================
+   PROSPECTION — FILTRES
+   ============================================================ */
+
+.admin-form {
+    width: 100%;
+}
+
+.admin-form__grid {
+    display: grid;
+    grid-template-columns: minmax(280px, 2fr) minmax(200px, 1fr) minmax(200px, 1fr);
+    gap: 1.25rem;
+    align-items: end;
+}
+
+.admin-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.admin-form__field label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--admin-text-muted, #727b86);
+}
+
+.admin-form__field input,
+.admin-form__field select {
+    width: 100%;
+    min-height: 48px;
+    padding: 0.8rem 1rem;
+
+    border: 1px solid rgba(13, 27, 42, 0.14);
+    border-radius: 12px;
+
+    background: #fff;
+    color: #0d1b2a;
+
+    font: inherit;
+    font-size: 0.9rem;
+
+    transition:
+        border-color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.admin-form__field input::placeholder {
+    color: #8d959e;
+}
+
+.admin-form__field input:focus,
+.admin-form__field select:focus {
+    outline: none;
+    border-color: #1b9aaa;
+    box-shadow: 0 0 0 3px rgba(27, 154, 170, 0.12);
+}
+
+.admin-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+
+/* ============================================================
+   PROSPECTION — RESPONSIVE FILTRES
+   ============================================================ */
+
+@media (max-width: 1000px) {
+
+    .admin-form__grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .admin-form__field:first-child {
+        grid-column: 1 / -1;
+    }
+
+}
+
+@media (max-width: 640px) {
+
+    .admin-form__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-form__field:first-child {
+        grid-column: auto;
+    }
+
+    .admin-form__actions {
+        flex-direction: column;
+    }
+
+    .admin-form__actions .admin-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+}
