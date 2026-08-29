@@ -269,6 +269,141 @@ final class ProspectRepository
         }
     }
 
+    /**
+     * Enregistre un e-mail professionnel public
+     * détecté sur le site du prospect.
+     */
+    public function updateEmailDiscovery(
+        int $prospectId,
+        string $email,
+        string $emailType,
+        string $sourceUrl,
+        int $confidence = 100
+    ): void {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant prospect invalide.'
+            );
+        }
+
+        $email = strtolower(trim($email));
+        $emailType = strtolower(trim($emailType));
+        $sourceUrl = trim($sourceUrl);
+
+        if (
+            filter_var(
+                $email,
+                FILTER_VALIDATE_EMAIL
+            ) === false
+        ) {
+            throw new InvalidArgumentException(
+                'Adresse e-mail invalide.'
+            );
+        }
+
+        $allowedTypes = [
+            'generic',
+            'personal',
+            'unknown',
+        ];
+
+        if (!in_array($emailType, $allowedTypes, true)) {
+            throw new InvalidArgumentException(
+                'Type d’adresse e-mail invalide.'
+            );
+        }
+
+        if ($sourceUrl === '') {
+            throw new InvalidArgumentException(
+                'La source de l’adresse e-mail est obligatoire.'
+            );
+        }
+
+        if (
+            filter_var(
+                $sourceUrl,
+                FILTER_VALIDATE_URL
+            ) === false
+        ) {
+            throw new InvalidArgumentException(
+                'URL source de l’adresse e-mail invalide.'
+            );
+        }
+
+        if ($confidence < 0 || $confidence > 100) {
+            throw new InvalidArgumentException(
+                'Le niveau de confiance doit être compris entre 0 et 100.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $sql = <<<SQL
+                UPDATE prospects
+                SET
+                    email = :email,
+                    email_source_url = :email_source_url,
+                    email_type = :email_type,
+                    email_confidence = :email_confidence,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :prospect_id
+            SQL;
+
+            $statement = $this->pdo->prepare($sql);
+
+            $statement->execute([
+                'email' => $email,
+                'email_source_url' => $sourceUrl,
+                'email_type' => $emailType,
+                'email_confidence' => $confidence,
+                'prospect_id' => $prospectId,
+            ]);
+
+            if ($statement->rowCount() === 0) {
+                $checkStatement = $this->pdo->prepare(
+                    'SELECT 1
+                    FROM prospects
+                    WHERE id = :id
+                    LIMIT 1'
+                );
+
+                $checkStatement->execute([
+                    'id' => $prospectId,
+                ]);
+
+                if ($checkStatement->fetchColumn() === false) {
+                    throw new RuntimeException(
+                        'Le prospect est introuvable.'
+                    );
+                }
+            }
+
+            $this->addEvent(
+                $prospectId,
+                'prospect_email_found',
+                null,
+                null,
+                'Adresse e-mail professionnelle publique détectée.',
+                [
+                    'email' => $email,
+                    'email_type' => $emailType,
+                    'email_source_url' => $sourceUrl,
+                    'email_confidence' => $confidence,
+                ]
+            );
+
+            $this->pdo->commit();
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
     private function nullableTrim(?string $value): ?string
     {
         if ($value === null) {

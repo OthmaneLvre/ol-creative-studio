@@ -33,6 +33,13 @@ CREATE TABLE IF NOT EXISTS prospects (
 
     website_url VARCHAR(500) DEFAULT NULL,
     email VARCHAR(190) DEFAULT NULL,
+    email_source_url VARCHAR(500) DEFAULT NULL,
+    email_type ENUM(
+        'generic',
+        'personal',
+        'unknown'
+    ) DEFAULT NULL,
+    email_confidence TINYINT UNSIGNED DEFAULT NULL,
     phone VARCHAR(50) DEFAULT NULL,
 
     source VARCHAR(100) DEFAULT NULL,
