@@ -1,0 +1,128 @@
+/* =========================================
+   GRID SYSTEM
+   ========================================= */
+
+/* ==================================================
+   GRID
+================================================== */
+
+.grid {
+    display: grid;
+    gap: var(--space-6);
+}
+
+
+/* ==================================================
+   12 COLUMNS
+================================================== */
+
+.grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--space-6);
+}
+
+
+/* ==================================================
+   AUTO GRID
+================================================== */
+
+.grid-auto {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(280px, 1fr)
+    );
+
+    gap: var(--space-6);
+}
+
+
+/* ==================================================
+   COMMON LAYOUTS
+================================================== */
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-7);
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-6);
+}
+
+.grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-5);
+}
+
+
+/* ==================================================
+   COLUMN SPAN
+================================================== */
+
+.col-1  { grid-column: span 1; }
+.col-2  { grid-column: span 2; }
+.col-3  { grid-column: span 3; }
+.col-4  { grid-column: span 4; }
+.col-5  { grid-column: span 5; }
+.col-6  { grid-column: span 6; }
+.col-7  { grid-column: span 7; }
+.col-8  { grid-column: span 8; }
+.col-9  { grid-column: span 9; }
+.col-10 { grid-column: span 10; }
+.col-11 { grid-column: span 11; }
+.col-12 { grid-column: span 12; }
+
+
+/* ==================================================
+   ALIGNMENT
+================================================== */
+
+.grid-center {
+    align-items: center;
+}
+
+.grid-start {
+    align-items: start;
+}
+
+.grid-end {
+    align-items: end;
+}
+
+.grid-between {
+    justify-content: space-between;
+}
+
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media (max-width: 1024px) {
+
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    .grid-12,
+    .grid-4,
+    .grid-3,
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    [class*="col-"] {
+        grid-column: span 12;
+    }
+
+}

@@ -4,54 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="GkyABtAfCI_8wSUZlN3rEMBB67Bm_3_idi40Jrqe2mU" />
-    
-    <!-- Titre dynamique -->
-    <title>
-        <?php
-            echo isset($pageTitle) ? $pageTitle . " | OL Creative Studio" : "OL Creative Studio – Création de sites web à Céret";
+
+    <?php
+        // Canonical propre
+        $siteUrl = 'https://olcreativestudio.fr';
+
+        if (isset($pageCanonical)) {
+
+            $canonical = $pageCanonical;
+
+        } else {
+
+            $uri = strtok(
+                $_SERVER['REQUEST_URI'],
+                '?'
+            );
+
+            $canonical = $siteUrl;
+
+            if (
+                $uri !== '/' &&
+                $uri !== '/index.php'
+            ) {
+                $canonical .= $uri;
+            }
+        }
+
+        $finalOgType =
+            $pageOgType ?? 'website';
+
+        $finalOgImage =
+            $pageOgImage
+            ?? $siteUrl
+                . '/assets/logo/logo_olCreativeStudio_1600.webp';
+
+        // Titre et description par défaut optimisés SEO local
+        $defaultTitle = "Développeur Web Freelance à Céret | OL Creative Studio";
+        $defaultDescription = "Développeur web freelance à Céret dans les Pyrénées-Orientales. Création de sites vitrines, boutiques en ligne, référencement SEO et identité visuelle pour professionnels et associations.";
+
+        $finalTitle = isset($pageTitle) ? $pageTitle . " | OL Creative Studio" : $defaultTitle;
+        $finalDescription = isset($pageDescription) ? $pageDescription : $defaultDescription;
+    ?>
+
+    <title><?= htmlspecialchars($finalTitle) ?></title>
+
+    <meta name="description" content="<?= htmlspecialchars($finalDescription) ?>">
+
+    <?php
+        $finalRobots =
+            $pageRobots ?? 'index, follow';
         ?>
-    </title>
 
-    <!-- Meta Description dynamique -->
-    <meta name="description" content="<?php
-        echo isset($pageDescription)
-        ? $pageDescription
-        : 'Création de sites web vitrines, e-commerce et identités visuelles à Céret et dans les Pyrénées-Orientales. Freelance réactif, moderne et professionnel.';
-    ?>">
+        <meta
+            name="robots"
+            content="<?= htmlspecialchars(
+                $finalRobots,
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>"
+        >
 
-    <!-- OpenGraph (SEO réseaux sociaux) -->
-    <meta property="og:title" content="<?= isset($pageTitle) ? $pageTitle : 'OL Creative Studio' ?>">
-    <meta property="og:description" content="<?= isset($pageDescription) ? $pageDescription : 'Création de sites web, design et identité visuelle à Céret.' ?>">
-    <meta property="og:url" content="<?= $canonical ?>">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp">
+    <link rel="canonical" href="<?= htmlspecialchars($canonical) ?>">
+
+    <!-- OpenGraph -->
+    <meta
+        property="og:title"
+        content="<?= htmlspecialchars($finalTitle) ?>"
+    >
+
+    <meta
+        property="og:description"
+        content="<?= htmlspecialchars($finalDescription) ?>"
+    >
+
+    <meta
+        property="og:url"
+        content="<?= htmlspecialchars($canonical) ?>"
+    >
+
+    <meta
+        property="og:type"
+        content="<?= htmlspecialchars($finalOgType) ?>"
+    >
+
+    <meta
+        property="og:image"
+        content="<?= htmlspecialchars($finalOgImage) ?>"
+    >
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?= isset($pageTitle) ? $pageTitle : 'OL Creative Studio' ?>">
-    <meta name="twitter:description" content="<?= isset($pageDescription) ? $pageDescription : 'Création de sites web, design et identité visuelle à Céret.' ?>">
-    <meta name="twitter:image" content="https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp">
+    <meta
+        name="twitter:card"
+        content="summary_large_image"
+    >
 
-    <!-- Canonical -->
-    <?php
-    $canonical = "https://olcreativestudio.fr";
-    $uri = $_SERVER["REQUEST_URI"];
+    <meta
+        name="twitter:title"
+        content="<?= htmlspecialchars($finalTitle) ?>"
+    >
 
-    // Si la page demandée est /index.php → canonical = /
-    if ($uri !== "/index.php") {
-        $canonical .= $uri;
-    }
-    ?>
-    <link rel="canonical" href="<?= $canonical ?>">
+    <meta
+        name="twitter:description"
+        content="<?= htmlspecialchars($finalDescription) ?>"
+    >
 
-
-    <!-- Preload des fonts (amélioration performance SEO) -->
-    <link rel="preload" href="/assets/fonts/Manrope-Medium.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/fonts/Manrope-Regular.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/fonts/Manrope-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
-
-    <link rel="preload" href="/assets/fonts/CormorantGaramond-Bold.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/assets/fonts/CormorantGaramond-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <meta
+        name="twitter:image"
+        content="<?= htmlspecialchars($finalOgImage) ?>"
+    >
     
     <!-- FAVICONS -->
     <link rel="icon" href="/assets/logo/favicon/favicon.ico" sizes="any">
@@ -60,56 +120,172 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo/favicon/apple-touch-icon.png">
     <meta name="theme-color" content="#0D1B2A">
 
-    <!-- GLOBAL CSS (minifié et combiné) -->
-    <link rel="preload" href="/css/style.css" as="style">
-    <link rel="stylesheet" href="/css/style.css">
-
-    <!-- Preload des images (amélioration performance SEO) -->
-    <link rel="preload" as="image" href="/assets/images/hero.webp" fetchpriority="high">
-
-
-    <!-- PAGE-SPECIFIC CSS (AVEC VERSIONING) -->
-    <?php
-        $page = basename($_SERVER["PHP_SELF"], ".php");
-        $file = $_SERVER["DOCUMENT_ROOT"] . "/css/$page.css";
-
-        if (file_exists($file)) {
-            echo '<link rel="stylesheet" href="/css/' . $page . '.css?v=' . time() . '">';
+    <script>
+        try {
+            if (
+                sessionStorage.getItem('ol_intro_seen')
+                === 'true'
+            ) {
+                document.documentElement.classList.add(
+                    'site-intro-seen'
+                );
+            }
+        } catch {
+            // sessionStorage indisponible :
+            // aucun traitement nécessaire.
         }
+    </script>
+
+    <?php
+
+    /*
+    |--------------------------------------------------------------------------
+    | CSS de la page
+    |--------------------------------------------------------------------------
+    */
+
+    $page =
+        $pageCssKey
+        ?? basename(
+            $_SERVER['PHP_SELF'],
+            '.php'
+        );
+
+    $pageCssMap = [
+        'services' => 'services',
+        'portfolio' => 'portfolio',
+        'portfolio-details' => 'portfolio-details',
+        'contact' => 'contact',
+        'mentions-legales' => 'legal',
+        'politique-confidentialite' => 'legal',
+        'cgv' => 'legal',
+        'cgu' => 'legal',
+        '404' => 'error',
+    ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Home — bundle unique optimisé
+    |--------------------------------------------------------------------------
+    */
+
+    if ($page === 'index') {
+
+        $criticalCssFile =
+            $_SERVER['DOCUMENT_ROOT']
+            . '/assets/css/critical/home-critical.css';
+
+        $homeCssFile =
+            $_SERVER['DOCUMENT_ROOT']
+            . '/assets/css/dist/home.min.css';
+
+        if (file_exists($criticalCssFile)) {
+
+            echo '<link rel="stylesheet" href="/assets/css/critical/home-critical.css?v='
+                . filemtime($criticalCssFile)
+                . '">';
+        }
+
+        if (file_exists($homeCssFile)) {
+
+            echo '<link rel="preload" href="/assets/css/dist/home.min.css?v='
+                . filemtime($homeCssFile)
+                . '" as="style">';
+
+            echo '<link rel="stylesheet" href="/assets/css/dist/home.min.css?v='
+                . filemtime($homeCssFile)
+                . '" media="print" data-deferred-styles>';
+        }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Autres pages
+    |--------------------------------------------------------------------------
+    */
+
+    } else {
+
+        $globalCssFile =
+            $_SERVER['DOCUMENT_ROOT']
+            . '/assets/css/main.bundle.css';
+
+        if (file_exists($globalCssFile)) {
+
+            echo '<link rel="stylesheet" href="/assets/css/main.bundle.css?v='
+                . filemtime($globalCssFile)
+                . '">';
+        }
+
+        if (isset($pageCssMap[$page])) {
+
+            $cssName =
+                $pageCssMap[$page];
+
+            $cssFile =
+                $_SERVER['DOCUMENT_ROOT']
+                . "/assets/css/pages/{$cssName}.css";
+
+            if (file_exists($cssFile)) {
+
+                echo '<link rel="stylesheet" href="/assets/css/pages/'
+                    . htmlspecialchars(
+                        $cssName,
+                        ENT_QUOTES,
+                        'UTF-8'
+                    )
+                    . '.css?v='
+                    . filemtime($cssFile)
+                    . '">';
+            }
+        }
+    }
+
     ?>
 
-    <!-- Schema LocalBusiness (boost SEO local) -->
+    <!-- Schema LocalBusiness -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
+        "@id": "https://olcreativestudio.fr/#business",
+
         "name": "OL Creative Studio",
-        "image": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
-        "logo": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
+
         "url": "https://olcreativestudio.fr",
+
+        "logo": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
+
+        "image": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
+
         "telephone": "+33767841013",
-        "description": "OL Creative Studio vous accompagne pour la création de sites web modernes, designs professionnels, identités visuelles et solutions digitales sur mesure à Céret et dans les Pyrénées-Orientales.",
+
+        "email": "contact@olcreativestudio.fr",
+
+        "description": "OL Creative Studio accompagne les entreprises, indépendants et associations dans la création de sites web, boutiques en ligne, identités visuelles et solutions digitales sur mesure à Céret et dans les Pyrénées-Orientales.",
 
         "address": {
             "@type": "PostalAddress",
-            "streetAddress": "",
             "addressLocality": "Céret",
-            "addressRegion": "Pyrénées-Orientales",
+            "addressRegion": "Occitanie",
             "postalCode": "66400",
             "addressCountry": "FR"
         },
 
         "areaServed": [
-            "Céret",
-            "Le Boulou",
-            "Amélie-les-bains",
-            "Perpignan",
-            "Pyrénées-Orientales",
-            "Occitanie"
-        ],
-        
-        "openingHours": [
-            "Mo-Su 00:00-23:59"
+            {
+                "@type": "City",
+                "name": "Céret"
+            },
+            {
+                "@type": "AdministrativeArea",
+                "name": "Pyrénées-Orientales"
+            },
+            {
+                "@type": "Country",
+                "name": "France"
+            }
         ],
 
         "priceRange": "€€",
@@ -117,72 +293,239 @@
         "sameAs": [
             "https://github.com/OthmaneLvre",
             "https://linkedin.com/in/olcreativestudio",
-            "https://www.upwork.com/freelancers/~012bfcf401f6a63a9c?mp_source=share"
+            "https://www.instagram.com/olcreativestudio",
+            "https://www.upwork.com/freelancers/~012bfcf401f6a63a9c"
         ]
     }
     </script>
 
     <!-- cookies.js -->
-    <script src="/js/cookies.js" defer></script>
+    <script src="/assets/js/cookies.js" defer></script>
 
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){ dataLayer.push(arguments); }
+        window.dataLayer =
+            window.dataLayer || [];
+
+        window.gtag =
+            window.gtag ||
+            function () {
+                window.dataLayer.push(arguments);
+            };
+
+        window.gtag(
+            'consent',
+            'default',
+            {
+                analytics_storage: 'denied',
+                ad_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied'
+            }
+        );
     </script>
 
 </head>
 
-<body>
-    
-<header class="navbar">
+<body id="top">
 
-        <!-- LOGO -->
-        <div class="logo">
-            <a href="/index.php">
-                <img src="/assets/logo/OL-logo@1x.webp"
+    <div
+        class="site-intro"
+        data-site-intro
+        aria-hidden="true"
+    >
+        <div class="site-intro__inner">
+
+            <div class="site-intro__brand">
+
+                <span class="site-intro__mark">
+                    OL
+                </span>
+
+                <span class="site-intro__line"></span>
+
+                <span class="site-intro__name">
+                    Creative Studio
+                </span>
+
+            </div>
+
+        </div>
+    </div>
+
+<?php
+$currentPage = basename($_SERVER['PHP_SELF']);
+
+function isActivePage(string $page, string $currentPage): string
+{
+    return $page === $currentPage
+        ? ' is-active'
+        : '';
+}
+?>
+
+<header class="site-header" data-header>
+
+    <div class="container">
+        <div class="site-header__inner">
+
+            <!-- BRAND -->
+            <a
+                href="/index.php"
+                class="site-header__brand"
+                aria-label="OL Creative Studio - Accueil"
+            >
+                <!-- LOGO DARK -->
+                <img
+                    src="/assets/logo/dark/logo-dark@1x.webp"
                     srcset="
-                        /assets/logo/OL-logo@1x.webp 65w,
-                        /assets/logo/OL-logo@2x.webp 130w,
-                        /assets/logo/OL-logo@3x.webp 195w,
-                        /assets/logo/OL-logo@4x.webp 260w
+                        /assets/logo/dark/logo-dark@1x.webp 65w,
+                        /assets/logo/dark/logo-dark@2x.webp 130w,
                     "
-                    sizes="(max-width: 768px) 42px, 65px"
-                    alt="OL Creative Studio - Développeur web à Céret"
+                    alt=""
+                    class="site-header__logo site-header__logo--dark"
                 >
+
+                <!-- LOGO LIGHT -->
+                <img
+                    src="/assets/logo/light/logo-light@1x.webp"
+                    srcset="
+                        /assets/logo/light/logo-light@1x.webp 65w,
+                        /assets/logo/light/logo-light@2x.webp 130w,
+                    "
+                    alt=""
+                    class="site-header__logo site-header__logo--light"
+                >
+            </a>
+
+            <!-- NAVIGATION DESKTOP -->
+            <nav
+                class="site-nav"
+                aria-label="Navigation principale"
+            >
+                <a
+                    href="/index.php"
+                    class="site-nav__link<?= isActivePage('index.php', $currentPage) ?>"
+                >
+                    Accueil
+                </a>
+
+                <a
+                    href="/services.php"
+                    class="site-nav__link<?= isActivePage('services.php', $currentPage) ?>"
+                >
+                    Services
+                </a>
+
+                <a
+                    href="/portfolio.php"
+                    class="site-nav__link<?= isActivePage('portfolio.php', $currentPage) ?>"
+                >
+                    Portfolio
+                </a>
+
+                <a
+                    href="/contact.php"
+                    class="site-nav__link<?= isActivePage('contact.php', $currentPage) ?>"
+                >
+                    Contact
+                </a>
+            </nav>
+
+            <!-- ACTIONS -->
+            <div class="site-header__actions">
+
+                <a
+                    href="/contact.php"
+                    class="button button--primary site-header__cta"
+                >
+                    <span>Parler de votre projet</span>
+
+                    <span
+                        class="button__icon"
+                        aria-hidden="true"
+                    >
+                        ↗
+                    </span>
+                </a>
+
+                <!-- MOBILE TOGGLE -->
+                <button
+                    class="menu-toggle"
+                    type="button"
+                    aria-label="Ouvrir le menu"
+                    aria-expanded="false"
+                    aria-controls="mobile-navigation"
+                    data-menu-toggle
+                >
+                    <span class="menu-toggle__line"></span>
+                    <span class="menu-toggle__line"></span>
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+    
+
+    <!-- MOBILE NAVIGATION -->
+    <div
+        class="mobile-navigation"
+        id="mobile-navigation"
+        data-mobile-navigation
+        aria-hidden="true"
+    >
+        <nav
+            class="mobile-navigation__nav"
+            aria-label="Navigation mobile"
+        >
+            <a
+                href="/index.php"
+                class="mobile-navigation__link<?= isActivePage('index.php', $currentPage) ?>"
+            >
+                <span class="mobile-navigation__index">01</span>
+                <span>Accueil</span>
+            </a>
+
+            <a
+                href="/services.php"
+                class="mobile-navigation__link<?= isActivePage('services.php', $currentPage) ?>"
+            >
+                <span class="mobile-navigation__index">02</span>
+                <span>Services</span>
+            </a>
+
+            <a
+                href="/portfolio.php"
+                class="mobile-navigation__link<?= isActivePage('portfolio.php', $currentPage) ?>"
+            >
+                <span class="mobile-navigation__index">03</span>
+                <span>Portfolio</span>
+            </a>
+
+            <a
+                href="/contact.php"
+                class="mobile-navigation__link<?= isActivePage('contact.php', $currentPage) ?>"
+            >
+                <span class="mobile-navigation__index">04</span>
+                <span>Contact</span>
+            </a>
+
+        </nav>
+
+        <div class="mobile-navigation__actions">
+            <a
+                href="/contact.php"
+                class="button button--primary button--full"
+            >
+                Démarrer un projet
             </a>
         </div>
 
-        <!-- MENU CENTRÉ (desktop) -->
-        <nav class="nav-links">
-            <a href="index.php">Accueil</a>
-            <span class="sep"></span>
-            <a href="services.php">Services</a>
-            <span class="sep"></span>
-            <a href="portfolio.php">Portfolio</a>
-            <span class="sep"></span>
-            <a href="contact.php">Contact</a>
-        </nav>
-
-        <!-- BOUTON A DROITE (desktop only) -->
-        <a href="contact.php" class="btn-primary btn-nav">Me contacter</a>
-
-        <!-- MENU BURGER (mobile only) -->
-        <div class="burger" id="burger">
-            <span></span>
-            <span></span>
-            <span></span>
+        <div class="mobile-navigation__footer">
+            <span>OL Creative Studio</span>
+            <span>Céret · France</span>
         </div>
 
-        <!-- MENU MOBILE -->
-        <div class="mobile-menu" id="mobileMenu">
-            <a href="/index.php">Accueil</a>
-            <a href="/services.php">Services</a>
-            <a href="/portfolio.php">Portfolio</a>
-            <a href="/contact.php">Contact</a>
-        </div>
-
+    </div>
 
 </header>
-
-
-<main>

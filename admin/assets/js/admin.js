@@ -1,0 +1,596 @@
+document.addEventListener('DOMContentLoaded', () => {
+
+    document.documentElement.classList.add('admin-js-ready');
+
+    initDeleteConfirmations();
+    initTagFields();
+    initProjectSlug();
+    initImagePreviews();
+    initCharacterCounters();
+
+});
+
+
+/* =========================================================
+   DELETE CONFIRMATIONS
+   ========================================================= */
+
+function initDeleteConfirmations() {
+
+    const deleteForms = document.querySelectorAll(
+        '.admin-delete-form'
+    );
+
+    for (const form of deleteForms) {
+
+        form.addEventListener('submit', (event) => {
+
+            const label =
+                form.dataset.projectTitle ||
+                form.dataset.reviewName ||
+                'cet élément';
+
+            const confirmed = window.confirm(
+                `Supprimer définitivement « ${label} » ?`
+            );
+
+            if (!confirmed) {
+                event.preventDefault();
+            }
+
+        });
+
+    }
+
+}
+
+/* =========================================================
+   TAG FIELDS
+   ========================================================= */
+
+function initTagFields() {
+
+    const fields = document.querySelectorAll(
+        '[data-tag-field]'
+    );
+
+    for (const field of fields) {
+
+        const input =
+            field.querySelector('[data-tag-input]');
+
+        const addButton =
+            field.querySelector('[data-tag-add]');
+
+        const list =
+            field.querySelector('[data-tag-list]');
+
+        const hidden =
+            field.querySelector('[data-tag-hidden]');
+
+        if (
+            !input ||
+            !addButton ||
+            !list ||
+            !hidden
+        ) {
+            continue;
+        }
+
+        let tags = parseTags(hidden.value);
+
+        renderTags(
+            tags,
+            list,
+            hidden
+        );
+
+
+        addButton.addEventListener(
+            'click',
+            () => {
+
+                tags = addTag(
+                    tags,
+                    input.value
+                );
+
+                input.value = '';
+
+                renderTags(
+                    tags,
+                    list,
+                    hidden
+                );
+
+                input.focus();
+            }
+        );
+
+
+        input.addEventListener(
+            'keydown',
+            (event) => {
+
+                if (
+                    event.key !== 'Enter' &&
+                    event.key !== ','
+                ) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                tags = addTag(
+                    tags,
+                    input.value
+                );
+
+                input.value = '';
+
+                renderTags(
+                    tags,
+                    list,
+                    hidden
+                );
+            }
+        );
+
+
+        list.addEventListener(
+            'click',
+            (event) => {
+
+                const button =
+                    event.target.closest(
+                        '[data-tag-remove]'
+                    );
+
+                if (!button) {
+                    return;
+                }
+
+                const index =
+                    Number(
+                        button.dataset.tagRemove
+                    );
+
+                if (
+                    Number.isNaN(index) ||
+                    !tags[index]
+                ) {
+                    return;
+                }
+
+                tags.splice(index, 1);
+
+                renderTags(
+                    tags,
+                    list,
+                    hidden
+                );
+            }
+        );
+
+    }
+
+}
+
+
+function parseTags(value) {
+
+    if (!value) {
+        return [];
+    }
+
+    try {
+
+        const parsed = JSON.parse(value);
+
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+
+        return parsed
+            .filter(
+                (item) =>
+                    typeof item === 'string'
+            )
+            .map(
+                (item) => item.trim()
+            )
+            .filter(Boolean);
+
+    } catch {
+
+        return [];
+
+    }
+
+}
+
+
+function addTag(tags, value) {
+
+    const cleanValue =
+        value.trim();
+
+    if (!cleanValue) {
+        return tags;
+    }
+
+    const alreadyExists =
+        tags.some(
+            (tag) =>
+                tag.toLowerCase()
+                === cleanValue.toLowerCase()
+        );
+
+    if (alreadyExists) {
+        return tags;
+    }
+
+    return [
+        ...tags,
+        cleanValue
+    ];
+
+}
+
+
+function renderTags(
+    tags,
+    list,
+    hidden
+) {
+
+    list.innerHTML = '';
+
+    tags.forEach(
+        (tag, index) => {
+
+            const element =
+                document.createElement('span');
+
+            element.className =
+                'admin-tag';
+
+            const text =
+                document.createElement('span');
+
+            text.textContent = tag;
+
+            const button =
+                document.createElement('button');
+
+            button.type = 'button';
+
+            button.dataset.tagRemove =
+                String(index);
+
+            button.setAttribute(
+                'aria-label',
+                `Supprimer ${tag}`
+            );
+
+            button.textContent = '×';
+
+            element.append(
+                text,
+                button
+            );
+
+            list.appendChild(element);
+        }
+    );
+
+    hidden.value =
+        JSON.stringify(tags);
+
+}
+
+
+/* =========================================================
+   PROJECT SLUG
+   ========================================================= */
+
+function initProjectSlug() {
+
+    const titleInput =
+        document.querySelector(
+            '[data-project-title]'
+        );
+
+    const slugInput =
+        document.querySelector(
+            '[data-project-slug]'
+        );
+
+    if (
+        !titleInput ||
+        !slugInput
+    ) {
+        return;
+    }
+
+    let slugEditedManually =
+        slugInput.value.trim() !== '';
+
+
+    slugInput.addEventListener(
+        'input',
+        () => {
+
+            slugEditedManually =
+                slugInput.value.trim() !== '';
+        }
+    );
+
+
+    titleInput.addEventListener(
+        'input',
+        () => {
+
+            if (slugEditedManually) {
+                return;
+            }
+
+            slugInput.value =
+                slugify(titleInput.value);
+        }
+    );
+
+}
+
+
+function slugify(value) {
+
+    return value
+        .normalize('NFD')
+        .replace(
+            /[\u0300-\u036f]/g,
+            ''
+        )
+        .toLowerCase()
+        .trim()
+        .replace(
+            /[^a-z0-9]+/g,
+            '-'
+        )
+        .replace(
+            /^-+|-+$/g,
+            ''
+        );
+
+}
+
+/* =========================================================
+   IMAGE PREVIEWS
+   ========================================================= */
+
+function initImagePreviews() {
+
+    initSingleImagePreviews();
+    initGalleryPreviews();
+
+}
+
+
+function initSingleImagePreviews() {
+
+    const inputs = document.querySelectorAll(
+        '[data-image-preview-input]'
+    );
+
+    for (const input of inputs) {
+
+        const targetId =
+            input.dataset.imagePreviewTarget;
+
+        if (!targetId) {
+            continue;
+        }
+
+        const target =
+            document.getElementById(targetId);
+
+        if (!target) {
+            continue;
+        }
+
+        let currentUrl = null;
+
+        input.addEventListener('change', () => {
+
+            if (currentUrl) {
+                URL.revokeObjectURL(currentUrl);
+                currentUrl = null;
+            }
+
+            target.innerHTML = '';
+            target.hidden = true;
+
+            const file =
+                input.files?.[0];
+
+            if (!file) {
+                return;
+            }
+
+            if (!file.type.startsWith('image/')) {
+                return;
+            }
+
+            currentUrl =
+                URL.createObjectURL(file);
+
+            const image =
+                document.createElement('img');
+
+            image.src = currentUrl;
+            image.alt = 'Prévisualisation de l’image sélectionnée';
+
+            target.appendChild(image);
+            target.hidden = false;
+
+        });
+
+    }
+
+}
+
+function initGalleryPreviews() {
+
+    const inputs = document.querySelectorAll(
+        '[data-gallery-preview-input]'
+    );
+
+    for (const input of inputs) {
+
+        const targetId =
+            input.dataset.galleryPreviewTarget;
+
+        if (!targetId) {
+            continue;
+        }
+
+        const target =
+            document.getElementById(targetId);
+
+        if (!target) {
+            continue;
+        }
+
+        const label =
+            target.parentElement?.querySelector(
+                '[data-gallery-preview-label]'
+            );
+
+        let objectUrls = [];
+
+        input.addEventListener('change', () => {
+
+            for (const url of objectUrls) {
+                URL.revokeObjectURL(url);
+            }
+
+            objectUrls = [];
+
+            target.innerHTML = '';
+            target.hidden = true;
+
+            if (label) {
+                label.hidden = true;
+            }
+
+            const files =
+                Array.from(input.files ?? []);
+
+            const imageFiles =
+                files.filter(
+                    (file) =>
+                        file.type.startsWith('image/')
+                );
+
+            if (!imageFiles.length) {
+                return;
+            }
+
+            for (const file of imageFiles) {
+
+                const url =
+                    URL.createObjectURL(file);
+
+                objectUrls.push(url);
+
+                const figure =
+                    document.createElement('figure');
+
+                figure.className =
+                    'admin-upload-gallery__item';
+
+                const image =
+                    document.createElement('img');
+
+                image.src = url;
+                image.alt =
+                    'Prévisualisation d’une image sélectionnée';
+
+                figure.appendChild(image);
+                target.appendChild(figure);
+            }
+
+            if (label) {
+                label.hidden = false;
+            }
+
+            target.hidden = false;
+
+        });
+
+    }
+
+}
+
+/* =========================================================
+   CHARACTER COUNTERS
+   ========================================================= */
+
+function initCharacterCounters() {
+
+    const fields = document.querySelectorAll(
+        '[data-character-counter]'
+    );
+
+    for (const field of fields) {
+
+        const targetId =
+            field.dataset.characterCounterTarget;
+
+        if (!targetId) {
+            continue;
+        }
+
+        const counter =
+            document.getElementById(targetId);
+
+        if (!counter) {
+            continue;
+        }
+
+        const maxLength =
+            Number(field.getAttribute('maxlength')) || 0;
+
+        const updateCounter = () => {
+
+            const length =
+                field.value.length;
+
+            counter.textContent =
+                maxLength > 0
+                    ? `${length} / ${maxLength}`
+                    : String(length);
+
+            counter.classList.toggle(
+                'is-warning',
+                maxLength > 0 &&
+                length >= Math.floor(maxLength * 0.85)
+            );
+
+            counter.classList.toggle(
+                'is-limit',
+                maxLength > 0 &&
+                length >= maxLength
+            );
+        };
+
+        field.addEventListener(
+            'input',
+            updateCounter
+        );
+
+        updateCounter();
+
+    }
+
+}

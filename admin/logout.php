@@ -1,29 +1,75 @@
 <?php
-session_start();
 
-// Supprime toutes les variables de session
+declare(strict_types=1);
+
+require_once __DIR__
+    . '/includes/bootstrap.php';
+
+
+/*
+|--------------------------------------------------------------------------
+| Nettoyage de la session
+|--------------------------------------------------------------------------
+*/
+
 $_SESSION = [];
 
-// Supprime le cookie de session si il existe
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
+
+/*
+|--------------------------------------------------------------------------
+| Suppression du cookie de session
+|--------------------------------------------------------------------------
+*/
+
+if (ini_get('session.use_cookies')) {
+
+    $params =
+        session_get_cookie_params();
+
     setcookie(
-        session_name(), 
-        '', 
-        time() - 42000,
-        $params["path"], 
-        $params["domain"],
-        $params["secure"], 
-        $params["httponly"]
+        session_name(),
+        '',
+        [
+            'expires' =>
+                time() - 42000,
+
+            'path' =>
+                $params['path'],
+
+            'domain' =>
+                $params['domain'],
+
+            'secure' =>
+                $params['secure'],
+
+            'httponly' =>
+                $params['httponly'],
+
+            'samesite' =>
+                $params['samesite']
+                ?? 'Strict',
+        ]
     );
 }
 
-// Détruit la session
+
+/*
+|--------------------------------------------------------------------------
+| Destruction de la session
+|--------------------------------------------------------------------------
+*/
+
 session_destroy();
 
-// Empêche tout retour sur les pages admin avec le bouton "back"
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
 
-header("Location: login.php?logged_out=1");
+/*
+|--------------------------------------------------------------------------
+| Redirection
+|--------------------------------------------------------------------------
+*/
+
+header(
+    'Location: /admin/login.php?logged_out=1'
+);
+
 exit;

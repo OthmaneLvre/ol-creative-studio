@@ -1,0 +1,45 @@
+-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
+--
+-- Host: localhost    Database: ol_creative_studio
+-- ------------------------------------------------------
+-- Server version	10.4.32-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Dumping data for table `portfolio`
+--
+
+LOCK TABLES `portfolio` WRITE;
+/*!40000 ALTER TABLE `portfolio` DISABLE KEYS */;
+INSERT INTO `portfolio` VALUES (6,'Pierre Jamard','pierre-jamard','Création du site vitrine de Pierre Jamard : direction artistique, UX/UI et développement web sur mesure par OL Creative Studio.','Pierre Jamard',2026,'Direction artistique, UX/UI et développement web','Site vitrine éditorial conçu pour présenter l\'univers, le parcours et les œuvres de l\'auteur.','Création d’un site vitrine éditorial conçu pour présenter l’univers, le parcours et les contenus de Pierre Jamard à travers une expérience sobre et immersive.','Construire une présence digitale professionnelle avec une identité forte, une navigation fluide et une mise en avant claire des contenus.','Conception d’une interface éditoriale sur mesure, développement responsive et optimisation de l’expérience utilisateur sur ordinateur, tablette et mobile.','Un site vitrine moderne, cohérent et responsive qui valorise l’identité du projet et offre une consultation claire des contenus.','[\"PHP\",\"HTML\",\"CSS\",\"JavaScript\"]','[\"Direction artistique\",\"Développement web\",\"Responsive\",\"SEO\"]','pierre-jamard-cover.webp','[\"pierre-jamard-01.webp\",\"pierre-jamard-02.webp\",\"pierre-jamard-03.webp\"]','https://pierrejamard.fr',0,2,'published','2026-08-16 13:18:27','vitrine','client'),(7,'Below Dreams','below-dreams','Conception et développement de Below Dreams, boutique e-commerce sur mesure avec Stripe, espace client et back-office.','Below Dreams',2026,'UX/UI, développement full-stack et mise en production','Boutique e-commerce sur mesure développée de A à Z.','Création complète d’une boutique e-commerce indépendante pour une marque de vêtements proposant des collections en édition limitée et en précommande.','Créer une plateforme e-commerce sur mesure permettant à la marque de vendre directement ses collections, gérer ses commandes et conserver la maîtrise de son environnement technique.','Développement d’une boutique complète en PHP et MySQL avec paiement Stripe, espace client, back-office, gestion des commandes, emails transactionnels et environnement de production sécurisé.','Une plateforme e-commerce complète et administrable, pensée pour accompagner la marque dans la gestion autonome de ses ventes et de ses commandes.','[\"PHP\",\"MySQL\",\"JavaScript\",\"Stripe\",\"PHPMailer\"]','[\"UX\\/UI\",\"Développement front-end\",\"Développement back-end\",\"E-commerce\",\"Paiement Stripe\",\"Back-office\",\"SEO\",\"Mise en production\"]','below-dreams.webp','[]','https://belowdreams.com',1,1,'published','2026-08-16 13:18:27','ecommerce','client');
+/*!40000 ALTER TABLE `portfolio` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping data for table `avis`
+--
+
+LOCK TABLES `avis` WRITE;
+/*!40000 ALTER TABLE `avis` DISABLE KEYS */;
+INSERT INTO `avis` VALUES (4,'David','Boutique e-commerce','Un accompagnement sérieux du début à la fin. Le site correspond parfaitement à l’univers de la marque et nous permet désormais de gérer notre boutique de manière autonome.','validé','2026-08-16 13:37:24',NULL),(5,'Pierre','Site vitrine','Le résultat correspond exactement à ce que je recherchais : un site sobre, élégant et fidèle à mon univers. Les échanges ont été simples et efficaces tout au long du projet.','validé','2026-08-16 13:37:24',NULL),(6,'Client','Identité visuelle','Une vraie écoute et de bonnes propositions. Le projet a gagné en cohérence et en professionnalisme.','validé','2026-08-16 13:37:24',NULL);
+/*!40000 ALTER TABLE `avis` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-08-26  9:23:09

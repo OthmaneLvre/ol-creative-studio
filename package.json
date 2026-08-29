@@ -1,0 +1,20 @@
+{
+  "name": "olcreativestudio",
+  "version": "1.0.0",
+  "description": "OL Creative Studio est mon site vitrine en tant que développeur Web & Designer.\r Le site présente mes services, mes créations, mes informations de contact, ainsi qu’un espace administrateur sécurisé permettant de gérer mes projets.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "lightningcss --bundle --minify assets/css/build/home.css -o assets/css/dist/home.min.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "critical": "^7.2.1",
+    "lightningcss-cli": "^1.33.0"
+  }
+}

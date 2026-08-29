@@ -1,0 +1,141 @@
+/* =========================================
+   SECTION TITLE
+   ========================================= */
+
+.section-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    max-width: 900px;
+    margin-bottom: var(--space-8);
+}
+
+
+/* ==================================================
+   EYEBROW
+================================================== */
+
+.section-heading__eyebrow {
+    color: var(--color-primary);
+
+    font-family: var(--font-body);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+}
+
+
+/* ==================================================
+   TITLE
+================================================== */
+
+.section-heading__title {
+    margin: 0;
+
+    font-family: var(--font-display);
+    font-size: clamp(
+        2.5rem,
+        5vw,
+        var(--font-size-5xl)
+    );
+
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+    letter-spacing: var(--letter-spacing-tight);
+}
+
+
+/* ==================================================
+   DESCRIPTION
+================================================== */
+
+.section-heading__description {
+    max-width: 65ch;
+
+    color: var(--color-text-muted);
+
+    font-size: clamp(
+        var(--font-size-base),
+        1.5vw,
+        var(--font-size-lg)
+    );
+
+    line-height: var(--line-height-base);
+}
+
+
+/* ==================================================
+   ALIGNMENT
+================================================== */
+
+.section-heading--center {
+    align-items: center;
+
+    margin-inline: auto;
+
+    text-align: center;
+}
+
+.section-heading--center .section-heading__description {
+    margin-inline: auto;
+}
+
+.section-heading--right {
+    align-items: flex-end;
+
+    margin-left: auto;
+
+    text-align: right;
+}
+
+.section-heading--right .section-heading__description {
+    margin-left: auto;
+}
+
+
+/* ==================================================
+   DARK THEME
+================================================== */
+
+.section-heading--light {
+    color: var(--color-text-light);
+}
+
+.section-heading--light .section-heading__description {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+
+/* ==================================================
+   COMPACT
+================================================== */
+
+.section-heading--compact {
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+}
+
+.section-heading--compact .section-heading__title {
+    font-size: clamp(
+        2rem,
+        4vw,
+        var(--font-size-4xl)
+    );
+}
+
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media (max-width: 768px) {
+
+    .section-heading {
+        gap: var(--space-3);
+        margin-bottom: var(--space-7);
+    }
+
+}

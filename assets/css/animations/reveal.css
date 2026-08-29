@@ -1,0 +1,108 @@
+/* =========================================
+   OL CREATIVE STUDIO
+   REVEAL ANIMATIONS
+   ========================================= */
+
+
+/* =========================================================
+   BASE
+========================================================= */
+
+.reveal {
+    opacity: 0;
+
+    transform:
+        translate3d(0, 28px, 0);
+
+    transition:
+        opacity var(--duration-slow) var(--ease-expo),
+        transform var(--duration-slow) var(--ease-expo);
+
+    will-change:
+        opacity,
+        transform;
+}
+
+
+/* =========================================================
+   DIRECTIONS / INTENSITIES
+========================================================= */
+
+.reveal--small {
+    transform:
+        translate3d(0, 18px, 0);
+}
+
+.reveal--large {
+    transform:
+        translate3d(0, 36px, 0);
+}
+
+.reveal--left {
+    transform:
+        translate3d(-35px, 0, 0);
+}
+
+.reveal--right {
+    transform:
+        translate3d(35px, 0, 0);
+}
+
+
+/* =========================================================
+   DELAYS
+========================================================= */
+
+.reveal--delay-100 {
+    transition-delay: 100ms;
+}
+
+.reveal--delay-120 {
+    transition-delay: 120ms;
+}
+
+.reveal--delay-140 {
+    transition-delay: 140ms;
+}
+
+.reveal--delay-200 {
+    transition-delay: 200ms;
+}
+
+.reveal--delay-300 {
+    transition-delay: 300ms;
+}
+
+
+/* =========================================================
+   VISIBLE
+========================================================= */
+
+.reveal.is-visible {
+    opacity: 1;
+
+    transform:
+        translate3d(0, 0, 0);
+
+    will-change: auto;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .reveal,
+    .reveal--small,
+    .reveal--large,
+    .reveal--left,
+    .reveal--right {
+        opacity: 1;
+        transform: none;
+        transition: none;
+        will-change: auto;
+    }
+
+}
