@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS prospects (
 
     source VARCHAR(100) DEFAULT NULL,
     source_url VARCHAR(500) DEFAULT NULL,
+    source_external_id VARCHAR(190) DEFAULT NULL,
 
     status ENUM(
         'discovered',
@@ -75,8 +76,17 @@ CREATE TABLE IF NOT EXISTS prospects (
     INDEX idx_prospects_email (email),
     INDEX idx_prospects_scheduled_at (scheduled_at),
     INDEX idx_prospects_contacted_at (contacted_at),
+    INDEX idx_prospects_source_external (
+        source,
+        source_external_id
+    ),
 
-    UNIQUE KEY uq_prospect_email (email)
+    UNIQUE KEY uq_prospect_email (email),
+
+    UNIQUE KEY uq_prospect_source_external (
+        source,
+        source_external_id
+    )
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
