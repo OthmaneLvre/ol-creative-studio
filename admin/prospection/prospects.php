@@ -568,13 +568,13 @@ $adminActivePage = 'prospection';
                                     ?? $prospectStatus;
                                 ?>
 
-                                <article class="admin-project-row">
+                                <article class="prospect-row">
 
-                                    <div class="admin-project-row__content">
+                                    <div class="prospect-row__main">
 
-                                        <div>
+                                        <div class="prospect-row__identity">
 
-                                            <span class="admin-project-row__category">
+                                            <span class="prospect-row__location">
                                                 <?= htmlspecialchars(
                                                     $prospect['city']
                                                         ?: 'Localisation inconnue',
@@ -602,7 +602,7 @@ $adminActivePage = 'prospection';
 
                                             <?php if (!empty($prospect['activity'])): ?>
 
-                                                <span class="admin-stat-card__meta">
+                                                <span class="prospect-row__activity">
                                                     <?= htmlspecialchars(
                                                         $prospect['activity'],
                                                         ENT_QUOTES,
@@ -624,46 +624,55 @@ $adminActivePage = 'prospection';
 
                                     </div>
 
-                                    <div class="admin-project-row__actions">
+                                    <div class="prospect-row__footer">
 
-                                        <?php if ($prospect['score'] !== null): ?>
+                                        <div class="prospect-row__score">
 
-                                            <span>
-                                                Score :
+                                            <?php if ($prospect['score'] !== null): ?>
+
+                                                <span>Score</span>
+
                                                 <strong>
                                                     <?= (int) $prospect['score'] ?>/100
                                                 </strong>
-                                            </span>
 
-                                        <?php else: ?>
+                                            <?php else: ?>
 
-                                            <span class="admin-stat-card__meta">
-                                                Non scoré
-                                            </span>
+                                                <span>Non scoré</span>
 
-                                        <?php endif; ?>
+                                            <?php endif; ?>
 
-                                        <?php if (!empty($prospect['website_url'])): ?>
+                                        </div>
+
+                                        <div class="prospect-row__actions">
+
+                                            <?php if (!empty($prospect['website_url'])): ?>
+
+                                                <a
+                                                    href="<?= htmlspecialchars(
+                                                        $prospect['website_url'],
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="admin-text-link"
+                                                >
+                                                    Site
+                                                    <span aria-hidden="true">↗</span>
+                                                </a>
+
+                                            <?php endif; ?>
 
                                             <a
-                                                href="<?= htmlspecialchars(
-                                                    $prospect['website_url'],
-                                                    ENT_QUOTES,
-                                                    'UTF-8'
-                                                ) ?>"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
+                                                href="/admin/prospection/prospect.php?id=<?= (int) $prospect['id'] ?>"
+                                                class="admin-text-link"
                                             >
-                                                Site ↗
+                                                Ouvrir
+                                                <span aria-hidden="true">→</span>
                                             </a>
 
-                                        <?php endif; ?>
-
-                                        <a
-                                            href="/admin/prospection/prospect.php?id=<?= (int) $prospect['id'] ?>"
-                                        >
-                                            Ouvrir
-                                        </a>
+                                        </div>
 
                                     </div>
 

@@ -2441,3 +2441,117 @@ select:focus-visible {
     }
 
 }
+
+/* ============================================================
+   PROSPECTION — LISTE DES PROSPECTS
+   ============================================================ */
+
+.prospect-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+
+    padding: 1.5rem;
+
+    border: 1px solid rgba(13, 27, 42, 0.1);
+    border-radius: 18px;
+
+    background: #fff;
+}
+
+.prospect-row + .prospect-row {
+    margin-top: 1rem;
+}
+
+.prospect-row__main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.prospect-row__identity {
+    min-width: 0;
+}
+
+.prospect-row__location {
+    display: block;
+
+    margin-bottom: 0.35rem;
+
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    color: #727b86;
+}
+
+.prospect-row__identity h3 {
+    margin: 0;
+
+    font-size: 1.35rem;
+    line-height: 1.2;
+
+    color: #0d1b2a;
+}
+
+.prospect-row__activity {
+    display: block;
+    margin-top: 0.4rem;
+
+    font-size: 0.85rem;
+    color: #727b86;
+}
+
+.prospect-row__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+
+    padding-top: 1rem;
+
+    border-top: 1px solid rgba(13, 27, 42, 0.08);
+}
+
+.prospect-row__score {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+
+    font-size: 0.8rem;
+    color: #727b86;
+}
+
+.prospect-row__score strong {
+    font-size: 1rem;
+    color: #0d1b2a;
+}
+
+.prospect-row__actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+
+/* ============================================================
+   PROSPECTION — RESPONSIVE LISTE
+   ============================================================ */
+
+@media (max-width: 720px) {
+
+    .prospect-row__main,
+    .prospect-row__footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .prospect-row__actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+}
