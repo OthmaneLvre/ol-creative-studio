@@ -607,6 +607,288 @@ final class ProspectRepository
         }
     }
 
+    /**
+     * Enregistre le résultat du scoring d'un prospect.
+     */
+    public function saveScoringResult(
+        int $prospectId,
+        array $scoring
+    ): void {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant prospect invalide.'
+            );
+        }
+
+        if (
+            !isset(
+                $scoring['score'],
+                $scoring['qualified'],
+                $scoring['breakdown']
+            )
+        ) {
+            throw new InvalidArgumentException(
+                'Résultat de scoring incomplet.'
+            );
+        }
+
+        $score = (int) $scoring['score'];
+
+        if ($score < 0 || $score > 100) {
+            throw new InvalidArgumentException(
+                'Le score doit être compris entre 0 et 100.'
+            );
+        }
+
+        $breakdown = $scoring['breakdown'];
+
+        $requiredCategories = [
+            'commercial_potential',
+            'website_gaps',
+            'digital_presence',
+            'business_fit',
+            'contactability',
+        ];
+
+        foreach ($requiredCategories as $category) {
+            if (
+                !isset(
+                    $breakdown[$category]['score']
+                )
+            ) {
+                throw new InvalidArgumentException(
+                    'Sous-score manquant : '
+                    . $category
+                );
+            }
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            /*
+            * Verrouillage du prospect et récupération
+            * de son statut réel.
+            */
+            $prospectStatement =
+                $this->pdo->prepare(
+                    <<<SQL
+                        SELECT status
+                        FROM prospects
+                        WHERE id = :prospect_id
+                        LIMIT 1
+                        FOR UPDATE
+                    SQL
+                );
+
+            $prospectStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $previousStatus =
+                $prospectStatement->fetchColumn();
+
+            if ($previousStatus === false) {
+                throw new RuntimeException(
+                    'Le prospect est introuvable.'
+                );
+            }
+
+            /*
+            * On applique le scoring à la dernière
+            * analyse technique disponible.
+            */
+            $analysisStatement =
+                $this->pdo->prepare(
+                    <<<SQL
+                        SELECT id
+                        FROM prospect_analyses
+                        WHERE prospect_id = :prospect_id
+                        ORDER BY id DESC
+                        LIMIT 1
+                        FOR UPDATE
+                    SQL
+                );
+
+            $analysisStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $analysisId =
+                $analysisStatement->fetchColumn();
+
+            if ($analysisId === false) {
+                throw new RuntimeException(
+                    'Aucune analyse technique disponible.'
+                );
+            }
+
+            $updateAnalysis =
+                $this->pdo->prepare(
+                    <<<SQL
+                        UPDATE prospect_analyses
+                        SET
+                            commercial_potential_score =
+                                :commercial_potential_score,
+
+                            website_gaps_score =
+                                :website_gaps_score,
+
+                            digital_presence_score =
+                                :digital_presence_score,
+
+                            business_fit_score =
+                                :business_fit_score,
+
+                            contactability_score =
+                                :contactability_score,
+
+                            overall_score =
+                                :overall_score,
+
+                            scoring_details =
+                                :scoring_details,
+
+                            updated_at =
+                                CURRENT_TIMESTAMP
+
+                        WHERE id = :analysis_id
+                    SQL
+                );
+
+            $updateAnalysis->execute([
+                'commercial_potential_score' =>
+                    (int) $breakdown[
+                        'commercial_potential'
+                    ]['score'],
+
+                'website_gaps_score' =>
+                    (int) $breakdown[
+                        'website_gaps'
+                    ]['score'],
+
+                'digital_presence_score' =>
+                    (int) $breakdown[
+                        'digital_presence'
+                    ]['score'],
+
+                'business_fit_score' =>
+                    (int) $breakdown[
+                        'business_fit'
+                    ]['score'],
+
+                'contactability_score' =>
+                    (int) $breakdown[
+                        'contactability'
+                    ]['score'],
+
+                'overall_score' =>
+                    $score,
+
+                'scoring_details' =>
+                    json_encode(
+                        $scoring,
+                        JSON_THROW_ON_ERROR
+                        | JSON_UNESCAPED_UNICODE
+                        | JSON_UNESCAPED_SLASHES
+                    ),
+
+                'analysis_id' =>
+                    (int) $analysisId,
+            ]);
+
+            /*
+            * À ce stade :
+            *
+            * >= 60 → qualified
+            * < 60  → reste analyzed
+            *
+            * Le passage à pending_validation arrivera
+            * après génération de l'audit et du message.
+            */
+            $newStatus =
+                $scoring['qualified']
+                    ? 'qualified'
+                    : 'analyzed';
+
+            $updateProspect =
+                $this->pdo->prepare(
+                    <<<SQL
+                        UPDATE prospects
+                        SET
+                            score = :score,
+                            status = :status,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE id = :prospect_id
+                    SQL
+                );
+
+            $updateProspect->execute([
+                'score' => $score,
+                'status' => $newStatus,
+                'prospect_id' => $prospectId,
+            ]);
+
+            $this->addEvent(
+                $prospectId,
+                'prospect_scored',
+                (string) $previousStatus,
+                $newStatus,
+                'Score de qualification calculé.',
+                [
+                    'analysis_id' =>
+                        (int) $analysisId,
+
+                    'score' =>
+                        $score,
+
+                    'threshold' =>
+                        (int) (
+                            $scoring['threshold']
+                            ?? 60
+                        ),
+
+                    'qualified' =>
+                        (bool) $scoring['qualified'],
+
+                    'commercial_potential_score' =>
+                        (int) $breakdown[
+                            'commercial_potential'
+                        ]['score'],
+
+                    'website_gaps_score' =>
+                        (int) $breakdown[
+                            'website_gaps'
+                        ]['score'],
+
+                    'digital_presence_score' =>
+                        (int) $breakdown[
+                            'digital_presence'
+                        ]['score'],
+
+                    'business_fit_score' =>
+                        (int) $breakdown[
+                            'business_fit'
+                        ]['score'],
+
+                    'contactability_score' =>
+                        (int) $breakdown[
+                            'contactability'
+                        ]['score'],
+                ]
+            );
+
+            $this->pdo->commit();
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
     private function nullableTrim(?string $value): ?string
     {
         if ($value === null) {

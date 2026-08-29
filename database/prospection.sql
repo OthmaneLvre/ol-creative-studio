@@ -118,6 +118,12 @@ CREATE TABLE IF NOT EXISTS prospect_analyses (
 
     detected_email VARCHAR(190) DEFAULT NULL,
 
+    commercial_potential_score SMALLINT UNSIGNED DEFAULT NULL,
+    website_gaps_score SMALLINT UNSIGNED DEFAULT NULL,
+    digital_presence_score SMALLINT UNSIGNED DEFAULT NULL,
+    business_fit_score SMALLINT UNSIGNED DEFAULT NULL,
+    contactability_score SMALLINT UNSIGNED DEFAULT NULL,
+
     performance_score SMALLINT UNSIGNED DEFAULT NULL,
     seo_score SMALLINT UNSIGNED DEFAULT NULL,
     design_score SMALLINT UNSIGNED DEFAULT NULL,
@@ -125,6 +131,7 @@ CREATE TABLE IF NOT EXISTS prospect_analyses (
     technical_score SMALLINT UNSIGNED DEFAULT NULL,
 
     overall_score SMALLINT UNSIGNED DEFAULT NULL,
+    scoring_details JSON DEFAULT NULL,
 
     weaknesses JSON DEFAULT NULL,
     strengths JSON DEFAULT NULL,
