@@ -327,4 +327,42 @@ CREATE TABLE IF NOT EXISTS prospect_unsubscribes (
   COLLATE=utf8mb4_unicode_ci;
 
 
+-- ============================================================
+-- PROSPECTING AREAS
+-- Zones géographiques parcourues par le moteur de découverte
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS prospecting_areas (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    city VARCHAR(120) NOT NULL,
+    postal_code VARCHAR(10) DEFAULT NULL,
+    department VARCHAR(120) DEFAULT NULL,
+
+    latitude DECIMAL(10, 7) DEFAULT NULL,
+    longitude DECIMAL(10, 7) DEFAULT NULL,
+
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+
+    last_scanned_at DATETIME DEFAULT NULL,
+
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_prospecting_area_city_postal (
+        city,
+        postal_code
+    ),
+
+    INDEX idx_prospecting_areas_active_scan (
+        is_active,
+        last_scanned_at
+    )
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;
+
+
 SET FOREIGN_KEY_CHECKS = 1;
