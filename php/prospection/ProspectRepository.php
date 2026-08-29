@@ -404,6 +404,209 @@ final class ProspectRepository
         }
     }
 
+    /**
+     * Enregistre l'analyse technique du site d'un prospect.
+     */
+    public function saveWebsiteAnalysis(
+        int $prospectId,
+        array $analysis
+    ): int {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant prospect invalide.'
+            );
+        }
+
+        $requiredKeys = [
+            'website_reachable',
+            'has_ssl',
+            'is_mobile_friendly',
+            'has_contact_page',
+            'has_contact_form',
+            'has_visible_email',
+            'has_visible_phone',
+            'has_social_links',
+        ];
+
+        foreach ($requiredKeys as $key) {
+            if (!array_key_exists($key, $analysis)) {
+                throw new InvalidArgumentException(
+                    'Donnée d’analyse manquante : ' . $key
+                );
+            }
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statusQuery = $this->pdo->prepare(
+                'SELECT status
+                FROM prospects
+                WHERE id = :prospect_id
+                LIMIT 1
+                FOR UPDATE'
+            );
+
+            $statusQuery->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $previousStatus = $statusQuery->fetchColumn();
+
+            if ($previousStatus === false) {
+                throw new RuntimeException(
+                    'Le prospect est introuvable.'
+                );
+            }
+
+            /*
+            * On conserve une seule analyse active par prospect
+            * pour cette V1.
+            */
+            $deleteStatement = $this->pdo->prepare(
+                'DELETE FROM prospect_analyses
+                WHERE prospect_id = :prospect_id'
+            );
+
+            $deleteStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $sql = <<<SQL
+                INSERT INTO prospect_analyses (
+                    prospect_id,
+                    website_reachable,
+                    has_ssl,
+                    is_mobile_friendly,
+                    has_contact_page,
+                    has_social_links,
+                    has_visible_email,
+                    raw_analysis
+                ) VALUES (
+                    :prospect_id,
+                    :website_reachable,
+                    :has_ssl,
+                    :is_mobile_friendly,
+                    :has_contact_page,
+                    :has_social_links,
+                    :has_visible_email,
+                    :raw_analysis
+                )
+            SQL;
+
+            $statement = $this->pdo->prepare($sql);
+
+            $statement->execute([
+                'prospect_id' => $prospectId,
+
+                'website_reachable' =>
+                    $analysis['website_reachable'] ? 1 : 0,
+
+                'has_ssl' =>
+                    $analysis['has_ssl'] ? 1 : 0,
+
+                'is_mobile_friendly' =>
+                    $analysis['is_mobile_friendly'] ? 1 : 0,
+
+                'has_contact_page' =>
+                    (
+                        $analysis['has_contact_page']
+                        || $analysis['has_contact_form']
+                    ) ? 1 : 0,
+
+                'has_social_links' =>
+                    $analysis['has_social_links'] ? 1 : 0,
+
+                'has_visible_email' =>
+                    $analysis['has_visible_email'] ? 1 : 0,
+
+                'raw_analysis' =>
+                    json_encode(
+                        $analysis,
+                        JSON_THROW_ON_ERROR
+                        | JSON_UNESCAPED_SLASHES
+                        | JSON_UNESCAPED_UNICODE
+                    ),
+            ]);
+
+            $analysisId =
+                (int) $this->pdo->lastInsertId();
+
+            $statusStatement =
+                $this->pdo->prepare(
+                    <<<SQL
+                        UPDATE prospects
+                        SET
+                            status = 'analyzed',
+                            analyzed_at = CURRENT_TIMESTAMP,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE id = :prospect_id
+                    SQL
+                );
+
+            $statusStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            if ($statusStatement->rowCount() === 0) {
+                $checkStatement =
+                    $this->pdo->prepare(
+                        'SELECT 1
+                        FROM prospects
+                        WHERE id = :id
+                        LIMIT 1'
+                    );
+
+                $checkStatement->execute([
+                    'id' => $prospectId,
+                ]);
+
+                if (
+                    $checkStatement->fetchColumn()
+                    === false
+                ) {
+                    throw new RuntimeException(
+                        'Le prospect est introuvable.'
+                    );
+                }
+            }
+
+            $this->addEvent(
+                $prospectId,
+                'prospect_analyzed',
+                (string) $previousStatus,
+                'analyzed',
+                'Analyse technique du site terminée.',
+                [
+                    'analysis_id' => $analysisId,
+                    'website_reachable' =>
+                        $analysis['website_reachable'],
+                    'http_status' =>
+                        $analysis['http_status'] ?? null,
+                    'has_ssl' =>
+                        $analysis['has_ssl'],
+                    'is_mobile_friendly' =>
+                        $analysis['is_mobile_friendly'],
+                    'has_visible_email' =>
+                        $analysis['has_visible_email'],
+                    'has_visible_phone' =>
+                        $analysis['has_visible_phone'],
+                ]
+            );
+
+            $this->pdo->commit();
+
+            return $analysisId;
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
     private function nullableTrim(?string $value): ?string
     {
         if ($value === null) {
