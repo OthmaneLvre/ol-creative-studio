@@ -44,6 +44,13 @@ $activePage = $adminActivePage ?? '';
         </a>
 
         <a
+            href="/admin/prospection/"
+            class="admin-sidebar__link <?= $activePage === 'prospection' ? 'is-active' : '' ?>"
+        >
+            <span>Prospection</span>
+        </a>
+
+        <a
             href="/admin/avis.php"
             class="admin-sidebar__link <?= $activePage === 'avis' ? 'is-active' : '' ?>"
         >
