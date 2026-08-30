@@ -1831,6 +1831,100 @@ final class ProspectRepository
         ]);
     }
 
+    public function findApprovedProspectsForScheduling(
+        int $limit = 50
+    ): array {
+        if ($limit < 1 || $limit > 500) {
+            throw new InvalidArgumentException(
+                'Limite de récupération invalide.'
+            );
+        }
+
+        $sql = <<<SQL
+            SELECT
+                p.id AS prospect_id,
+                p.company_name,
+                p.validated_at,
+                e.id AS email_id,
+                e.approved_at
+            FROM prospects p
+            INNER JOIN prospect_emails e
+                ON e.prospect_id = p.id
+            WHERE p.status = 'approved'
+            AND e.email_type = 'initial'
+            AND e.status = 'approved'
+            AND e.id = (
+                SELECT MAX(e2.id)
+                FROM prospect_emails e2
+                WHERE e2.prospect_id = p.id
+                    AND e2.email_type = 'initial'
+            )
+            ORDER BY
+                e.approved_at ASC,
+                p.id ASC
+            LIMIT {$limit}
+        SQL;
+
+        $statement = $this->pdo->query($sql);
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function scheduleApprovedBatch(
+        ProspectScheduler $scheduler,
+        DateTimeZone $timezone,
+        int $limit = 50
+    ): array {
+        $prospects = $this->findApprovedProspectsForScheduling(
+            $limit
+        );
+
+        $results = [
+            'found' => count($prospects),
+            'scheduled' => 0,
+            'failed' => 0,
+            'items' => [],
+        ];
+
+        foreach ($prospects as $prospect) {
+            $prospectId = (int) $prospect['prospect_id'];
+
+            try {
+                $scheduledAt =
+                    $this->scheduleApprovedProspectWithDailyLimit(
+                        $prospectId,
+                        $scheduler,
+                        $timezone
+                    );
+
+                $results['scheduled']++;
+
+                $results['items'][] = [
+                    'prospect_id' => $prospectId,
+                    'company_name' =>
+                        (string) $prospect['company_name'],
+                    'status' => 'scheduled',
+                    'scheduled_at' =>
+                        $scheduledAt->format('Y-m-d H:i:s'),
+                    'error' => null,
+                ];
+            } catch (Throwable $exception) {
+                $results['failed']++;
+
+                $results['items'][] = [
+                    'prospect_id' => $prospectId,
+                    'company_name' =>
+                        (string) $prospect['company_name'],
+                    'status' => 'failed',
+                    'scheduled_at' => null,
+                    'error' => $exception->getMessage(),
+                ];
+            }
+        }
+
+        return $results;
+    }
+
     public function countScheduledInitialEmailsForDate(
         DateTimeImmutable $date
     ): int {
