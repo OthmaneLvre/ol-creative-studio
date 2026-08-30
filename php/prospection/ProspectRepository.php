@@ -926,8 +926,6 @@ final class ProspectRepository
             );
         }
 
-
-
         try {
             $this->pdo->beginTransaction();
             
@@ -1048,6 +1046,259 @@ final class ProspectRepository
 
             throw $exception;
         }
+    }
+
+    public function saveInitialEmailDraft(
+        int $prospectId,
+        array $message
+    ): int {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant prospect invalide.'
+            );
+        }
+
+        foreach (
+            ['subject', 'preheader', 'opening', 'body', 'cta']
+            as $key
+        ) {
+            if (
+                !isset($message[$key])
+                || trim((string) $message[$key]) === ''
+            ) {
+                throw new InvalidArgumentException(
+                    'Champ du message manquant : ' . $key
+                );
+            }
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $prospectStatement = $this->pdo->prepare(
+                <<<SQL
+                    SELECT
+                        status,
+                        email,
+                        company_name
+                    FROM prospects
+                    WHERE id = :id
+                    LIMIT 1
+                    FOR UPDATE
+                SQL
+            );
+
+            $prospectStatement->execute([
+                'id' => $prospectId,
+            ]);
+
+            $prospect = $prospectStatement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($prospect === false) {
+                throw new RuntimeException(
+                    'Prospect introuvable.'
+                );
+            }
+
+            if ($prospect['status'] !== 'qualified') {
+                throw new RuntimeException(
+                    'Le prospect doit être qualifié.'
+                );
+            }
+
+            $recipientEmail = trim(
+                (string) ($prospect['email'] ?? '')
+            );
+
+            if (
+                filter_var(
+                    $recipientEmail,
+                    FILTER_VALIDATE_EMAIL
+                ) === false
+            ) {
+                throw new RuntimeException(
+                    'Adresse e-mail du prospect invalide.'
+                );
+            }
+
+            $bodyText = implode(
+                PHP_EOL . PHP_EOL,
+                [
+                    trim((string) $message['opening']),
+                    trim((string) $message['body']),
+                    trim((string) $message['cta']),
+                    'OL Creative Studio',
+                ]
+            );
+
+            $bodyHtml = $this->buildInitialEmailHtml(
+                $message
+            );
+
+            $insertStatement = $this->pdo->prepare(
+                <<<SQL
+                    INSERT INTO prospect_emails (
+                        prospect_id,
+                        email_type,
+                        recipient_email,
+                        subject,
+                        body_html,
+                        body_text,
+                        status
+                    ) VALUES (
+                        :prospect_id,
+                        'initial',
+                        :recipient_email,
+                        :subject,
+                        :body_html,
+                        :body_text,
+                        'draft'
+                    )
+                SQL
+            );
+
+            $insertStatement->execute([
+                'prospect_id' => $prospectId,
+                'recipient_email' => $recipientEmail,
+                'subject' => trim(
+                    (string) $message['subject']
+                ),
+                'body_html' => $bodyHtml,
+                'body_text' => $bodyText,
+            ]);
+
+            $emailId = (int) $this->pdo->lastInsertId();
+
+            $updateProspect = $this->pdo->prepare(
+                <<<SQL
+                    UPDATE prospects
+                    SET
+                        status = 'pending_validation',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :prospect_id
+                SQL
+            );
+
+            $updateProspect->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $this->addEvent(
+                $prospectId,
+                'prospect_email_draft_generated',
+                'qualified',
+                'pending_validation',
+                'Premier e-mail de prospection généré et placé en validation.',
+                [
+                    'email_id' => $emailId,
+                    'email_type' => 'initial',
+                    'recipient_email' => $recipientEmail,
+                    'subject' => trim(
+                        (string) $message['subject']
+                    ),
+                ]
+            );
+
+            $this->pdo->commit();
+
+            return $emailId;
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function buildInitialEmailHtml(
+        array $message
+    ): string {
+        $subject = htmlspecialchars(
+            (string) $message['subject'],
+            ENT_QUOTES,
+            'UTF-8'
+        );
+
+        $preheader = htmlspecialchars(
+            (string) $message['preheader'],
+            ENT_QUOTES,
+            'UTF-8'
+        );
+
+        $opening = nl2br(
+            htmlspecialchars(
+                (string) $message['opening'],
+                ENT_QUOTES,
+                'UTF-8'
+            )
+        );
+
+        $body = nl2br(
+            htmlspecialchars(
+                (string) $message['body'],
+                ENT_QUOTES,
+                'UTF-8'
+            )
+        );
+
+        $cta = htmlspecialchars(
+            (string) $message['cta'],
+            ENT_QUOTES,
+            'UTF-8'
+        );
+
+        return <<<HTML
+    <!doctype html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>{$subject}</title>
+    </head>
+    <body style="margin:0;padding:0;background:#f4f5f6;font-family:Arial,sans-serif;color:#0D1B2A;">
+        <div style="display:none;max-height:0;overflow:hidden;">
+            {$preheader}
+        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+                <td align="center" style="padding:32px 16px;">
+                    <table width="600" cellpadding="0" cellspacing="0" role="presentation"
+                        style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;">
+                        <tr>
+                            <td style="padding:32px;">
+                                <div style="font-size:22px;font-weight:700;margin-bottom:24px;">
+                                    OL Creative Studio
+                                </div>
+
+                                <p style="font-size:16px;line-height:1.6;">
+                                    {$opening}
+                                </p>
+
+                                <p style="font-size:16px;line-height:1.6;">
+                                    {$body}
+                                </p>
+
+                                <p style="font-size:16px;line-height:1.6;font-weight:600;">
+                                    {$cta}
+                                </p>
+
+                                <p style="margin-top:32px;font-size:14px;line-height:1.6;">
+                                    OL Creative Studio<br>
+                                    Développement web & design graphique
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    HTML;
     }
 
     private function nullableTrim(?string $value): ?string
