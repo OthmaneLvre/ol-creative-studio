@@ -1888,6 +1888,457 @@ final class ProspectRepository
         );
     }
 
+    public function claimScheduledInitialEmail(
+        int $emailId,
+        int $maxAttempts = 3
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        if ($maxAttempts < 1) {
+            throw new InvalidArgumentException(
+                'Nombre maximal de tentatives invalide.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouillage de l’e-mail
+            |--------------------------------------------------------------------------
+            */
+
+            $statement = $this->pdo->prepare(
+                '
+                SELECT
+                    e.*,
+                    p.company_name,
+                    p.status AS prospect_status,
+                    p.email_source_url,
+                    p.email_type AS prospect_email_type,
+                    p.email_confidence
+                FROM prospect_emails e
+                INNER JOIN prospects p
+                    ON p.id = e.prospect_id
+                WHERE e.id = :email_id
+                AND e.email_type = :email_type
+                LIMIT 1
+                FOR UPDATE
+                '
+            );
+
+            $statement->execute([
+                'email_id' => $emailId,
+                'email_type' => 'initial',
+            ]);
+
+            $email = $statement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'E-mail initial introuvable.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Revalidation
+            |--------------------------------------------------------------------------
+            */
+
+            if ($email['status'] !== 'scheduled') {
+                throw new RuntimeException(
+                    'Cet e-mail n’est plus programmé.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'scheduled'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n’est plus programmé.'
+                );
+            }
+
+            if (!empty($email['sent_at'])) {
+                throw new RuntimeException(
+                    'Cet e-mail a déjà été envoyé.'
+                );
+            }
+
+            if (empty($email['scheduled_at'])) {
+                throw new RuntimeException(
+                    'Date de programmation absente.'
+                );
+            }
+
+            $scheduledAt = new DateTimeImmutable(
+                (string) $email['scheduled_at']
+            );
+
+            $now = new DateTimeImmutable();
+
+            if ($scheduledAt > $now) {
+                throw new RuntimeException(
+                    'Cet e-mail n’est pas encore arrivé à échéance.'
+                );
+            }
+
+            $sendAttempts = (int) (
+                $email['send_attempts']
+                ?? 0
+            );
+
+            if ($sendAttempts >= $maxAttempts) {
+                throw new RuntimeException(
+                    'Nombre maximal de tentatives atteint.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Claim
+            |--------------------------------------------------------------------------
+            */
+
+            $newAttemptCount =
+                $sendAttempts + 1;
+
+            $update = $this->pdo->prepare(
+                '
+                UPDATE prospect_emails
+                SET
+                    status = :status,
+                    send_attempts = :send_attempts,
+                    error_message = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :email_id
+                '
+            );
+
+            $update->execute([
+                'status' => 'sending',
+                'send_attempts' => $newAttemptCount,
+                'email_id' => $emailId,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Historique
+            |--------------------------------------------------------------------------
+            */
+
+            $this->addEvent(
+                (int) $email['prospect_id'],
+                'prospect_email_sending',
+                'scheduled',
+                'scheduled',
+                'Tentative d’envoi du premier e-mail.',
+                [
+                    'email_id' => $emailId,
+                    'send_attempt' => $newAttemptCount,
+                ]
+            );
+
+            $this->pdo->commit();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Valeurs retournées
+            |--------------------------------------------------------------------------
+            */
+
+            $email['status'] = 'sending';
+            $email['send_attempts'] =
+                $newAttemptCount;
+
+            /*
+            * On renomme ici pour conserver
+            * le format attendu par SendGuard.
+            */
+
+            $email['email_type'] =
+                $email['prospect_email_type'];
+
+            unset(
+                $email['prospect_email_type']
+            );
+
+            $email['email_id'] =
+                (int) $email['id'];
+
+            return $email;
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function markInitialEmailSent(
+        int $emailId,
+        string $messageId
+    ): void {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        $messageId = trim($messageId);
+
+        if ($messageId === '') {
+            throw new InvalidArgumentException(
+                'Message-ID obligatoire.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouillage
+            |--------------------------------------------------------------------------
+            */
+
+            $statement = $this->pdo->prepare(
+                '
+                SELECT
+                    e.id,
+                    e.prospect_id,
+                    e.status,
+                    e.sent_at,
+                    p.status AS prospect_status
+                FROM prospect_emails e
+                INNER JOIN prospects p
+                    ON p.id = e.prospect_id
+                WHERE e.id = :email_id
+                AND e.email_type = :email_type
+                LIMIT 1
+                FOR UPDATE
+                '
+            );
+
+            $statement->execute([
+                'email_id' => $emailId,
+                'email_type' => 'initial',
+            ]);
+
+            $email = $statement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'E-mail initial introuvable.'
+                );
+            }
+
+            if ($email['status'] !== 'sending') {
+                throw new RuntimeException(
+                    'L’e-mail n’est pas en cours d’envoi.'
+                );
+            }
+
+            if (!empty($email['sent_at'])) {
+                throw new RuntimeException(
+                    'L’e-mail est déjà marqué comme envoyé.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | E-mail envoyé
+            |--------------------------------------------------------------------------
+            */
+
+            $updateEmail = $this->pdo->prepare(
+                '
+                UPDATE prospect_emails
+                SET
+                    status = :status,
+                    sent_at = CURRENT_TIMESTAMP,
+                    message_id = :message_id,
+                    error_message = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :email_id
+                '
+            );
+
+            $updateEmail->execute([
+                'status' => 'sent',
+                'message_id' => $messageId,
+                'email_id' => $emailId,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Prospect contacté
+            |--------------------------------------------------------------------------
+            */
+
+            $updateProspect = $this->pdo->prepare(
+                '
+                UPDATE prospects
+                SET
+                    status = :status,
+                    contacted_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :prospect_id
+                AND status = :previous_status
+                '
+            );
+
+            $updateProspect->execute([
+                'status' => 'contacted',
+                'prospect_id' =>
+                    (int) $email['prospect_id'],
+                'previous_status' =>
+                    'scheduled',
+            ]);
+
+            $this->addEvent(
+                (int) $email['prospect_id'],
+                'prospect_email_sent',
+                'scheduled',
+                'contacted',
+                'Premier e-mail envoyé.',
+                [
+                    'email_id' => $emailId,
+                    'message_id' => $messageId,
+                ]
+            );
+
+            $this->pdo->commit();
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function markInitialEmailFailed(
+        int $emailId,
+        string $errorMessage
+    ): void {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        $errorMessage = trim(
+            $errorMessage
+        );
+
+        if ($errorMessage === '') {
+            $errorMessage =
+                'Erreur d’envoi inconnue.';
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare(
+                '
+                SELECT
+                    id,
+                    prospect_id,
+                    status
+                FROM prospect_emails
+                WHERE id = :email_id
+                AND email_type = :email_type
+                LIMIT 1
+                FOR UPDATE
+                '
+            );
+
+            $statement->execute([
+                'email_id' => $emailId,
+                'email_type' => 'initial',
+            ]);
+
+            $email = $statement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'E-mail initial introuvable.'
+                );
+            }
+
+            if ($email['status'] !== 'sending') {
+                throw new RuntimeException(
+                    'L’e-mail n’est pas en cours d’envoi.'
+                );
+            }
+
+            $update = $this->pdo->prepare(
+                '
+                UPDATE prospect_emails
+                SET
+                    status = :status,
+                    error_message = :error_message,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :email_id
+                '
+            );
+
+            $update->execute([
+                'status' => 'failed',
+                'error_message' =>
+                    mb_substr(
+                        $errorMessage,
+                        0,
+                        5000
+                    ),
+                'email_id' => $emailId,
+            ]);
+
+            $this->addEvent(
+                (int) $email['prospect_id'],
+                'prospect_email_failed',
+                'scheduled',
+                'scheduled',
+                'Échec de l’envoi du premier e-mail.',
+                [
+                    'email_id' => $emailId,
+                    'error' =>
+                        mb_substr(
+                            $errorMessage,
+                            0,
+                            500
+                        ),
+                ]
+            );
+
+            $this->pdo->commit();
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
     public function findApprovedProspectsForScheduling(
         int $limit = 50
     ): array {
