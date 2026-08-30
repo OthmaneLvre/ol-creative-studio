@@ -6,10 +6,10 @@ require_once __DIR__
     . '/../../admin/prospection/includes/bootstrap.php';
 
 require_once __DIR__
-    . '/AiAuditGenerator.php';
+    . '/../../php/prospection/AiAuditGenerator.php';
 
 require_once __DIR__
-    . '/ProspectRepository.php';
+    . '/../../php/prospection/ProspectRepository.php';
 
 $prospectId = 3;
 
@@ -122,7 +122,7 @@ try {
         . PHP_EOL
         . PHP_EOL;
 
-    echo 'Résumé : '
+    echo 'RÃ©sumÃ© : '
         . $audit['summary']
         . PHP_EOL
         . PHP_EOL;
@@ -143,7 +143,7 @@ try {
     }
 
     echo PHP_EOL
-        . 'Opportunités :'
+        . 'OpportunitÃ©s :'
         . PHP_EOL;
 
     foreach ($audit['opportunities'] as $item) {
@@ -151,7 +151,7 @@ try {
     }
 
     echo PHP_EOL
-        . 'Angle recommandé : '
+        . 'Angle recommandÃ© : '
         . $audit['recommended_angle']
         . PHP_EOL
         . PHP_EOL;
@@ -162,7 +162,7 @@ try {
         . PHP_EOL;
 
     echo PHP_EOL
-    . '[OK] Audit IA enregistré pour le prospect #'
+    . '[OK] Audit IA enregistrÃ© pour le prospect #'
     . $prospectId
     . '.'
     . PHP_EOL;

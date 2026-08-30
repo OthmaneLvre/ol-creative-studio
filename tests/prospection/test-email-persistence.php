@@ -5,8 +5,8 @@ declare(strict_types=1);
 require_once __DIR__
     . '/../../admin/prospection/includes/bootstrap.php';
 
-require_once __DIR__ . '/EmailFinder.php';
-require_once __DIR__ . '/ProspectRepository.php';
+require_once __DIR__ . '/../../php/prospection/EmailFinder.php';
+require_once __DIR__ . '/../../php/prospection/ProspectRepository.php';
 
 $prospectId = 3;
 
@@ -20,7 +20,7 @@ try {
     $emails = $finder->find($websiteUrl);
 
     if ($emails === []) {
-        echo '[INFO] Aucun e-mail public détecté.'
+        echo '[INFO] Aucun e-mail public dÃ©tectÃ©.'
             . PHP_EOL;
 
         exit;
@@ -28,7 +28,7 @@ try {
 
     $email = $emails[0];
 
-    echo 'E-mail détecté : '
+    echo 'E-mail dÃ©tectÃ© : '
         . $email['email']
         . PHP_EOL;
 
@@ -50,7 +50,7 @@ try {
 
     echo PHP_EOL;
 
-    echo '[OK] E-mail enregistré pour le prospect #'
+    echo '[OK] E-mail enregistrÃ© pour le prospect #'
         . $prospectId
         . '.'
         . PHP_EOL;

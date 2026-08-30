@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__
-    . '/WebsiteAnalyzer.php';
+    . '/../../php/prospection/WebsiteAnalyzer.php';
 
 $analyzer =
     new WebsiteAnalyzer();
@@ -34,7 +34,7 @@ try {
             : 'Non')
         . PHP_EOL;
 
-    echo 'Temps réponse : '
+    echo 'Temps rÃ©ponse : '
         . ($analysis['response_time_ms'] ?? '-')
         . ' ms'
         . PHP_EOL;
@@ -104,13 +104,13 @@ try {
             : 'Non')
         . PHP_EOL;
 
-    echo 'Téléphone visible : '
+    echo 'TÃ©lÃ©phone visible : '
         . ($analysis['has_visible_phone']
             ? 'Oui'
             : 'Non')
         . PHP_EOL;
 
-    echo 'Réseaux sociaux : '
+    echo 'RÃ©seaux sociaux : '
         . ($analysis['has_social_links']
             ? 'Oui'
             : 'Non')
@@ -139,7 +139,7 @@ try {
                     ', ',
                     $analysis['technologies']
                 )
-                : 'Aucune détectée'
+                : 'Aucune dÃ©tectÃ©e'
         )
         . PHP_EOL;
 

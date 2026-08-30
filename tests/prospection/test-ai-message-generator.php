@@ -6,10 +6,10 @@ require_once __DIR__
     . '/../../admin/prospection/includes/bootstrap.php';
 
 require_once __DIR__
-    . '/AiMessageGenerator.php';
+    . '/../../php/prospection/AiMessageGenerator.php';
 
 require_once __DIR__
-    . '/ProspectRepository.php';
+    . '/../../php/prospection/ProspectRepository.php';
 
 $prospectId = 3;
 
@@ -71,7 +71,7 @@ try {
         !== 'qualified'
     ) {
         throw new RuntimeException(
-            'Le prospect doit être qualifié avant la génération du message.'
+            'Le prospect doit Ãªtre qualifiÃ© avant la gÃ©nÃ©ration du message.'
         );
     }
 
@@ -120,7 +120,7 @@ try {
     }
 
     /*
-     * Génération du premier message.
+     * GÃ©nÃ©ration du premier message.
      */
     $generator = new AiMessageGenerator(
         $apiKey,
@@ -158,7 +158,7 @@ try {
         . PHP_EOL
         . PHP_EOL;
 
-    echo 'Préheader :'
+    echo 'PrÃ©header :'
         . PHP_EOL
         . $message['preheader']
         . PHP_EOL
@@ -184,9 +184,9 @@ try {
     echo PHP_EOL
         . '[OK] Brouillon e-mail #'
         . $emailId
-        . ' enregistré.'
+        . ' enregistrÃ©.'
         . PHP_EOL;
-    
+
 
 } catch (Throwable $exception) {
     echo '[ERREUR] '

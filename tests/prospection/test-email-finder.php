@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/EmailFinder.php';
+require_once __DIR__ . '/../../php/prospection/EmailFinder.php';
 
 $finder = new EmailFinder();
 
@@ -11,7 +11,7 @@ try {
         'https://sarllesplombiersceretans.site-solocal.com/'
     );
 
-    echo 'E-mails trouvés : '
+    echo 'E-mails trouvÃ©s : '
         . count($emails)
         . PHP_EOL;
 
@@ -36,7 +36,7 @@ try {
     }
 
     if ($emails === []) {
-        echo 'Aucun e-mail public détecté.'
+        echo 'Aucun e-mail public dÃ©tectÃ©.'
             . PHP_EOL;
     }
 } catch (Throwable $exception) {

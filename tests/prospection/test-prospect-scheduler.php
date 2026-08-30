@@ -14,7 +14,7 @@ $timezone = new DateTimeZone('Europe/Paris');
 
 /*
 |--------------------------------------------------------------------------
-| Test 1 — Validation un dimanche
+| Test 1 â€” Validation un dimanche
 |--------------------------------------------------------------------------
 */
 
@@ -37,13 +37,13 @@ if (
     !== '2026-08-31 09:30:00'
 ) {
     throw new RuntimeException(
-        'Échec du test 1.'
+        'Ã‰chec du test 1.'
     );
 }
 
 /*
 |--------------------------------------------------------------------------
-| Test 2 — Lundi complet
+| Test 2 â€” Lundi complet
 |--------------------------------------------------------------------------
 */
 
@@ -67,13 +67,13 @@ if (
     !== '2026-09-01 09:30:00'
 ) {
     throw new RuntimeException(
-        'Échec du test 2.'
+        'Ã‰chec du test 2.'
     );
 }
 
 /*
 |--------------------------------------------------------------------------
-| Test 3 — Validation un vendredi
+| Test 3 â€” Validation un vendredi
 |--------------------------------------------------------------------------
 */
 
@@ -96,11 +96,10 @@ if (
     !== '2026-09-07 09:30:00'
 ) {
     throw new RuntimeException(
-        'Échec du test 3.'
+        'Ã‰chec du test 3.'
     );
 }
 
 echo PHP_EOL;
 echo 'Tous les tests du scheduler sont OK.'
     . PHP_EOL;
-    

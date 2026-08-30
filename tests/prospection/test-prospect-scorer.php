@@ -6,7 +6,7 @@ require_once __DIR__
     . '/../../admin/prospection/includes/bootstrap.php';
 
 require_once __DIR__
-    . '/ProspectScorer.php';
+    . '/../../php/prospection/ProspectScorer.php';
 
 $prospectId = 3;
 
@@ -95,7 +95,7 @@ try {
         . '/100'
         . PHP_EOL;
 
-    echo 'Qualifié : '
+    echo 'QualifiÃ© : '
         . (
             $result['qualified']
                 ? 'Oui'

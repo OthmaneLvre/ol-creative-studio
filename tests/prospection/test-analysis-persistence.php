@@ -6,10 +6,10 @@ require_once __DIR__
     . '/../../admin/prospection/includes/bootstrap.php';
 
 require_once __DIR__
-    . '/WebsiteAnalyzer.php';
+    . '/../../php/prospection/WebsiteAnalyzer.php';
 
 require_once __DIR__
-    . '/ProspectRepository.php';
+    . '/../../php/prospection/ProspectRepository.php';
 
 $prospectId = 3;
 
@@ -58,7 +58,7 @@ try {
             : 'Non')
         . PHP_EOL;
 
-    echo 'Téléphone visible : '
+    echo 'TÃ©lÃ©phone visible : '
         . ($analysis['has_visible_phone']
             ? 'Oui'
             : 'Non')
@@ -74,7 +74,7 @@ try {
 
     echo '[OK] Analyse #'
         . $analysisId
-        . ' enregistrée pour le prospect #'
+        . ' enregistrÃ©e pour le prospect #'
         . $prospectId
         . '.'
         . PHP_EOL;

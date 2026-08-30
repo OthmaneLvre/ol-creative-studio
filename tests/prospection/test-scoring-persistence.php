@@ -6,10 +6,10 @@ require_once __DIR__
     . '/../../admin/prospection/includes/bootstrap.php';
 
 require_once __DIR__
-    . '/ProspectRepository.php';
+    . '/../../php/prospection/ProspectRepository.php';
 
 require_once __DIR__
-    . '/ProspectScorer.php';
+    . '/../../php/prospection/ProspectScorer.php';
 
 $prospectId = 3;
 
@@ -49,7 +49,7 @@ try {
     }
 
     /*
-     * Dernière analyse technique.
+     * DerniÃ¨re analyse technique.
      */
     $analysisStatement = $pdo->prepare(
         <<<SQL
@@ -102,12 +102,12 @@ try {
         . $prospect['company_name']
         . PHP_EOL;
 
-    echo 'Score calculé : '
+    echo 'Score calculÃ© : '
         . $scoring['score']
         . '/100'
         . PHP_EOL;
 
-    echo 'Qualifié : '
+    echo 'QualifiÃ© : '
         . (
             $scoring['qualified']
                 ? 'Oui'
@@ -127,7 +127,7 @@ try {
         $scoring
     );
 
-    echo '[OK] Score enregistré pour le prospect #'
+    echo '[OK] Score enregistrÃ© pour le prospect #'
         . $prospectId
         . '.'
         . PHP_EOL;

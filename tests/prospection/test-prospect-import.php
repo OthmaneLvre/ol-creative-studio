@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../admin/prospection/includes/bootstrap.php';
-require_once __DIR__ . '/ProspectFinder.php';
-require_once __DIR__ . '/ProspectRepository.php';
+require_once __DIR__ . '/../../php/prospection/ProspectFinder.php';
+require_once __DIR__ . '/../../php/prospection/ProspectRepository.php';
 
 $finder = new ProspectFinder();
 $repository = new ProspectRepository($pdo);
@@ -12,12 +12,12 @@ $repository = new ProspectRepository($pdo);
 try {
     $companies = $finder->search(
         'plombier',
-        'Céret',
+        'CÃ©ret',
         '66400',
         10
     );
 
-    echo 'Entreprises trouvées : '
+    echo 'Entreprises trouvÃ©es : '
         . count($companies)
         . PHP_EOL;
 
@@ -32,7 +32,7 @@ try {
             continue;
         }
 
-        echo '[AJOUTÉ] #'
+        echo '[AJOUTÃ‰] #'
             . $id
             . ' '
             . $company['company_name']
