@@ -1858,7 +1858,114 @@ final class ProspectRepository
         return (int) $stmt->fetchColumn();
     }
 
-    public function scheduleApprovedProspect(
+    public function scheduleApprovedProspectWithDailyLimit(
+        int $prospectId,
+        ProspectScheduler $scheduler,
+        DateTimeZone $timezone
+    ): DateTimeImmutable {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException('Identifiant prospect invalide.');
+        }
+
+        $lockName = 'ol_prospection_scheduler';
+
+        $lockStmt = $this->pdo->prepare(
+            'SELECT GET_LOCK(:lock_name, :timeout)'
+        );
+
+        $lockStmt->execute([
+            'lock_name' => $lockName,
+            'timeout' => 5,
+        ]);
+
+        $lockAcquired = (int) $lockStmt->fetchColumn();
+
+        if ($lockAcquired !== 1) {
+            throw new RuntimeException(
+                'Impossible d’obtenir le verrou du scheduler.'
+            );
+        }
+
+        try {
+            $stmt = $this->pdo->prepare(
+                '
+                SELECT
+                    p.status AS prospect_status,
+                    e.status AS email_status,
+                    e.approved_at
+                FROM prospects p
+                INNER JOIN prospect_emails e
+                    ON e.prospect_id = p.id
+                WHERE p.id = :prospect_id
+                AND e.email_type = :email_type
+                ORDER BY e.id DESC
+                LIMIT 1
+                '
+            );
+
+            $stmt->execute([
+                'prospect_id' => $prospectId,
+                'email_type' => 'initial',
+            ]);
+
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$row) {
+                throw new RuntimeException(
+                    'Prospect ou e-mail initial introuvable.'
+                );
+            }
+
+            if ($row['prospect_status'] !== 'approved') {
+                throw new RuntimeException(
+                    'Le prospect doit être approuvé avant programmation.'
+                );
+            }
+
+            if ($row['email_status'] !== 'approved') {
+                throw new RuntimeException(
+                    'L’e-mail initial doit être approuvé avant programmation.'
+                );
+            }
+
+            if (empty($row['approved_at'])) {
+                throw new RuntimeException(
+                    'La date d’approbation de l’e-mail est absente.'
+                );
+            }
+
+            $approvedAt = new DateTimeImmutable(
+                (string) $row['approved_at'],
+                $timezone
+            );
+
+            $scheduledAt = $scheduler->findNextAvailableSlot(
+                $approvedAt,
+                function (string $date) use ($timezone): int {
+                    return $this->countScheduledInitialEmailsForDate(
+                        new DateTimeImmutable($date, $timezone)
+                    );
+                }
+            );
+
+            $this->scheduleApprovedProspect(
+                $prospectId,
+                $scheduledAt
+            );
+
+            return $scheduledAt;
+        } finally {
+            $releaseStmt = $this->pdo->prepare(
+                'SELECT RELEASE_LOCK(:lock_name)'
+            );
+
+            $releaseStmt->execute([
+                'lock_name' => $lockName,
+            ]);
+        }
+    }
+
+    private function scheduleApprovedProspect(
         int $prospectId,
         DateTimeImmutable $scheduledAt
     ): void {

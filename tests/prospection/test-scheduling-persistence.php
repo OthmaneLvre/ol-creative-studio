@@ -69,9 +69,10 @@ echo 'Programmation : '
     . $scheduledAt->format('Y-m-d H:i:s')
     . PHP_EOL;
 
-$repository->scheduleApprovedProspect(
+$scheduledAt = $repository->scheduleApprovedProspectWithDailyLimit(
     $prospectId,
-    $scheduledAt
+    $scheduler,
+    $timezone
 );
 
 $stmt = $pdo->prepare(
