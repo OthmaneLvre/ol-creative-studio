@@ -1831,6 +1831,63 @@ final class ProspectRepository
         ]);
     }
 
+    public function findDueScheduledInitialEmails(
+        DateTimeImmutable $now,
+        int $limit = 5
+    ): array {
+        if ($limit < 1 || $limit > 100) {
+            throw new InvalidArgumentException(
+                'Limite de récupération invalide.'
+            );
+        }
+
+        $sql = <<<SQL
+            SELECT
+                e.id AS email_id,
+                e.prospect_id,
+                e.recipient_email,
+                e.subject,
+                e.body_html,
+                e.body_text,
+                e.scheduled_at,
+                e.send_attempts,
+
+                p.company_name,
+                p.status AS prospect_status,
+                p.email_source_url,
+                p.email_type,
+                p.email_confidence
+
+            FROM prospect_emails e
+
+            INNER JOIN prospects p
+                ON p.id = e.prospect_id
+
+            WHERE e.email_type = 'initial'
+            AND e.status = 'scheduled'
+            AND e.scheduled_at IS NOT NULL
+            AND e.scheduled_at <= :now
+            AND e.sent_at IS NULL
+            AND p.status = 'scheduled'
+
+            ORDER BY
+                e.scheduled_at ASC,
+                e.id ASC
+
+            LIMIT {$limit}
+        SQL;
+
+        $statement = $this->pdo->prepare($sql);
+
+        $statement->execute([
+            'now' => $now->format('Y-m-d H:i:s'),
+        ]);
+
+        return $statement->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+    }
+
     public function findApprovedProspectsForScheduling(
         int $limit = 50
     ): array {
