@@ -80,6 +80,8 @@ return [
 
     'sending' => [
 
+        'enabled' => false,
+
         // Adresse utilisée pour les campagnes de prospection.
         'sender_email' => 'contact@olcreativestudio.fr',
 
@@ -110,10 +112,9 @@ return [
         'enabled' => true,
 
         // Délais exprimés en jours.
-        // Les valeurs exactes pourront évoluer après les premiers tests.
         'delays' => [
             'follow_up_1' => 4,
-            'follow_up_2' => 8,
+            'follow_up_2' => 10,
         ],
 
         // Dès qu'une réponse est détectée, aucune relance ne doit partir.
