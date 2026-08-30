@@ -2823,3 +2823,50 @@ select:focus-visible {
     }
 
 }
+
+/* ==========================================================================
+   Prospection — Éditeur d'e-mail
+   ========================================================================== */
+
+.prospect-email-editor {
+    display: grid;
+    gap: 24px;
+    width: 100%;
+}
+
+.prospect-email-editor .admin-form-group {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+}
+
+.prospect-email-editor label {
+    font-weight: 600;
+}
+
+.prospect-email-editor input,
+.prospect-email-editor textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 14px 16px;
+
+    border: 1px solid #d9dee3;
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    font: inherit;
+    line-height: 1.6;
+}
+
+.prospect-email-editor textarea {
+    min-height: 320px;
+    resize: vertical;
+}
+
+.prospect-email-editor input:focus,
+.prospect-email-editor textarea:focus {
+    outline: 2px solid #1b9aaa;
+    outline-offset: 2px;
+    border-color: #1b9aaa;
+}

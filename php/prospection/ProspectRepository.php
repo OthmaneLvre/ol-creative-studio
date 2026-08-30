@@ -1301,6 +1301,483 @@ final class ProspectRepository
     HTML;
     }
 
+    public function updateInitialEmailDraft(
+        int $prospectId,
+        string $subject,
+        string $bodyText
+    ): void {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant prospect invalide.'
+            );
+        }
+
+        $subject = trim($subject);
+        $bodyText = trim($bodyText);
+
+        if ($subject === '') {
+            throw new InvalidArgumentException(
+                'L’objet de l’e-mail est obligatoire.'
+            );
+        }
+
+        if ($bodyText === '') {
+            throw new InvalidArgumentException(
+                'Le contenu de l’e-mail est obligatoire.'
+            );
+        }
+
+        if (mb_strlen($subject) > 190) {
+            throw new InvalidArgumentException(
+                'L’objet de l’e-mail est trop long.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouillage du prospect
+            |--------------------------------------------------------------------------
+            */
+
+            $prospectStatement = $this->pdo->prepare(
+                <<<SQL
+                    SELECT status
+                    FROM prospects
+                    WHERE id = :prospect_id
+                    LIMIT 1
+                    FOR UPDATE
+                SQL
+            );
+
+            $prospectStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $prospectStatus =
+                $prospectStatement->fetchColumn();
+
+            if ($prospectStatus === false) {
+                throw new RuntimeException(
+                    'Prospect introuvable.'
+                );
+            }
+
+            if ($prospectStatus !== 'pending_validation') {
+                throw new RuntimeException(
+                    'Le prospect n’est plus modifiable.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Dernier brouillon initial
+            |--------------------------------------------------------------------------
+            */
+
+            $emailStatement = $this->pdo->prepare(
+                <<<SQL
+                    SELECT
+                        id,
+                        status
+                    FROM prospect_emails
+                    WHERE prospect_id = :prospect_id
+                    AND email_type = 'initial'
+                    ORDER BY id DESC
+                    LIMIT 1
+                    FOR UPDATE
+                SQL
+            );
+
+            $emailStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $email = $emailStatement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Aucun brouillon d’e-mail disponible.'
+                );
+            }
+
+            if ($email['status'] !== 'draft') {
+                throw new RuntimeException(
+                    'Cet e-mail n’est plus modifiable.'
+                );
+            }
+
+            $bodyHtml = $this->buildEditedEmailHtml(
+                $subject,
+                $bodyText
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Mise à jour
+            |--------------------------------------------------------------------------
+            */
+
+            $updateStatement = $this->pdo->prepare(
+                <<<SQL
+                    UPDATE prospect_emails
+                    SET
+                        subject = :subject,
+                        body_text = :body_text,
+                        body_html = :body_html,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                SQL
+            );
+
+            $updateStatement->execute([
+                'subject' => $subject,
+                'body_text' => $bodyText,
+                'body_html' => $bodyHtml,
+                'email_id' => (int) $email['id'],
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Historique
+            |--------------------------------------------------------------------------
+            */
+
+            $this->addEvent(
+                $prospectId,
+                'prospect_email_draft_updated',
+                'pending_validation',
+                'pending_validation',
+                'Brouillon de prospection modifié manuellement.',
+                [
+                    'email_id' => (int) $email['id'],
+                    'subject' => $subject,
+                ]
+            );
+
+            $this->pdo->commit();
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function approveInitialEmailDraft(
+        int $prospectId
+    ): void {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant prospect invalide.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $prospectStatement = $this->pdo->prepare(
+                <<<SQL
+                    SELECT status
+                    FROM prospects
+                    WHERE id = :prospect_id
+                    LIMIT 1
+                    FOR UPDATE
+                SQL
+            );
+
+            $prospectStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $previousStatus =
+                $prospectStatement->fetchColumn();
+
+            if ($previousStatus === false) {
+                throw new RuntimeException(
+                    'Prospect introuvable.'
+                );
+            }
+
+            if ($previousStatus !== 'pending_validation') {
+                throw new RuntimeException(
+                    'Ce prospect n’est plus en attente de validation.'
+                );
+            }
+
+            $emailStatement = $this->pdo->prepare(
+                <<<SQL
+                    SELECT
+                        id,
+                        status
+                    FROM prospect_emails
+                    WHERE prospect_id = :prospect_id
+                    AND email_type = 'initial'
+                    ORDER BY id DESC
+                    LIMIT 1
+                    FOR UPDATE
+                SQL
+            );
+
+            $emailStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $email = $emailStatement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Aucun brouillon d’e-mail disponible.'
+                );
+            }
+
+            if ($email['status'] !== 'draft') {
+                throw new RuntimeException(
+                    'Cet e-mail n’est plus un brouillon.'
+                );
+            }
+
+            $updateEmail = $this->pdo->prepare(
+                <<<SQL
+                    UPDATE prospect_emails
+                    SET
+                        status = 'approved',
+                        approved_at = CURRENT_TIMESTAMP,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                SQL
+            );
+
+            $updateEmail->execute([
+                'email_id' => (int) $email['id'],
+            ]);
+
+            $updateProspect = $this->pdo->prepare(
+                <<<SQL
+                    UPDATE prospects
+                    SET
+                        status = 'approved',
+                        validated_at = CURRENT_TIMESTAMP,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :prospect_id
+                SQL
+            );
+
+            $updateProspect->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $this->addEvent(
+                $prospectId,
+                'prospect_email_approved',
+                'pending_validation',
+                'approved',
+                'Premier e-mail de prospection validé manuellement.',
+                [
+                    'email_id' => (int) $email['id'],
+                ]
+            );
+
+            $this->pdo->commit();
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function rejectInitialEmailDraft(
+        int $prospectId
+    ): void {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant prospect invalide.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $prospectStatement = $this->pdo->prepare(
+                <<<SQL
+                    SELECT status
+                    FROM prospects
+                    WHERE id = :prospect_id
+                    LIMIT 1
+                    FOR UPDATE
+                SQL
+            );
+
+            $prospectStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $previousStatus =
+                $prospectStatement->fetchColumn();
+
+            if ($previousStatus === false) {
+                throw new RuntimeException(
+                    'Prospect introuvable.'
+                );
+            }
+
+            if ($previousStatus !== 'pending_validation') {
+                throw new RuntimeException(
+                    'Ce prospect n’est plus en attente de validation.'
+                );
+            }
+
+            $emailStatement = $this->pdo->prepare(
+                <<<SQL
+                    SELECT
+                        id,
+                        status
+                    FROM prospect_emails
+                    WHERE prospect_id = :prospect_id
+                    AND email_type = 'initial'
+                    ORDER BY id DESC
+                    LIMIT 1
+                    FOR UPDATE
+                SQL
+            );
+
+            $emailStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $email = $emailStatement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Aucun brouillon d’e-mail disponible.'
+                );
+            }
+
+            /*
+            * Pour le moment, notre table ne possède pas forcément
+            * un statut "rejected" côté prospect_emails.
+            * On ne modifie donc pas son statut ici.
+            */
+
+            $updateProspect = $this->pdo->prepare(
+                <<<SQL
+                    UPDATE prospects
+                    SET
+                        status = 'rejected',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :prospect_id
+                SQL
+            );
+
+            $updateProspect->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $this->addEvent(
+                $prospectId,
+                'prospect_rejected',
+                'pending_validation',
+                'rejected',
+                'Prospect refusé lors de la validation manuelle.',
+                [
+                    'email_id' => (int) $email['id'],
+                ]
+            );
+
+            $this->pdo->commit();
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    private function buildEditedEmailHtml(
+        string $subject,
+        string $bodyText
+    ): string {
+        $escapedSubject = htmlspecialchars(
+            $subject,
+            ENT_QUOTES,
+            'UTF-8'
+        );
+
+        $escapedBody = nl2br(
+            htmlspecialchars(
+                $bodyText,
+                ENT_QUOTES,
+                'UTF-8'
+            )
+        );
+
+        return <<<HTML
+    <!doctype html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>{$escapedSubject}</title>
+    </head>
+    <body style="margin:0;padding:0;background:#f4f5f6;font-family:Arial,sans-serif;color:#0D1B2A;">
+        <table
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            role="presentation"
+        >
+            <tr>
+                <td
+                    align="center"
+                    style="padding:32px 16px;"
+                >
+                    <table
+                        width="600"
+                        cellpadding="0"
+                        cellspacing="0"
+                        role="presentation"
+                        style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;"
+                    >
+                        <tr>
+                            <td style="padding:32px;">
+
+                                <div
+                                    style="font-size:22px;font-weight:700;margin-bottom:24px;"
+                                >
+                                    OL Creative Studio
+                                </div>
+
+                                <div
+                                    style="font-size:16px;line-height:1.7;"
+                                >
+                                    {$escapedBody}
+                                </div>
+
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    HTML;
+    }
+
     private function nullableTrim(?string $value): ?string
     {
         if ($value === null) {
