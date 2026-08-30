@@ -1830,4 +1830,186 @@ final class ProspectRepository
                 : null,
         ]);
     }
+
+    public function countScheduledInitialEmailsForDate(
+        DateTimeImmutable $date
+    ): int {
+        $dayStart = $date->setTime(0, 0, 0);
+        $nextDayStart = $dayStart->modify('+1 day');
+
+        $stmt = $this->pdo->prepare(
+            '
+            SELECT COUNT(*)
+            FROM prospect_emails
+            WHERE email_type = :email_type
+            AND status = :status
+            AND scheduled_at >= :day_start
+            AND scheduled_at < :next_day_start
+            '
+        );
+
+        $stmt->execute([
+            'email_type' => 'initial',
+            'status' => 'scheduled',
+            'day_start' => $dayStart->format('Y-m-d H:i:s'),
+            'next_day_start' => $nextDayStart->format('Y-m-d H:i:s'),
+        ]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function scheduleApprovedProspect(
+        int $prospectId,
+        DateTimeImmutable $scheduledAt
+    ): void {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException('Identifiant prospect invalide.');
+        }
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $prospectStmt = $this->pdo->prepare(
+                '
+                SELECT id, status, validated_at
+                FROM prospects
+                WHERE id = :id
+                LIMIT 1
+                FOR UPDATE
+                '
+            );
+
+            $prospectStmt->execute([
+                'id' => $prospectId,
+            ]);
+
+            $prospect = $prospectStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$prospect) {
+                throw new RuntimeException('Prospect introuvable.');
+            }
+
+            if ($prospect['status'] !== 'approved') {
+                throw new RuntimeException(
+                    'Le prospect doit être approuvé avant programmation.'
+                );
+            }
+
+            $emailStmt = $this->pdo->prepare(
+                '
+                SELECT id, status, approved_at
+                FROM prospect_emails
+                WHERE prospect_id = :prospect_id
+                AND email_type = :email_type
+                ORDER BY id DESC
+                LIMIT 1
+                FOR UPDATE
+                '
+            );
+
+            $emailStmt->execute([
+                'prospect_id' => $prospectId,
+                'email_type' => 'initial',
+            ]);
+
+            $email = $emailStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$email) {
+                throw new RuntimeException(
+                    'Aucun e-mail initial trouvé pour ce prospect.'
+                );
+            }
+
+            if ($email['status'] !== 'approved') {
+                throw new RuntimeException(
+                    'L’e-mail initial doit être approuvé avant programmation.'
+                );
+            }
+
+            if (empty($email['approved_at'])) {
+                throw new RuntimeException(
+                    'La date d’approbation de l’e-mail est absente.'
+                );
+            }
+
+            $scheduledAtSql = $scheduledAt->format('Y-m-d H:i:s');
+
+            $updateEmail = $this->pdo->prepare(
+                '
+                UPDATE prospect_emails
+                SET status = :status,
+                    scheduled_at = :scheduled_at,
+                    updated_at = NOW()
+                WHERE id = :id
+                '
+            );
+
+            $updateEmail->execute([
+                'status' => 'scheduled',
+                'scheduled_at' => $scheduledAtSql,
+                'id' => (int) $email['id'],
+            ]);
+
+            $updateProspect = $this->pdo->prepare(
+                '
+                UPDATE prospects
+                SET status = :status,
+                    scheduled_at = :scheduled_at,
+                    updated_at = NOW()
+                WHERE id = :id
+                '
+            );
+
+            $updateProspect->execute([
+                'status' => 'scheduled',
+                'scheduled_at' => $scheduledAtSql,
+                'id' => $prospectId,
+            ]);
+
+            $eventStmt = $this->pdo->prepare(
+                '
+                INSERT INTO prospect_events (
+                    prospect_id,
+                    event_type,
+                    previous_status,
+                    new_status,
+                    description,
+                    metadata,
+                    created_at
+                ) VALUES (
+                    :prospect_id,
+                    :event_type,
+                    :previous_status,
+                    :new_status,
+                    :description,
+                    :metadata,
+                    NOW()
+                )
+                '
+            );
+
+            $eventStmt->execute([
+                'prospect_id' => $prospectId,
+                'event_type' => 'prospect_scheduled',
+                'previous_status' => 'approved',
+                'new_status' => 'scheduled',
+                'description' => 'Premier e-mail programmé pour envoi.',
+                'metadata' => json_encode(
+                    [
+                        'email_id' => (int) $email['id'],
+                        'scheduled_at' => $scheduledAtSql,
+                    ],
+                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                ),
+            ]);
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $e;
+        }
+    }
 }
