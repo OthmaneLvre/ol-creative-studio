@@ -66,6 +66,10 @@ $enabledConfig = $config;
 
 $enabledConfig['sending']['enabled'] = true;
 
+$enabledConfig[
+    'sending'
+]['local_redirect_enabled'] = false;
+
 $enabledGuard = new ProspectSendGuard(
     $pdo,
     $enabledConfig
@@ -261,6 +265,98 @@ try {
 }
 
 echo PHP_EOL;
+
+echo '=== TEST 7 : redirection locale ==='
+    . PHP_EOL;
+
+$redirectConfig = $config;
+
+$redirectConfig['sending']['enabled'] =
+    true;
+
+$redirectConfig[
+    'sending'
+]['local_redirect_enabled'] =
+    true;
+
+$redirectConfig[
+    'sending'
+]['local_redirect_email'] =
+    'local-test@example.test';
+
+$redirectGuard =
+    new ProspectSendGuard(
+        $pdo,
+        $redirectConfig
+    );
+
+$result = $redirectGuard->evaluate(
+    $baseEmail
+);
+
+if ($result['allowed'] !== true) {
+    throw new RuntimeException(
+        'La redirection locale valide '
+        . 'aurait dû être autorisée.'
+    );
+}
+
+if (
+    $result[
+        'effective_recipient_email'
+    ] !== 'local-test@example.test'
+) {
+    throw new RuntimeException(
+        'Le destinataire effectif '
+        . 'n’est pas la boîte de test.'
+    );
+}
+
+if ($result['redirected'] !== true) {
+    throw new RuntimeException(
+        'La redirection locale '
+        . 'aurait dû être détectée.'
+    );
+}
+
+echo 'Redirection : OK'
+    . PHP_EOL;
+
+echo PHP_EOL;
+
+echo '=== TEST 8 : redirection locale invalide ==='
+    . PHP_EOL;
+
+$invalidRedirectConfig =
+    $redirectConfig;
+
+$invalidRedirectConfig[
+    'sending'
+]['local_redirect_email'] =
+    null;
+
+$invalidRedirectGuard =
+    new ProspectSendGuard(
+        $pdo,
+        $invalidRedirectConfig
+    );
+
+$result =
+    $invalidRedirectGuard->evaluate(
+        $baseEmail
+    );
+
+if ($result['allowed'] !== false) {
+    throw new RuntimeException(
+        'Une redirection locale absente '
+        . 'aurait dû bloquer l’envoi.'
+    );
+}
+
+echo 'Blocage sans adresse de test : OK'
+    . PHP_EOL;
+
+echo PHP_EOL;
+
 echo 'Tous les tests du SendGuard sont OK.'
     . PHP_EOL;
-    

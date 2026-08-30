@@ -79,26 +79,32 @@ return [
     */
 
     'sending' => [
-
         'enabled' => false,
 
-        // Adresse utilisée pour les campagnes de prospection.
-        'sender_email' => 'contact@olcreativestudio.fr',
+        'sender_email' =>
+            'contact@olcreativestudio.fr',
 
-        // Nom affiché comme expéditeur.
-        'sender_name' => 'OL Creative Studio',
+        'sender_name' =>
+            'OL Creative Studio',
 
-        // Heure d'envoi des messages validés.
-        'send_time' => '09:30',
+        'send_time' =>
+            '09:30',
 
-        // Nombre maximum d'envois par jour.
-        'max_daily_sends' => 5,
+        'max_daily_sends' =>
+            5,
 
-        // Les envois doivent être programmés uniquement les jours ouvrés.
-        'business_days_only' => true,
+        'business_days_only' =>
+            true,
 
-        // Nombre maximal de tentatives après un échec technique.
-        'max_attempts' => 3,
+        'max_attempts' =>
+            3,
+
+        'local_redirect_enabled' =>
+            true,
+
+        'local_redirect_email' =>
+            $_ENV['PROSPECTION_TEST_EMAIL']
+            ?? null,
     ],
 
     /*

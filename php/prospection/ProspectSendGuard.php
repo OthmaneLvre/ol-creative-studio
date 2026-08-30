@@ -60,6 +60,36 @@ final class ProspectSendGuard
                 'Adresse destinataire invalide.';
         }
 
+        $effectiveRecipient = $recipientEmail;
+
+        $localRedirectEnabled = (bool) (
+            $sendingConfig['local_redirect_enabled']
+            ?? false
+        );
+
+        if ($localRedirectEnabled) {
+            $redirectEmail = strtolower(
+                trim(
+                    (string) (
+                        $sendingConfig['local_redirect_email']
+                        ?? ''
+                    )
+                )
+            );
+
+            if (
+                filter_var(
+                    $redirectEmail,
+                    FILTER_VALIDATE_EMAIL
+                ) === false
+            ) {
+                $reasons[] =
+                    'Adresse locale de redirection absente ou invalide.';
+            } else {
+                $effectiveRecipient = $redirectEmail;
+            }
+        }
+
         $publicEmailsOnly = (bool) (
             $complianceConfig['public_emails_only']
             ?? true
@@ -110,9 +140,21 @@ final class ProspectSendGuard
         return [
             'allowed' => $reasons === [],
             'reasons' => $reasons,
-            'recipient_email' => $recipientEmail,
-            'send_attempts' => $sendAttempts,
-            'max_attempts' => $maxAttempts,
+
+            'recipient_email' =>
+                $recipientEmail,
+
+            'effective_recipient_email' =>
+                $effectiveRecipient,
+
+            'redirected' =>
+                $effectiveRecipient !== $recipientEmail,
+
+            'send_attempts' =>
+                $sendAttempts,
+
+            'max_attempts' =>
+                $maxAttempts,
         ];
     }
 
