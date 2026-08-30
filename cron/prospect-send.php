@@ -35,6 +35,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../php/prospection/ProspectSendGuard.php';
 
+require_once __DIR__
+    . '/../php/prospection/ProspectMailer.php';
+
 $config = require __DIR__
     . '/../config/prospection.php';
 
@@ -90,6 +93,10 @@ $repository = new ProspectRepository(
 
 $sendGuard = new ProspectSendGuard(
     $pdo,
+    $config
+);
+
+$mailer = new ProspectMailer(
     $config
 );
 
@@ -253,7 +260,46 @@ foreach ($emails as $email) {
         echo 'Résultat : SENDABLE'
             . PHP_EOL;
 
-        echo '[DRY-RUN] Cet e-mail serait autorisé.'
+        $message = $mailer->prepare(
+            $email,
+            $guardResult
+        );
+
+        echo 'Transport : '
+            . (string) $message['transport']
+            . PHP_EOL;
+
+        echo 'Message-ID : '
+            . (string) $message['message_id']
+            . PHP_EOL;
+
+        echo 'Expéditeur : '
+            . (string) $message['from_name']
+            . ' <'
+            . (string) $message['from_email']
+            . '>'
+            . PHP_EOL;
+
+        echo 'Destinataire final : '
+            . (string) $message['to_email']
+            . PHP_EOL;
+
+        echo 'Objet final : '
+            . (string) $message['subject']
+            . PHP_EOL;
+
+        echo 'Footer désinscription : '
+            . (
+                stripos(
+                    (string) $message['body_text'],
+                    'STOP'
+                ) !== false
+                    ? 'OK'
+                    : 'ABSENT'
+            )
+            . PHP_EOL;
+
+        echo '[DRY-RUN] Message préparé, aucun envoi effectué.'
             . PHP_EOL;
     } else {
         $blockedCount++;
