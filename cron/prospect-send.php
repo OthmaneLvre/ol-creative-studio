@@ -193,8 +193,20 @@ foreach ($emails as $email) {
         . (string) $email['company_name']
         . PHP_EOL;
 
-    echo 'Destinataire : '
+    echo 'Destinataire réel : '
         . (string) $email['recipient_email']
+        . PHP_EOL;
+
+    echo 'Destinataire effectif : '
+        . (string) $guardResult['effective_recipient_email']
+        . PHP_EOL;
+
+    echo 'Mode : '
+        . (
+            $guardResult['redirected']
+                ? 'REDIRECTED'
+                : 'DIRECT'
+        )
         . PHP_EOL;
 
     echo 'Objet : '
@@ -292,6 +304,22 @@ echo 'Envoyables : '
 
 echo 'Bloqués : '
     . $blockedCount
+    . PHP_EOL;
+
+echo PHP_EOL;
+
+echo 'Transport SMTP : désactivé'
+    . PHP_EOL;
+
+echo 'Redirection locale : '
+    . (
+        (bool) (
+            $config['sending']['local_redirect_enabled']
+            ?? false
+        )
+            ? 'activée'
+            : 'désactivée'
+    )
     . PHP_EOL;
 
 echo PHP_EOL;
