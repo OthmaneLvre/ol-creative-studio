@@ -889,6 +889,167 @@ final class ProspectRepository
         }
     }
 
+    public function saveAiAudit(
+        int $prospectId,
+        array $audit
+    ): void {
+        if ($prospectId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant prospect invalide.'
+            );
+        }
+
+        $requiredKeys = [
+            'summary',
+            'strengths',
+            'weaknesses',
+            'opportunities',
+            'recommended_angle',
+            'audit_text',
+        ];
+
+        foreach ($requiredKeys as $key) {
+            if (!array_key_exists($key, $audit)) {
+                throw new InvalidArgumentException(
+                    'Champ d’audit manquant : ' . $key
+                );
+            }
+        }
+
+        if (
+            !is_array($audit['strengths'])
+            || !is_array($audit['weaknesses'])
+            || !is_array($audit['opportunities'])
+        ) {
+            throw new InvalidArgumentException(
+                'Les listes de l’audit sont invalides.'
+            );
+        }
+
+
+
+        try {
+            $this->pdo->beginTransaction();
+            
+            $prospectStatement = $this->pdo->prepare(
+                <<<SQL
+                    SELECT status
+                    FROM prospects
+                    WHERE id = :id
+                    LIMIT 1
+                    FOR UPDATE
+                SQL
+            );
+
+            $prospectStatement->execute([
+                'id' => $prospectId,
+            ]);
+
+            $status = $prospectStatement->fetchColumn();
+
+            if ($status === false) {
+                throw new RuntimeException(
+                    'Prospect introuvable.'
+                );
+            }
+
+            $analysisStatement = $this->pdo->prepare(
+                <<<SQL
+                    SELECT id
+                    FROM prospect_analyses
+                    WHERE prospect_id = :prospect_id
+                    ORDER BY id DESC
+                    LIMIT 1
+                    FOR UPDATE
+                SQL
+            );
+
+            $analysisStatement->execute([
+                'prospect_id' => $prospectId,
+            ]);
+
+            $analysisId = $analysisStatement->fetchColumn();
+
+            if ($analysisId === false) {
+                throw new RuntimeException(
+                    'Aucune analyse disponible pour ce prospect.'
+                );
+            }
+
+            $updateStatement = $this->pdo->prepare(
+                <<<SQL
+                    UPDATE prospect_analyses
+                    SET
+                        strengths = :strengths,
+                        weaknesses = :weaknesses,
+                        opportunities = :opportunities,
+                        audit_text = :audit_text,
+                        ai_audit_details = :ai_audit_details,
+                        updated_at = NOW()
+                    WHERE id = :analysis_id
+                SQL
+            );
+
+            $updateStatement->execute([
+                'strengths' => json_encode(
+                    $audit['strengths'],
+                    JSON_THROW_ON_ERROR
+                    | JSON_UNESCAPED_UNICODE
+                    | JSON_UNESCAPED_SLASHES
+                ),
+
+                'weaknesses' => json_encode(
+                    $audit['weaknesses'],
+                    JSON_THROW_ON_ERROR
+                    | JSON_UNESCAPED_UNICODE
+                    | JSON_UNESCAPED_SLASHES
+                ),
+
+                'opportunities' => json_encode(
+                    $audit['opportunities'],
+                    JSON_THROW_ON_ERROR
+                    | JSON_UNESCAPED_UNICODE
+                    | JSON_UNESCAPED_SLASHES
+                ),
+
+                'audit_text' => trim(
+                    (string) $audit['audit_text']
+                ),
+
+                'ai_audit_details' => json_encode(
+                    $audit,
+                    JSON_THROW_ON_ERROR
+                    | JSON_UNESCAPED_UNICODE
+                    | JSON_UNESCAPED_SLASHES
+                ),
+
+                'analysis_id' => (int) $analysisId,
+            ]);
+
+            $this->addEvent(
+                $prospectId,
+                'prospect_audit_generated',
+                (string) $status,
+                (string) $status,
+                'Audit IA généré à partir des données vérifiées.',
+                [
+                    'analysis_id' => (int) $analysisId,
+                    'summary' => $audit['summary'],
+                    'recommended_angle' =>
+                        $audit['recommended_angle'],
+                ]
+            );
+
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
     private function nullableTrim(?string $value): ?string
     {
         if ($value === null) {

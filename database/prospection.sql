@@ -132,6 +132,7 @@ CREATE TABLE IF NOT EXISTS prospect_analyses (
 
     overall_score SMALLINT UNSIGNED DEFAULT NULL,
     scoring_details JSON DEFAULT NULL,
+    ai_audit_details JSON DEFAULT NULL,
 
     weaknesses JSON DEFAULT NULL,
     strengths JSON DEFAULT NULL,
