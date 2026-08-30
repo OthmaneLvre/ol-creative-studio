@@ -2234,11 +2234,25 @@ final class ProspectRepository
 
     public function markInitialEmailFailed(
         int $emailId,
-        string $errorMessage
-    ): void {
+        string $errorMessage,
+        int $maxAttempts = 3,
+        int $retryDelayMinutes = 30
+    ): array {
         if ($emailId <= 0) {
             throw new InvalidArgumentException(
                 'Identifiant e-mail invalide.'
+            );
+        }
+
+        if ($maxAttempts < 1) {
+            throw new InvalidArgumentException(
+                'Nombre maximal de tentatives invalide.'
+            );
+        }
+
+        if ($retryDelayMinutes < 1) {
+            throw new InvalidArgumentException(
+                'Délai de retry invalide.'
             );
         }
 
@@ -2259,7 +2273,8 @@ final class ProspectRepository
                 SELECT
                     id,
                     prospect_id,
-                    status
+                    status,
+                    send_attempts
                 FROM prospect_emails
                 WHERE id = :email_id
                 AND email_type = :email_type
@@ -2289,6 +2304,112 @@ final class ProspectRepository
                 );
             }
 
+            $sendAttempts =
+                (int) $email['send_attempts'];
+
+            /*
+            |--------------------------------------------------------------------------
+            | Nouvelle tentative possible
+            |--------------------------------------------------------------------------
+            */
+
+            if ($sendAttempts < $maxAttempts) {
+                $retryAt =
+                    (new DateTimeImmutable())
+                        ->modify(
+                            '+'
+                            . $retryDelayMinutes
+                            . ' minutes'
+                        );
+
+                $retryAtSql =
+                    $retryAt->format(
+                        'Y-m-d H:i:s'
+                    );
+
+                $update = $this->pdo->prepare(
+                    '
+                    UPDATE prospect_emails
+                    SET
+                        status = :status,
+                        scheduled_at = :scheduled_at,
+                        error_message = :error_message,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                    '
+                );
+
+                $update->execute([
+                    'status' => 'scheduled',
+
+                    'scheduled_at' =>
+                        $retryAtSql,
+
+                    'error_message' =>
+                        mb_substr(
+                            $errorMessage,
+                            0,
+                            5000
+                        ),
+
+                    'email_id' =>
+                        $emailId,
+                ]);
+
+                $this->addEvent(
+                    (int) $email['prospect_id'],
+                    'prospect_email_retry_scheduled',
+                    'scheduled',
+                    'scheduled',
+                    'Nouvelle tentative d’envoi programmée.',
+                    [
+                        'email_id' =>
+                            $emailId,
+
+                        'send_attempts' =>
+                            $sendAttempts,
+
+                        'max_attempts' =>
+                            $maxAttempts,
+
+                        'retry_at' =>
+                            $retryAtSql,
+
+                        'error' =>
+                            mb_substr(
+                                $errorMessage,
+                                0,
+                                500
+                            ),
+                    ]
+                );
+
+                $this->pdo->commit();
+
+                return [
+                    'status' =>
+                        'scheduled',
+
+                    'retry_scheduled' =>
+                        true,
+
+                    'retry_at' =>
+                        $retryAtSql,
+
+                    'send_attempts' =>
+                        $sendAttempts,
+
+                    'max_attempts' =>
+                        $maxAttempts,
+                ];
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Nombre maximal de tentatives atteint
+            |--------------------------------------------------------------------------
+            */
+
             $update = $this->pdo->prepare(
                 '
                 UPDATE prospect_emails
@@ -2301,14 +2422,18 @@ final class ProspectRepository
             );
 
             $update->execute([
-                'status' => 'failed',
+                'status' =>
+                    'failed',
+
                 'error_message' =>
                     mb_substr(
                         $errorMessage,
                         0,
                         5000
                     ),
-                'email_id' => $emailId,
+
+                'email_id' =>
+                    $emailId,
             ]);
 
             $this->addEvent(
@@ -2316,9 +2441,17 @@ final class ProspectRepository
                 'prospect_email_failed',
                 'scheduled',
                 'scheduled',
-                'Échec de l’envoi du premier e-mail.',
+                'Échec définitif de l’envoi du premier e-mail.',
                 [
-                    'email_id' => $emailId,
+                    'email_id' =>
+                        $emailId,
+
+                    'send_attempts' =>
+                        $sendAttempts,
+
+                    'max_attempts' =>
+                        $maxAttempts,
+
                     'error' =>
                         mb_substr(
                             $errorMessage,
@@ -2329,6 +2462,23 @@ final class ProspectRepository
             );
 
             $this->pdo->commit();
+
+            return [
+                'status' =>
+                    'failed',
+
+                'retry_scheduled' =>
+                    false,
+
+                'retry_at' =>
+                    null,
+
+                'send_attempts' =>
+                    $sendAttempts,
+
+                'max_attempts' =>
+                    $maxAttempts,
+            ];
 
         } catch (Throwable $exception) {
             if ($this->pdo->inTransaction()) {

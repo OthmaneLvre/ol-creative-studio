@@ -99,6 +99,9 @@ return [
         'max_attempts' =>
             3,
 
+        'retry_delay_minutes' =>
+            30,
+
         'local_redirect_enabled' =>
             true,
 

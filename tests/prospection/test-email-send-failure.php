@@ -188,10 +188,13 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $repository->markInitialEmailFailed(
-        $emailId,
-        'SMTP test failure'
-    );
+    $result =
+        $repository->markInitialEmailFailed(
+            $emailId,
+            'SMTP test failure',
+            3,
+            30
+        );
 
     $statement = $pdo->prepare(
         '
@@ -199,6 +202,7 @@ try {
             e.status AS email_status,
             e.error_message,
             e.send_attempts,
+            e.scheduled_at,
             e.sent_at,
             e.message_id,
             p.status AS prospect_status,
@@ -226,10 +230,10 @@ try {
 
     if (
         $state['email_status']
-        !== 'failed'
+        !== 'scheduled'
     ) {
         throw new RuntimeException(
-            'L’e-mail devrait être failed.'
+            'L’e-mail devrait être reprogrammé.'
         );
     }
 
@@ -261,19 +265,49 @@ try {
     }
 
     if (
+        $result['retry_scheduled']
+        !== true
+    ) {
+        throw new RuntimeException(
+            'Une nouvelle tentative aurait dû être programmée.'
+        );
+    }
+
+    if (
+        empty($result['retry_at'])
+        || empty($state['scheduled_at'])
+    ) {
+        throw new RuntimeException(
+            'La nouvelle échéance est absente.'
+        );
+    }
+
+    if (
+        $result['retry_at']
+        !== $state['scheduled_at']
+    ) {
+        throw new RuntimeException(
+            'La date de retry retournée ne correspond pas à la BDD.'
+        );
+    }
+
+    if (
         $state['sent_at'] !== null
         || $state['message_id'] !== null
         || $state['contacted_at'] !== null
     ) {
         throw new RuntimeException(
-            'Un échec ne doit pas être marqué comme envoyé.'
+            'Un retry ne doit pas être marqué comme envoyé.'
         );
     }
 
-    echo 'sending -> failed : OK'
+    echo 'sending -> scheduled : OK'
         . PHP_EOL;
 
     echo 'Erreur persistée : OK'
+        . PHP_EOL;
+
+    echo 'Retry programmé : OK'
         . PHP_EOL;
 
     echo 'Prospect reste scheduled : OK'
@@ -284,7 +318,7 @@ try {
 
     echo PHP_EOL;
 
-    echo 'Chemin d’échec SMTP : OK'
+    echo 'Chemin retry SMTP : OK'
         . PHP_EOL;
 
 } finally {
