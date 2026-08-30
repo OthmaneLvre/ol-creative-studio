@@ -8,16 +8,22 @@ declare(strict_types=1);
 | Prospection - Orchestrateur d'envoi
 |--------------------------------------------------------------------------
 |
-| V1 : DRY-RUN uniquement.
+| DRY-RUN uniquement.
 |
-| Aucun e-mail SMTP n'est envoyé par ce script.
+| Le script :
+| - détecte les e-mails arrivés à échéance ;
+| - applique les contrôles de sécurité ;
+| - indique s'ils seraient envoyables ;
+| - n'effectue aucun envoi SMTP.
 |
 */
 
 if (PHP_SAPI !== 'cli') {
     http_response_code(403);
 
-    exit('Ce script doit être exécuté en ligne de commande.');
+    exit(
+        'Ce script doit être exécuté en ligne de commande.'
+    );
 }
 
 require_once __DIR__
@@ -25,6 +31,9 @@ require_once __DIR__
 
 require_once __DIR__
     . '/../php/prospection/ProspectRepository.php';
+
+require_once __DIR__
+    . '/../php/prospection/ProspectSendGuard.php';
 
 $config = require __DIR__
     . '/../config/prospection.php';
@@ -49,7 +58,7 @@ $now = new DateTimeImmutable(
 
 /*
 |--------------------------------------------------------------------------
-| Limite quotidienne
+| Configuration
 |--------------------------------------------------------------------------
 */
 
@@ -64,7 +73,25 @@ if ($maxDailySends < 1) {
     );
 }
 
-$repository = new ProspectRepository($pdo);
+$sendingEnabled = (bool) (
+    $config['sending']['enabled']
+    ?? false
+);
+
+/*
+|--------------------------------------------------------------------------
+| Services
+|--------------------------------------------------------------------------
+*/
+
+$repository = new ProspectRepository(
+    $pdo
+);
+
+$sendGuard = new ProspectSendGuard(
+    $pdo,
+    $config
+);
 
 /*
 |--------------------------------------------------------------------------
@@ -72,10 +99,17 @@ $repository = new ProspectRepository($pdo);
 |--------------------------------------------------------------------------
 */
 
-$emails = $repository->findDueScheduledInitialEmails(
-    $now,
-    $maxDailySends
-);
+$emails =
+    $repository->findDueScheduledInitialEmails(
+        $now,
+        $maxDailySends
+    );
+
+/*
+|--------------------------------------------------------------------------
+| En-tête
+|--------------------------------------------------------------------------
+*/
 
 echo PHP_EOL;
 
@@ -99,6 +133,14 @@ echo 'Limite : '
     . $maxDailySends
     . PHP_EOL;
 
+echo 'Kill switch : '
+    . (
+        $sendingEnabled
+            ? 'ENABLED'
+            : 'DISABLED'
+    )
+    . PHP_EOL;
+
 echo 'E-mails arrivés à échéance : '
     . count($emails)
     . PHP_EOL;
@@ -107,7 +149,7 @@ echo PHP_EOL;
 
 /*
 |--------------------------------------------------------------------------
-| Aucun envoi
+| Aucun e-mail dû
 |--------------------------------------------------------------------------
 */
 
@@ -117,16 +159,25 @@ if ($emails === []) {
 
     echo PHP_EOL;
 
+    echo 'Aucun e-mail SMTP envoyé.'
+        . PHP_EOL;
+
     exit(0);
 }
 
 /*
 |--------------------------------------------------------------------------
-| Affichage des envois potentiels
+| Contrôle des e-mails
 |--------------------------------------------------------------------------
 */
 
+$sendableCount = 0;
+$blockedCount = 0;
+
 foreach ($emails as $email) {
+    $guardResult =
+        $sendGuard->evaluate($email);
+
     echo '----------------------------------------'
         . PHP_EOL;
 
@@ -156,6 +207,8 @@ foreach ($emails as $email) {
 
     echo 'Tentatives : '
         . (int) $email['send_attempts']
+        . '/'
+        . (int) $guardResult['max_attempts']
         . PHP_EOL;
 
     echo 'Source e-mail : '
@@ -182,14 +235,66 @@ foreach ($emails as $email) {
 
     echo PHP_EOL;
 
+    if ($guardResult['allowed']) {
+        $sendableCount++;
+
+        echo 'Résultat : SENDABLE'
+            . PHP_EOL;
+
+        echo '[DRY-RUN] Cet e-mail serait autorisé.'
+            . PHP_EOL;
+    } else {
+        $blockedCount++;
+
+        echo 'Résultat : BLOCKED'
+            . PHP_EOL;
+
+        foreach (
+            $guardResult['reasons']
+            as $reason
+        ) {
+            echo '- '
+                . $reason
+                . PHP_EOL;
+        }
+    }
+
+    echo PHP_EOL;
+
     echo '[DRY-RUN] Aucun envoi effectué.'
         . PHP_EOL;
 }
+
+/*
+|--------------------------------------------------------------------------
+| Résumé
+|--------------------------------------------------------------------------
+*/
 
 echo PHP_EOL;
 
 echo '========================================'
     . PHP_EOL;
+
+echo 'Résumé'
+    . PHP_EOL;
+
+echo '========================================'
+    . PHP_EOL;
+
+echo 'E-mails dus : '
+    . count($emails)
+    . PHP_EOL;
+
+echo 'Envoyables : '
+    . $sendableCount
+    . PHP_EOL;
+
+echo 'Bloqués : '
+    . $blockedCount
+    . PHP_EOL;
+
+echo PHP_EOL;
 
 echo 'Dry-run terminé.'
     . PHP_EOL;
