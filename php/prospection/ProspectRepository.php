@@ -2134,6 +2134,366 @@ final class ProspectRepository
         }
     }
 
+    public function confirmReconciliationAsSent(
+        int $emailId,
+        DateTimeImmutable $confirmedAt
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare(
+                '
+                SELECT
+                    e.id,
+                    e.prospect_id,
+                    e.status,
+                    e.sent_at,
+                    e.message_id,
+                    e.send_attempts,
+                    p.status AS prospect_status
+                FROM prospect_emails e
+                INNER JOIN prospects p
+                    ON p.id = e.prospect_id
+                WHERE e.id = :email_id
+                AND e.email_type = :email_type
+                LIMIT 1
+                FOR UPDATE
+                '
+            );
+
+            $statement->execute([
+                'email_id' => $emailId,
+                'email_type' => 'initial',
+            ]);
+
+            $email = $statement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'E-mail initial introuvable.'
+                );
+            }
+
+            if (
+                $email['status']
+                !== 'reconciliation_required'
+            ) {
+                throw new RuntimeException(
+                    'Cet e-mail ne nécessite pas de réconciliation.'
+                );
+            }
+
+            if (!empty($email['sent_at'])) {
+                throw new RuntimeException(
+                    'Cet e-mail possède déjà une date d’envoi.'
+                );
+            }
+
+            $messageId = trim(
+                (string) ($email['message_id'] ?? '')
+            );
+
+            if ($messageId === '') {
+                throw new RuntimeException(
+                    'Le Message-ID SMTP est absent.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'scheduled'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n’est plus programmé.'
+                );
+            }
+
+            $confirmedAtSql = $confirmedAt->format(
+                'Y-m-d H:i:s'
+            );
+
+            $updateEmail = $this->pdo->prepare(
+                '
+                UPDATE prospect_emails
+                SET
+                    status = :status,
+                    sent_at = :sent_at,
+                    error_message = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :email_id
+                AND status = :previous_status
+                '
+            );
+
+            $updateEmail->execute([
+                'status' => 'sent',
+                'sent_at' => $confirmedAtSql,
+                'email_id' => $emailId,
+                'previous_status' =>
+                    'reconciliation_required',
+            ]);
+
+            if ($updateEmail->rowCount() !== 1) {
+                throw new RuntimeException(
+                    'Impossible de confirmer l’e-mail comme envoyé.'
+                );
+            }
+
+            $updateProspect = $this->pdo->prepare(
+                '
+                UPDATE prospects
+                SET
+                    status = :status,
+                    contacted_at = :contacted_at,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :prospect_id
+                AND status = :previous_status
+                '
+            );
+
+            $updateProspect->execute([
+                'status' => 'contacted',
+                'contacted_at' => $confirmedAtSql,
+                'prospect_id' =>
+                    (int) $email['prospect_id'],
+                'previous_status' => 'scheduled',
+            ]);
+
+            if ($updateProspect->rowCount() !== 1) {
+                throw new RuntimeException(
+                    'Impossible de passer le prospect en contacted.'
+                );
+            }
+
+            $this->addEvent(
+                (int) $email['prospect_id'],
+                'prospect_email_reconciliation_confirmed_sent',
+                'reconciliation_required',
+                'sent',
+                'Envoi SMTP confirmé manuellement comme délivré.',
+                [
+                    'email_id' => $emailId,
+                    'message_id' => $messageId,
+                    'send_attempts' =>
+                        (int) $email['send_attempts'],
+                    'confirmed_at' => $confirmedAtSql,
+                ]
+            );
+
+            $this->pdo->commit();
+
+            return [
+                'email_id' => $emailId,
+                'prospect_id' =>
+                    (int) $email['prospect_id'],
+                'status' => 'sent',
+                'prospect_status' => 'contacted',
+                'message_id' => $messageId,
+                'sent_at' => $confirmedAtSql,
+            ];
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function rescheduleReconciledInitialEmail(
+        int $emailId,
+        DateTimeImmutable $scheduledAt
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        $now = new DateTimeImmutable();
+
+        if ($scheduledAt <= $now) {
+            throw new InvalidArgumentException(
+                'La nouvelle date d’envoi doit être dans le futur.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare(
+                '
+                SELECT
+                    e.id,
+                    e.prospect_id,
+                    e.status,
+                    e.sent_at,
+                    e.message_id,
+                    e.send_attempts,
+                    p.status AS prospect_status
+                FROM prospect_emails e
+                INNER JOIN prospects p
+                    ON p.id = e.prospect_id
+                WHERE e.id = :email_id
+                AND e.email_type = :email_type
+                LIMIT 1
+                FOR UPDATE
+                '
+            );
+
+            $statement->execute([
+                'email_id' => $emailId,
+                'email_type' => 'initial',
+            ]);
+
+            $email = $statement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'E-mail initial introuvable.'
+                );
+            }
+
+            if (
+                $email['status']
+                !== 'reconciliation_required'
+            ) {
+                throw new RuntimeException(
+                    'Cet e-mail ne nécessite pas de réconciliation.'
+                );
+            }
+
+            if (!empty($email['sent_at'])) {
+                throw new RuntimeException(
+                    'Cet e-mail possède déjà une date d’envoi.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'scheduled'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n’est plus programmé.'
+                );
+            }
+
+            $previousMessageId = trim(
+                (string) ($email['message_id'] ?? '')
+            );
+
+            if ($previousMessageId === '') {
+                throw new RuntimeException(
+                    'Le Message-ID SMTP précédent est absent.'
+                );
+            }
+
+            $scheduledAtSql = $scheduledAt->format(
+                'Y-m-d H:i:s'
+            );
+
+            $updateEmail = $this->pdo->prepare(
+                '
+                UPDATE prospect_emails
+                SET
+                    status = :status,
+                    scheduled_at = :scheduled_at,
+                    message_id = NULL,
+                    error_message = NULL,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :email_id
+                AND status = :previous_status
+                '
+            );
+
+            $updateEmail->execute([
+                'status' => 'scheduled',
+                'scheduled_at' => $scheduledAtSql,
+                'email_id' => $emailId,
+                'previous_status' =>
+                    'reconciliation_required',
+            ]);
+
+            if ($updateEmail->rowCount() !== 1) {
+                throw new RuntimeException(
+                    'Impossible de reprogrammer cet e-mail.'
+                );
+            }
+
+            /*
+            * Le prospect reste scheduled.
+            * On met simplement sa date de programmation
+            * en cohérence avec celle du nouvel envoi.
+            */
+            $updateProspect = $this->pdo->prepare(
+                '
+                UPDATE prospects
+                SET
+                    scheduled_at = :scheduled_at,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :prospect_id
+                AND status = :status
+                '
+            );
+
+            $updateProspect->execute([
+                'scheduled_at' => $scheduledAtSql,
+                'prospect_id' =>
+                    (int) $email['prospect_id'],
+                'status' => 'scheduled',
+            ]);
+
+            $this->addEvent(
+                (int) $email['prospect_id'],
+                'prospect_email_reconciliation_rescheduled',
+                'reconciliation_required',
+                'scheduled',
+                'Envoi SMTP déclaré non délivré et reprogrammé manuellement.',
+                [
+                    'email_id' => $emailId,
+                    'previous_message_id' =>
+                        $previousMessageId,
+                    'send_attempts' =>
+                        (int) $email['send_attempts'],
+                    'scheduled_at' =>
+                        $scheduledAtSql,
+                ]
+            );
+
+            $this->pdo->commit();
+
+            return [
+                'email_id' => $emailId,
+                'prospect_id' =>
+                    (int) $email['prospect_id'],
+                'status' => 'scheduled',
+                'prospect_status' => 'scheduled',
+                'previous_message_id' =>
+                    $previousMessageId,
+                'message_id' => null,
+                'send_attempts' =>
+                    (int) $email['send_attempts'],
+                'scheduled_at' => $scheduledAtSql,
+            ];
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
     public function findDueScheduledInitialEmails(
         DateTimeImmutable $now,
         int $limit = 5
