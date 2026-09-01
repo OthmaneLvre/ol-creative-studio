@@ -2603,6 +2603,121 @@ final class ProspectRepository
         }
     }
 
+    public function rescheduleReconciledInitialEmailWithDailyLimit(
+        int $emailId,
+        ProspectScheduler $scheduler,
+        DateTimeZone $timezone
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        $lockName =
+            'ol_prospection_scheduler';
+
+        $lockStatement =
+            $this->pdo->prepare(
+                '
+                SELECT GET_LOCK(
+                    :lock_name,
+                    :timeout
+                )
+                '
+            );
+
+        $lockStatement->execute([
+            'lock_name' =>
+                $lockName,
+
+            'timeout' =>
+                5,
+        ]);
+
+        $lockAcquired =
+            (int) $lockStatement->fetchColumn();
+
+        if ($lockAcquired !== 1) {
+            throw new RuntimeException(
+                'Impossible d’obtenir le verrou du scheduler.'
+            );
+        }
+
+        try {
+            /*
+            |--------------------------------------------------------------------------
+            | Date de référence
+            |--------------------------------------------------------------------------
+            |
+            | Le scheduler commencera automatiquement au lendemain,
+            | puis appliquera les jours ouvrés et le quota quotidien.
+            |
+            */
+
+            $now =
+                new DateTimeImmutable(
+                    'now',
+                    $timezone
+                );
+
+            $scheduledAt =
+                $scheduler
+                    ->findNextAvailableSlot(
+                        $now,
+                        function (
+                            string $date
+                        ) use (
+                            $timezone
+                        ): int {
+                            return $this
+                                ->countScheduledInitialEmailsForDate(
+                                    new DateTimeImmutable(
+                                        $date,
+                                        $timezone
+                                    )
+                                );
+                        }
+                    );
+
+            /*
+            |--------------------------------------------------------------------------
+            | La méthode existante effectue ensuite la transition atomique
+            | reconciliation_required -> scheduled.
+            |--------------------------------------------------------------------------
+            */
+
+            $result =
+                $this
+                    ->rescheduleReconciledInitialEmail(
+                        $emailId,
+                        $scheduledAt
+                    );
+
+            $result['scheduled_at'] =
+                $scheduledAt->format(
+                    'Y-m-d H:i:s'
+                );
+
+            return $result;
+
+        } finally {
+            $releaseStatement =
+                $this->pdo->prepare(
+                    '
+                    SELECT RELEASE_LOCK(
+                        :lock_name
+                    )
+                    '
+                );
+
+            $releaseStatement->execute([
+                'lock_name' =>
+                    $lockName,
+            ]);
+        }
+    }
+
     public function findDueScheduledInitialEmails(
         DateTimeImmutable $now,
         int $limit = 5
