@@ -191,6 +191,86 @@ try {
 
     /*
     |--------------------------------------------------------------------------
+    | Détection des envois stale
+    |--------------------------------------------------------------------------
+    |
+    | Un e-mail resté "sending" trop longtemps peut correspondre
+    | à un processus interrompu après acceptation SMTP.
+    |
+    | Dans ce cas, aucun retry automatique :
+    | il passe en reconciliation_required.
+    |
+    */
+
+    $staleSendingMinutes = (int) (
+        $config['sending']['stale_sending_minutes']
+        ?? 15
+    );
+
+    if ($staleSendingMinutes < 1) {
+        throw new RuntimeException(
+            'Le délai de détection des envois stale est invalide.'
+        );
+    }
+
+    $staleEmails =
+        $repository
+            ->findStaleSendingInitialEmails(
+                $now,
+                $staleSendingMinutes
+            );
+
+    echo 'Envois sending stale : '
+        . count($staleEmails)
+        . PHP_EOL;
+
+    $reconciliationCount = 0;
+
+    foreach ($staleEmails as $staleEmail) {
+        $staleEmailId =
+            (int) $staleEmail['email_id'];
+
+        try {
+            $result =
+                $repository
+                    ->markStaleInitialEmailForReconciliation(
+                        $staleEmailId,
+                        $now,
+                        $staleSendingMinutes
+                    );
+
+            $reconciliationCount++;
+
+            echo 'Réconciliation requise : email #'
+                . $staleEmailId
+                . ' / prospect #'
+                . (int) $result['prospect_id']
+                . PHP_EOL;
+        } catch (Throwable $exception) {
+            /*
+            * Ce cas peut arriver si l'état a changé
+            * entre la détection et le verrou FOR UPDATE.
+            *
+            * On ne bloque pas tout le cron pour autant.
+            */
+
+            echo 'Stale ignoré : email #'
+                . $staleEmailId
+                . ' - '
+                . $exception->getMessage()
+                . PHP_EOL;
+        }
+    }
+
+    echo 'Placés en réconciliation : '
+        . $reconciliationCount
+        . PHP_EOL;
+
+    echo PHP_EOL;
+
+
+    /*
+    |--------------------------------------------------------------------------
     | Limite quotidienne réelle
     |--------------------------------------------------------------------------
     */
@@ -704,6 +784,10 @@ try {
         . PHP_EOL;
 
     echo '========================================'
+        . PHP_EOL;
+
+    echo 'Réconciliations requises : '
+        . $reconciliationCount
         . PHP_EOL;
 
     echo 'Envoyés : '
