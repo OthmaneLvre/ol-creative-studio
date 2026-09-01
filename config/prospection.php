@@ -79,7 +79,10 @@ return [
     */
 
     'sending' => [
-        'enabled' => false,
+        'enabled' => filter_var(
+            $_ENV['PROSPECTION_SENDING_ENABLED'] ?? false,
+            FILTER_VALIDATE_BOOL
+        ),
 
         'sender_email' =>
             'contact@olcreativestudio.fr',
