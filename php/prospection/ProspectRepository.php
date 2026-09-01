@@ -1888,13 +1888,22 @@ final class ProspectRepository
         );
     }
 
-    public function claimScheduledInitialEmail(
+   public function claimScheduledInitialEmail(
         int $emailId,
+        string $messageId,
         int $maxAttempts = 3
     ): array {
         if ($emailId <= 0) {
             throw new InvalidArgumentException(
                 'Identifiant e-mail invalide.'
+            );
+        }
+
+        $messageId = trim($messageId);
+
+        if ($messageId === '') {
+            throw new InvalidArgumentException(
+                'Message-ID invalide.'
             );
         }
 
@@ -2018,6 +2027,7 @@ final class ProspectRepository
                 SET
                     status = :status,
                     send_attempts = :send_attempts,
+                    message_id = :message_id,
                     error_message = NULL,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = :email_id
@@ -2027,6 +2037,7 @@ final class ProspectRepository
             $update->execute([
                 'status' => 'sending',
                 'send_attempts' => $newAttemptCount,
+                'message_id' => $messageId,
                 'email_id' => $emailId,
             ]);
 
@@ -2045,6 +2056,7 @@ final class ProspectRepository
                 [
                     'email_id' => $emailId,
                     'send_attempt' => $newAttemptCount,
+                    'message_id' => $messageId,
                 ]
             );
 
@@ -2057,8 +2069,12 @@ final class ProspectRepository
             */
 
             $email['status'] = 'sending';
+
             $email['send_attempts'] =
                 $newAttemptCount;
+
+            $email['message_id'] =
+                $messageId;
 
             /*
             * On renomme ici pour conserver
@@ -2120,6 +2136,7 @@ final class ProspectRepository
                     e.prospect_id,
                     e.status,
                     e.sent_at,
+                    e.message_id,
                     p.status AS prospect_status
                 FROM prospect_emails e
                 INNER JOIN prospects p
@@ -2155,6 +2172,32 @@ final class ProspectRepository
             if (!empty($email['sent_at'])) {
                 throw new RuntimeException(
                     'L’e-mail est déjà marqué comme envoyé.'
+                );
+            }
+
+            if (
+                empty($email['message_id'])
+            ) {
+                throw new RuntimeException(
+                    'Aucun Message-ID n’a été réservé avant l’envoi.'
+                );
+            }
+
+            if (
+                $email['message_id']
+                !== $messageId
+            ) {
+                throw new RuntimeException(
+                    'Le Message-ID SMTP ne correspond pas au Message-ID réservé.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'scheduled'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n’est plus programmé.'
                 );
             }
 

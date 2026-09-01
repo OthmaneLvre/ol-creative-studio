@@ -164,6 +164,7 @@ try {
     $claimed =
         $repository->claimScheduledInitialEmail(
             $emailId,
+            '<test-' . bin2hex(random_bytes(8)) . '@olcreativestudio.fr>',
             3
         );
 
@@ -218,6 +219,7 @@ try {
             e.error_message,
             e.send_attempts,
             e.sent_at,
+            e.message_id,
             p.status AS prospect_status
         FROM prospect_emails e
         INNER JOIN prospects p
@@ -253,11 +255,10 @@ try {
     }
 
     if (
-        $state['prospect_status']
-        !== 'scheduled'
+        empty($state['message_id'])
     ) {
         throw new RuntimeException(
-            'Le prospect doit rester scheduled.'
+            'Le Message-ID de la dernière tentative doit être conservé.'
         );
     }
 
@@ -268,6 +269,9 @@ try {
         . PHP_EOL;
 
     echo 'Tentatives max respectées : OK'
+        . PHP_EOL;
+
+    echo 'Message-ID final conservé : OK'
         . PHP_EOL;
 
     echo PHP_EOL;

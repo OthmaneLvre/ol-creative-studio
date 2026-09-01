@@ -170,6 +170,7 @@ try {
     $claimed =
         $repository->claimScheduledInitialEmail(
             $emailId,
+            '<test-' . bin2hex(random_bytes(8)) . '@olcreativestudio.fr>',
             3
         );
 
@@ -293,13 +294,23 @@ try {
 
     if (
         $state['sent_at'] !== null
-        || $state['message_id'] !== null
         || $state['contacted_at'] !== null
     ) {
         throw new RuntimeException(
             'Un retry ne doit pas être marqué comme envoyé.'
         );
     }
+
+    if (
+        empty($state['message_id'])
+    ) {
+        throw new RuntimeException(
+            'Le Message-ID réservé doit être conservé après l’échec SMTP.'
+        );
+    }
+
+    echo 'Message-ID conservé après échec : OK'
+        . PHP_EOL;
 
     echo 'sending -> scheduled : OK'
         . PHP_EOL;

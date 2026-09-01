@@ -161,15 +161,22 @@ try {
     $emailId =
         (int) $pdo->lastInsertId();
 
+    $messageId =
+        '<test-'
+        . bin2hex(random_bytes(8))
+        . '@olcreativestudio.fr>';
+
     /*
     |--------------------------------------------------------------------------
     | Claim
     |--------------------------------------------------------------------------
     */
 
+
     $claimed =
         $repository->claimScheduledInitialEmail(
             $emailId,
+            $messageId,
             3
         );
 
@@ -191,7 +198,19 @@ try {
         );
     }
 
+    if (
+        $claimed['message_id']
+        !== $messageId
+    ) {
+        throw new RuntimeException(
+            'Le Message-ID n’a pas été persisté au claim.'
+        );
+    }
+
     echo 'Claim scheduled -> sending : OK'
+        . PHP_EOL;
+
+    echo 'Message-ID persisté avant SMTP : OK'
         . PHP_EOL;
 
     /*
@@ -203,6 +222,9 @@ try {
     try {
         $repository->claimScheduledInitialEmail(
             $emailId,
+            '<test-'
+            . bin2hex(random_bytes(8))
+            . '@olcreativestudio.fr>',
             3
         );
 
@@ -228,9 +250,6 @@ try {
     | Simulation succès SMTP
     |--------------------------------------------------------------------------
     */
-
-    $messageId =
-        '<prospection-test@olcreativestudio.fr>';
 
     $repository->markInitialEmailSent(
         $emailId,
