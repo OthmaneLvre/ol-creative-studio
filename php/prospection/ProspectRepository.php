@@ -2583,6 +2583,93 @@ final class ProspectRepository
         return $results;
     }
 
+    public function countSentInitialEmailsForDate(
+        DateTimeImmutable $date
+    ): int {
+        $dayStart =
+            $date->setTime(0, 0, 0);
+
+        $nextDayStart =
+            $dayStart->modify('+1 day');
+
+        $statement = $this->pdo->prepare(
+            '
+            SELECT COUNT(*)
+            FROM prospect_emails
+            WHERE email_type = :email_type
+            AND status = :status
+            AND sent_at >= :day_start
+            AND sent_at < :next_day_start
+            '
+        );
+
+        $statement->execute([
+            'email_type' =>
+                'initial',
+
+            'status' =>
+                'sent',
+
+            'day_start' =>
+                $dayStart->format(
+                    'Y-m-d H:i:s'
+                ),
+
+            'next_day_start' =>
+                $nextDayStart->format(
+                    'Y-m-d H:i:s'
+                ),
+        ]);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    public function acquireMailerLock(
+        int $timeout = 0
+    ): bool {
+        if ($timeout < 0) {
+            throw new InvalidArgumentException(
+                'Timeout du verrou invalide.'
+            );
+        }
+
+        $statement = $this->pdo->prepare(
+            '
+            SELECT GET_LOCK(
+                :lock_name,
+                :timeout
+            )
+            '
+        );
+
+        $statement->execute([
+            'lock_name' =>
+                'ol_prospection_mailer',
+
+            'timeout' =>
+                $timeout,
+        ]);
+
+        return (int) $statement->fetchColumn()
+            === 1;
+    }
+
+    public function releaseMailerLock(): void
+    {
+        $statement = $this->pdo->prepare(
+            '
+            SELECT RELEASE_LOCK(
+                :lock_name
+            )
+            '
+        );
+
+        $statement->execute([
+            'lock_name' =>
+                'ol_prospection_mailer',
+        ]);
+    }
+
     public function countScheduledInitialEmailsForDate(
         DateTimeImmutable $date
     ): int {
