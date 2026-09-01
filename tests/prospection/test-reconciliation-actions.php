@@ -242,6 +242,51 @@ try {
             'SENT'
         );
 
+    $pendingReconciliations =
+        $repository
+            ->findInitialEmailsRequiringReconciliation();
+
+    $foundReconciliation = false;
+
+    foreach ($pendingReconciliations as $item) {
+        if (
+            (int) $item['email_id']
+            === (int) $fixtureSent['email_id']
+        ) {
+            $foundReconciliation = true;
+
+            assertTest(
+                $item['status']
+                    === 'reconciliation_required',
+                'Réconciliation visible dans la file : OK',
+                'Statut de réconciliation incorrect.'
+            );
+
+            assertTest(
+                $item['message_id']
+                    === $fixtureSent['message_id'],
+                'Message-ID visible dans la file : OK',
+                'Message-ID de la file incorrect.'
+            );
+
+            assertTest(
+                !empty(
+                    $item['sending_started_at']
+                ),
+                'Date de tentative SMTP retrouvée : OK',
+                'Date de tentative SMTP absente.'
+            );
+
+            break;
+        }
+    }
+
+    assertTest(
+        $foundReconciliation,
+        'E-mail présent dans la file de réconciliation : OK',
+        'E-mail absent de la file de réconciliation.'
+    );
+
     $prospectIds[] =
         $fixtureSent['prospect_id'];
 

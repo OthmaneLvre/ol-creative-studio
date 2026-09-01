@@ -2134,6 +2134,115 @@ final class ProspectRepository
         }
     }
 
+    public function findInitialEmailsRequiringReconciliation(): array
+    {
+        $statement = $this->pdo->prepare(
+            '
+            SELECT
+                e.id AS email_id,
+                e.prospect_id,
+                e.recipient_email,
+                e.subject,
+                e.status,
+                e.message_id,
+                e.send_attempts,
+                e.error_message,
+                e.scheduled_at,
+                e.updated_at,
+
+                p.company_name,
+                p.activity,
+                p.city,
+                p.postal_code,
+                p.status AS prospect_status,
+
+                (
+                    SELECT pe.metadata
+                    FROM prospect_events pe
+                    WHERE pe.prospect_id = e.prospect_id
+                    AND pe.event_type = :event_type
+                    AND JSON_UNQUOTE(
+                        JSON_EXTRACT(
+                            pe.metadata,
+                            "$.email_id"
+                        )
+                    ) = CAST(e.id AS CHAR)
+                    ORDER BY pe.id DESC
+                    LIMIT 1
+                ) AS reconciliation_metadata
+
+            FROM prospect_emails e
+
+            INNER JOIN prospects p
+                ON p.id = e.prospect_id
+
+            WHERE e.email_type = :email_type
+            AND e.status = :status
+            AND e.sent_at IS NULL
+
+            ORDER BY
+                e.updated_at ASC,
+                e.id ASC
+            '
+        );
+
+        $statement->execute([
+            'event_type' =>
+                'prospect_email_reconciliation_required',
+
+            'email_type' =>
+                'initial',
+
+            'status' =>
+                'reconciliation_required',
+        ]);
+
+        $emails = $statement->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+
+        foreach ($emails as &$email) {
+            $metadata = [];
+
+            if (
+                !empty(
+                    $email['reconciliation_metadata']
+                )
+            ) {
+                try {
+                    $decoded = json_decode(
+                        (string) $email[
+                            'reconciliation_metadata'
+                        ],
+                        true,
+                        512,
+                        JSON_THROW_ON_ERROR
+                    );
+
+                    if (is_array($decoded)) {
+                        $metadata = $decoded;
+                    }
+                } catch (JsonException) {
+                    $metadata = [];
+                }
+            }
+
+            $email['reconciliation_metadata'] =
+                $metadata;
+
+            $email['sending_started_at'] =
+                isset($metadata['sending_updated_at'])
+                    ? (string) $metadata[
+                        'sending_updated_at'
+                    ]
+                    : null;
+        }
+
+        unset($email);
+
+        return $emails;
+    }
+
     public function confirmReconciliationAsSent(
         int $emailId,
         DateTimeImmutable $confirmedAt
