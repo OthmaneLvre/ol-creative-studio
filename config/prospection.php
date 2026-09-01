@@ -105,6 +105,9 @@ return [
         'retry_delay_minutes' =>
             30,
 
+        'stale_sending_minutes' =>
+            15,
+
         'local_redirect_enabled' =>
             true,
 

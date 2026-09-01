@@ -1831,6 +1831,309 @@ final class ProspectRepository
         ]);
     }
 
+    public function findStaleSendingInitialEmails(
+        DateTimeImmutable $now,
+        int $staleMinutes = 15
+    ): array {
+        if ($staleMinutes < 1) {
+            throw new InvalidArgumentException(
+                'Le délai de détection des envois bloqués est invalide.'
+            );
+        }
+
+        $cutoff = $now
+            ->modify(
+                '-'
+                . $staleMinutes
+                . ' minutes'
+            )
+            ->format('Y-m-d H:i:s');
+
+        $statement = $this->pdo->prepare(
+            '
+            SELECT
+                e.id AS email_id,
+                e.prospect_id,
+                e.recipient_email,
+                e.subject,
+                e.status,
+                e.message_id,
+                e.send_attempts,
+                e.updated_at,
+                p.company_name,
+                p.status AS prospect_status
+            FROM prospect_emails e
+            INNER JOIN prospects p
+                ON p.id = e.prospect_id
+            WHERE e.email_type = :email_type
+            AND e.status = :status
+            AND e.sent_at IS NULL
+            AND e.updated_at <= :cutoff
+            ORDER BY e.updated_at ASC, e.id ASC
+            '
+        );
+
+        $statement->execute([
+            'email_type' => 'initial',
+            'status' => 'sending',
+            'cutoff' => $cutoff,
+        ]);
+
+        return $statement->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+    }
+
+    public function markStaleInitialEmailForReconciliation(
+        int $emailId,
+        DateTimeImmutable $now,
+        int $staleMinutes = 15
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        if ($staleMinutes < 1) {
+            throw new InvalidArgumentException(
+                'Le délai de détection des envois bloqués est invalide.'
+            );
+        }
+
+        $cutoff = $now
+            ->modify(
+                '-'
+                . $staleMinutes
+                . ' minutes'
+            );
+
+        try {
+            $this->pdo->beginTransaction();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouillage
+            |--------------------------------------------------------------------------
+            */
+
+            $statement = $this->pdo->prepare(
+                '
+                SELECT
+                    e.id,
+                    e.prospect_id,
+                    e.status,
+                    e.sent_at,
+                    e.message_id,
+                    e.send_attempts,
+                    e.updated_at,
+                    p.status AS prospect_status
+                FROM prospect_emails e
+                INNER JOIN prospects p
+                    ON p.id = e.prospect_id
+                WHERE e.id = :email_id
+                AND e.email_type = :email_type
+                LIMIT 1
+                FOR UPDATE
+                '
+            );
+
+            $statement->execute([
+                'email_id' => $emailId,
+                'email_type' => 'initial',
+            ]);
+
+            $email = $statement->fetch(
+                PDO::FETCH_ASSOC
+            );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'E-mail initial introuvable.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Revalidation
+            |--------------------------------------------------------------------------
+            */
+
+            if ($email['status'] !== 'sending') {
+                throw new RuntimeException(
+                    'L’e-mail n’est plus en cours d’envoi.'
+                );
+            }
+
+            if (!empty($email['sent_at'])) {
+                throw new RuntimeException(
+                    'L’e-mail est déjà marqué comme envoyé.'
+                );
+            }
+
+            if (empty($email['message_id'])) {
+                throw new RuntimeException(
+                    'Impossible de réconcilier un envoi sans Message-ID.'
+                );
+            }
+
+            $updatedAt = new DateTimeImmutable(
+                (string) $email['updated_at']
+            );
+
+            if ($updatedAt > $cutoff) {
+                throw new RuntimeException(
+                    'L’envoi n’est pas suffisamment ancien pour être réconcilié.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Mise en quarantaine
+            |--------------------------------------------------------------------------
+            |
+            | Aucun retry automatique.
+            |
+            */
+
+            $errorMessage =
+                'État SMTP inconnu après interruption du processus. '
+                . 'Vérification manuelle requise avant tout nouvel envoi.';
+
+            $update = $this->pdo->prepare(
+                '
+                UPDATE prospect_emails
+                SET
+                    status = :status,
+                    error_message = :error_message,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :email_id
+                '
+            );
+
+            $update->execute([
+                'status' =>
+                    'reconciliation_required',
+
+                'error_message' =>
+                    $errorMessage,
+
+                'email_id' =>
+                    $emailId,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Journal
+            |--------------------------------------------------------------------------
+            */
+
+            $event = $this->pdo->prepare(
+                '
+                INSERT INTO prospect_events (
+                    prospect_id,
+                    event_type,
+                    previous_status,
+                    new_status,
+                    description,
+                    metadata,
+                    created_at
+                ) VALUES (
+                    :prospect_id,
+                    :event_type,
+                    :previous_status,
+                    :new_status,
+                    :description,
+                    :metadata,
+                    CURRENT_TIMESTAMP
+                )
+                '
+            );
+
+            $metadata = json_encode(
+                [
+                    'email_id' =>
+                        $emailId,
+
+                    'message_id' =>
+                        (string) $email['message_id'],
+
+                    'send_attempts' =>
+                        (int) $email['send_attempts'],
+
+                    'sending_updated_at' =>
+                        (string) $email['updated_at'],
+
+                    'stale_minutes' =>
+                        $staleMinutes,
+                ],
+                JSON_UNESCAPED_UNICODE
+                | JSON_UNESCAPED_SLASHES
+            );
+
+            if ($metadata === false) {
+                throw new RuntimeException(
+                    'Impossible de sérialiser les données de réconciliation.'
+                );
+            }
+
+            $event->execute([
+                'prospect_id' =>
+                    (int) $email['prospect_id'],
+
+                'event_type' =>
+                    'prospect_email_reconciliation_required',
+
+                /*
+                * Ces statuts concernent ici l'e-mail.
+                * Le prospect reste volontairement scheduled.
+                */
+                'previous_status' =>
+                    'sending',
+
+                'new_status' =>
+                    'reconciliation_required',
+
+                'description' =>
+                    $errorMessage,
+
+                'metadata' =>
+                    $metadata,
+            ]);
+
+            $this->pdo->commit();
+
+            return [
+                'email_id' =>
+                    $emailId,
+
+                'prospect_id' =>
+                    (int) $email['prospect_id'],
+
+                'status' =>
+                    'reconciliation_required',
+
+                'prospect_status' =>
+                    (string) $email['prospect_status'],
+
+                'message_id' =>
+                    (string) $email['message_id'],
+
+                'send_attempts' =>
+                    (int) $email['send_attempts'],
+
+                'error_message' =>
+                    $errorMessage,
+            ];
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
     public function findDueScheduledInitialEmails(
         DateTimeImmutable $now,
         int $limit = 5

@@ -224,6 +224,7 @@ CREATE TABLE IF NOT EXISTS prospect_emails (
         'approved',
         'scheduled',
         'sending',
+        'reconciliation_required',
         'sent',
         'failed',
         'cancelled'
