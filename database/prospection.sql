@@ -252,7 +252,9 @@ CREATE TABLE IF NOT EXISTS prospect_emails (
     INDEX idx_prospect_emails_prospect (prospect_id),
     INDEX idx_prospect_emails_status (status),
     INDEX idx_prospect_emails_scheduled_at (scheduled_at),
-    INDEX idx_prospect_emails_sent_at (sent_at)
+    INDEX idx_prospect_emails_sent_at (sent_at),
+    INDEX idx_prospect_emails_message_id (message_id),
+    INDEX idx_prospect_emails_recipient (recipient_email)
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
@@ -303,6 +305,8 @@ CREATE TABLE IF NOT EXISTS prospect_replies (
         FOREIGN KEY (prospect_email_id)
         REFERENCES prospect_emails(id)
         ON DELETE SET NULL,
+
+    UNIQUE KEY uq_prospect_replies_message_id (message_id),
 
     INDEX idx_prospect_replies_prospect (prospect_id),
     INDEX idx_prospect_replies_classification (classification),
