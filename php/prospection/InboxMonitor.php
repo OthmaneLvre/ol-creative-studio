@@ -204,6 +204,11 @@ final class InboxMonitor
             $messageNumber
         );
 
+        $bodies = $this->extractBodies(
+            $connection,
+            $messageNumber
+        );
+
         $receivedAt = null;
 
         if (isset($header->udate)) {
@@ -227,8 +232,12 @@ final class InboxMonitor
             'in_reply_to' => $inReplyTo,
             'references' => $references,
 
+            'body_text' => $bodies['text'],
+            'body_html' => $bodies['html'],
+
             'received_at' => $receivedAt,
         ];
+
     }
 
     private function extractSenderEmail(
@@ -362,4 +371,322 @@ final class InboxMonitor
             )
         );
     }
+
+    /**
+ * @param resource|\IMAP\Connection $connection
+ *
+ * @return array{
+ *     text: ?string,
+ *     html: ?string
+ * }
+ */
+private function extractBodies(
+    $connection,
+    int $messageNumber
+): array {
+    $structure = imap_fetchstructure(
+        $connection,
+        $messageNumber
+    );
+
+    if ($structure === false) {
+        return [
+            'text' => null,
+            'html' => null,
+        ];
+    }
+
+    $bodies = [
+        'text' => null,
+        'html' => null,
+    ];
+
+    $this->extractBodyParts(
+        $connection,
+        $messageNumber,
+        $structure,
+        '',
+        $bodies
+    );
+
+    return $bodies;
+}
+
+/**
+ * @param resource|\IMAP\Connection $connection
+ * @param array{text: ?string, html: ?string} $bodies
+ */
+private function extractBodyParts(
+    $connection,
+    int $messageNumber,
+    object $structure,
+    string $partNumber,
+    array &$bodies
+): void {
+    if (
+        isset($structure->parts)
+        && is_array($structure->parts)
+        && $structure->parts !== []
+    ) {
+        foreach (
+            $structure->parts
+            as $index => $part
+        ) {
+            if (!is_object($part)) {
+                continue;
+            }
+
+            $childPartNumber =
+                $partNumber === ''
+                    ? (string) ($index + 1)
+                    : $partNumber
+                        . '.'
+                        . ($index + 1);
+
+            $this->extractBodyParts(
+                $connection,
+                $messageNumber,
+                $part,
+                $childPartNumber,
+                $bodies
+            );
+        }
+
+        return;
+    }
+
+    if (!$this->isTextPart($structure)) {
+        return;
+    }
+
+    $subtype = strtoupper(
+        (string) (
+            $structure->subtype ?? ''
+        )
+    );
+
+    if (
+        $subtype !== 'PLAIN'
+        && $subtype !== 'HTML'
+    ) {
+        return;
+    }
+
+    $body = $this->fetchBodyPart(
+        $connection,
+        $messageNumber,
+        $partNumber,
+        $structure
+    );
+
+    if ($body === null) {
+        return;
+    }
+
+    if (
+        $subtype === 'PLAIN'
+        && $bodies['text'] === null
+    ) {
+        $bodies['text'] = $body;
+
+        return;
+    }
+
+    if (
+        $subtype === 'HTML'
+        && $bodies['html'] === null
+    ) {
+        $bodies['html'] = $body;
+    }
+}
+
+/**
+ * @param resource|\IMAP\Connection $connection
+ */
+private function fetchBodyPart(
+    $connection,
+    int $messageNumber,
+    string $partNumber,
+    object $structure
+): ?string {
+    if ($partNumber === '') {
+        $body = imap_body(
+            $connection,
+            $messageNumber,
+            FT_PEEK
+        );
+    } else {
+        $body = imap_fetchbody(
+            $connection,
+            $messageNumber,
+            $partNumber,
+            FT_PEEK
+        );
+    }
+
+    if ($body === false) {
+        return null;
+    }
+
+    $body = $this->decodeTransferEncoding(
+        $body,
+        (int) ($structure->encoding ?? 0)
+    );
+
+    $charset = $this->extractCharset(
+        $structure
+    );
+
+    $body = $this->convertToUtf8(
+        $body,
+        $charset
+    );
+
+    $body = trim($body);
+
+    return $body !== ''
+        ? $body
+        : null;
+}
+
+private function isTextPart(
+    object $structure
+): bool {
+    /*
+     * IMAP type 0 = text.
+     */
+    return (int) (
+        $structure->type ?? -1
+    ) === 0;
+}
+
+private function decodeTransferEncoding(
+    string $body,
+    int $encoding
+): string {
+    /*
+     * IMAP encodings:
+     *
+     * 0 = 7BIT
+     * 1 = 8BIT
+     * 2 = BINARY
+     * 3 = BASE64
+     * 4 = QUOTED-PRINTABLE
+     * 5 = OTHER
+     */
+    if ($encoding === 3) {
+        $decoded = base64_decode(
+            $body,
+            true
+        );
+
+        return $decoded !== false
+            ? $decoded
+            : $body;
+    }
+
+    if ($encoding === 4) {
+        return quoted_printable_decode(
+            $body
+        );
+    }
+
+    return $body;
+}
+
+private function extractCharset(
+    object $structure
+): ?string {
+    $parameterGroups = [];
+
+    if (
+        isset($structure->parameters)
+        && is_array($structure->parameters)
+    ) {
+        $parameterGroups[] =
+            $structure->parameters;
+    }
+
+    if (
+        isset($structure->dparameters)
+        && is_array($structure->dparameters)
+    ) {
+        $parameterGroups[] =
+            $structure->dparameters;
+    }
+
+    foreach (
+        $parameterGroups
+        as $parameters
+    ) {
+        foreach ($parameters as $parameter) {
+            if (!is_object($parameter)) {
+                continue;
+            }
+
+            $attribute = strtoupper(
+                trim(
+                    (string) (
+                        $parameter->attribute
+                        ?? ''
+                    )
+                )
+            );
+
+            if ($attribute !== 'CHARSET') {
+                continue;
+            }
+
+            $charset = trim(
+                (string) (
+                    $parameter->value
+                    ?? ''
+                )
+            );
+
+            return $charset !== ''
+                ? $charset
+                : null;
+        }
+    }
+
+    return null;
+}
+
+private function convertToUtf8(
+    string $body,
+    ?string $charset
+): string {
+    if ($charset === null) {
+        return $body;
+    }
+
+    $normalizedCharset = strtoupper(
+        trim($charset, " \t\n\r\0\x0B\"'")
+    );
+
+    if (
+        $normalizedCharset === ''
+        || $normalizedCharset === 'UTF-8'
+        || $normalizedCharset === 'UTF8'
+        || $normalizedCharset === 'US-ASCII'
+        || $normalizedCharset === 'ASCII'
+    ) {
+        return $body;
+    }
+
+    if (!function_exists('mb_convert_encoding')) {
+        return $body;
+    }
+
+    try {
+        return mb_convert_encoding(
+            $body,
+            'UTF-8',
+            $normalizedCharset
+        );
+    } catch (ValueError) {
+        return $body;
+    }
+}
 }

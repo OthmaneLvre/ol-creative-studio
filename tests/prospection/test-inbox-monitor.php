@@ -42,6 +42,25 @@ foreach ($messages as $message) {
         . ($message['in_reply_to'] ?? 'absent')
         . "\n";
 
+    $bodyText = $message['body_text'] ?? null;
+    $bodyHtml = $message['body_html'] ?? null;
+
+    echo 'Body text : '
+        . ($bodyText !== null ? 'présent' : 'absent')
+        . PHP_EOL;
+
+    echo 'Longueur text : '
+        . ($bodyText !== null ? strlen($bodyText) : 0)
+        . PHP_EOL;
+
+    echo 'Body HTML : '
+        . ($bodyHtml !== null ? 'présent' : 'absent')
+        . PHP_EOL;
+
+    echo 'Longueur HTML : '
+        . ($bodyHtml !== null ? strlen($bodyHtml) : 0)
+        . PHP_EOL;
+
     echo "References : "
         . implode(
             ', ',
