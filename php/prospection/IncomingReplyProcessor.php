@@ -104,8 +104,13 @@ final class IncomingReplyProcessor
             $previousStatus =
                 (string) $prospect['status'];
 
+            $prospectStatus = $this->resolveProspectStatusAfterReply(
+                $previousStatus
+            );
+
             $this->markProspectAsReplied(
                 $prospectId,
+                $prospectStatus,
                 $receivedAt
             );
 
@@ -117,6 +122,7 @@ final class IncomingReplyProcessor
             $this->insertEvent(
                 $prospectId,
                 $previousStatus,
+                $prospectStatus,
                 $replyId,
                 $prospectEmailId,
                 $messageId,
@@ -133,7 +139,7 @@ final class IncomingReplyProcessor
                 'reply_id' => $replyId,
                 'prospect_id' => $prospectId,
                 'previous_status' => $previousStatus,
-                'prospect_status' => 'replied',
+                'prospect_status' => $prospectStatus,
                 'cancelled_follow_ups' =>
                     $cancelledFollowUps,
             ];
@@ -272,6 +278,7 @@ final class IncomingReplyProcessor
 
     private function markProspectAsReplied(
         int $prospectId,
+        string $status,
         string $receivedAt
     ): void {
         $statement = $this->pdo->prepare(
@@ -279,16 +286,42 @@ final class IncomingReplyProcessor
             UPDATE prospects
             SET
                 status = :status,
-                replied_at = :replied_at
+                replied_at = COALESCE(
+                    replied_at,
+                    :replied_at
+                )
             WHERE id = :prospect_id
             '
         );
 
         $statement->execute([
-            'status' => 'replied',
+            'status' => $status,
             'replied_at' => $receivedAt,
             'prospect_id' => $prospectId,
         ]);
+    }
+
+    private function resolveProspectStatusAfterReply(
+        string $currentStatus
+    ): string {
+        $preservedStatuses = [
+            'converted',
+            'unsubscribed',
+            'rejected',
+            'invalid',
+        ];
+
+        if (
+            in_array(
+                $currentStatus,
+                $preservedStatuses,
+                true
+            )
+        ) {
+            return $currentStatus;
+        }
+
+        return 'replied';
     }
 
     private function cancelPendingFollowUps(
@@ -333,6 +366,7 @@ final class IncomingReplyProcessor
     private function insertEvent(
         int $prospectId,
         string $previousStatus,
+        string $newStatus,
         int $replyId,
         int $prospectEmailId,
         string $messageId,
@@ -382,7 +416,7 @@ final class IncomingReplyProcessor
                 'prospect_reply_received',
             'previous_status' =>
                 $previousStatus,
-            'new_status' => 'replied',
+            'new_status' => $newStatus,
             'description' =>
                 'Réponse reçue par e-mail.',
             'metadata' => $metadata,
