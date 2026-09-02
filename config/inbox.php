@@ -14,8 +14,9 @@ $dotenv->safeLoad();
 
 return [
     'enabled' => filter_var(
-        $_ENV['INBOX_MONITORING_ENABLED'] ?? false,
-        FILTER_VALIDATE_BOOL
+        $_ENV['PROSPECTION_INBOX_ENABLED']
+            ?? 'false',
+        FILTER_VALIDATE_BOOLEAN
     ),
 
     'host' => $_ENV['IMAP_HOST'] ?? 'ssl0.ovh.net',
@@ -26,6 +27,17 @@ return [
     'password' => $_ENV['IMAP_PASSWORD'] ?? '',
 
     'mailbox' => $_ENV['IMAP_MAILBOX'] ?? 'INBOX',
+
+    'batch_limit' => (int) (
+        $_ENV['PROSPECTION_INBOX_BATCH_LIMIT']
+        ?? 50
+    ),
+
+    'dry_run' => filter_var(
+        $_ENV['PROSPECTION_INBOX_DRY_RUN']
+            ?? 'true',
+        FILTER_VALIDATE_BOOLEAN
+    ),
 
     /*
      * V1 : aucune suppression et aucun déplacement automatique.
