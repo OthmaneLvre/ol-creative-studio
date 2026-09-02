@@ -14,6 +14,7 @@ $totalProspects = 0;
 $pendingProspects = 0;
 $scheduledProspects = 0;
 $repliedProspects = 0;
+$reconciliationEmails = 0;
 
 try {
     $totalProspectsStmt = $pdo->query(
@@ -56,6 +57,20 @@ try {
 
     $repliedProspects = (int) (
         $repliedProspectsStmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0
+    );
+
+    $reconciliationEmailsStmt = $pdo->query(
+        "SELECT COUNT(*) AS total
+         FROM prospect_emails
+         WHERE email_type = 'initial'
+         AND status = 'reconciliation_required'
+         AND sent_at IS NULL"
+    );
+
+    $reconciliationEmails = (int) (
+        $reconciliationEmailsStmt
+            ->fetch(PDO::FETCH_ASSOC)['total']
+        ?? 0
     );
 } catch (PDOException $exception) {
     /*
@@ -209,6 +224,60 @@ $maxDailySends = (int) prospection_config(
 
                 </section>
 
+                <?php if ($reconciliationEmails > 0): ?>
+
+                    <!-- =========================
+                         RÉCONCILIATION SMTP
+                         ========================= -->
+
+                    <section
+                        class="admin-panel"
+                        aria-label="Réconciliation des e-mails"
+                    >
+
+                        <div class="admin-panel__header">
+
+                            <div>
+
+                                <span class="admin-eyebrow">
+                                    Sécurité SMTP
+                                </span>
+
+                                <h2>
+                                    Envois à vérifier
+                                </h2>
+
+                                <p>
+                                    <?= $reconciliationEmails ?>
+                                    e-mail<?= $reconciliationEmails > 1 ? 's' : '' ?>
+                                    nécessite<?= $reconciliationEmails > 1 ? 'nt' : '' ?>
+                                    une vérification manuelle avant toute
+                                    nouvelle tentative.
+                                </p>
+
+                            </div>
+
+                            <span class="admin-badge">
+                                <?= $reconciliationEmails ?>
+                            </span>
+
+                        </div>
+
+                        <div class="prospect-detail__actions">
+
+                            <a
+                                href="/admin/prospection/reconciliation.php"
+                                class="admin-button admin-button--primary"
+                            >
+                                Vérifier les envois
+                                <span aria-hidden="true">→</span>
+                            </a>
+
+                        </div>
+
+                    </section>
+
+                <?php endif; ?>
 
                 <!-- =========================
                      STATS
