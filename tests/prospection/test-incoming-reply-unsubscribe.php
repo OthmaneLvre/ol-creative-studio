@@ -20,6 +20,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../../php/prospection/IncomingReplyHandler.php';
 
+require_once __DIR__
+    . '/../../php/prospection/AutomaticReplyDetector.php';
+
 echo "========================================\n";
 echo "TEST INCOMING REPLY UNSUBSCRIBE\n";
 echo "========================================\n\n";
@@ -32,11 +35,15 @@ $processor = new IncomingReplyProcessor($pdo);
 $contentExtractor = new ReplyContentExtractor();
 $unsubscribeManager = new UnsubscribeManager($pdo);
 
+$automaticReplyDetector =
+    new AutomaticReplyDetector();
+
 $handler = new IncomingReplyHandler(
     $matcher,
     $processor,
     $contentExtractor,
-    $unsubscribeManager
+    $unsubscribeManager,
+    $automaticReplyDetector
 );
 
 function createFixture(

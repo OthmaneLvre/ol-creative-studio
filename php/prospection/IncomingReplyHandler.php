@@ -8,7 +8,8 @@ final class IncomingReplyHandler
         private readonly IncomingReplyMatcher $matcher,
         private readonly IncomingReplyProcessor $processor,
         private readonly ReplyContentExtractor $contentExtractor,
-        private readonly UnsubscribeManager $unsubscribeManager
+        private readonly UnsubscribeManager $unsubscribeManager,
+        private readonly AutomaticReplyDetector $automaticReplyDetector
     ) {
     }
 
@@ -40,23 +41,68 @@ final class IncomingReplyHandler
             ];
         }
 
+        /*
+         * On isole uniquement le nouveau contenu
+         * avant toute classification.
+         */
+        $replyContent =
+            $this->contentExtractor->extract(
+                $incomingMessage
+            );
+
+        /*
+         * Classification automatique.
+         *
+         * Pour le moment :
+         * - automatic si une auto-réponse est détectée ;
+         * - unknown sinon.
+         *
+         * Les classifications positive / negative /
+         * question seront ajoutées plus tard.
+         */
+        $classification = 'unknown';
+
+        if (
+            $this->automaticReplyDetector
+                ->isAutomaticReply(
+                    $incomingMessage,
+                    $replyContent
+                )
+        ) {
+            $classification = 'automatic';
+        }
+
+        /*
+         * Persistance de la réponse.
+         *
+         * Le processor applique un comportement
+         * spécifique à la classification automatic :
+         * - pas de passage en replied ;
+         * - pas de replied_at ;
+         * - pas d'annulation des relances.
+         */
         $result = $this->processor->process(
             $incomingMessage,
-            $match
+            $match,
+            $classification
         );
 
         $unsubscribeResult = null;
 
+        /*
+         * Une auto-réponse ne doit jamais être
+         * interprétée comme une désinscription.
+         *
+         * Cela évite notamment qu'un footer cité
+         * contenant STOP déclenche le blacklistage.
+         */
         if (
             (bool) ($result['created'] ?? false)
+            && ($result['classification'] ?? null)
+                !== 'automatic'
             && isset($result['reply_id'])
             && isset($result['prospect_id'])
         ) {
-            $replyContent =
-                $this->contentExtractor->extract(
-                    $incomingMessage
-                );
-
             if (
                 $this->unsubscribeManager
                     ->isUnsubscribeRequest(
@@ -101,24 +147,40 @@ final class IncomingReplyHandler
         return [
             'handled' => true,
             'matched' => true,
+
             'created' =>
                 (bool) ($result['created'] ?? false),
+
             'duplicate' =>
                 (bool) ($result['duplicate'] ?? false),
+
             'match_type' =>
                 $match['match_type'] ?? null,
+
             'prospect_id' =>
                 isset($result['prospect_id'])
                     ? (int) $result['prospect_id']
                     : null,
+
             'reply_id' =>
                 isset($result['reply_id'])
                     ? (int) $result['reply_id']
                     : null,
+
+            'classification' =>
+                $result['classification']
+                    ?? null,
+
+            'automatic' =>
+                ($result['classification'] ?? null)
+                    === 'automatic',
+
             'unsubscribed' =>
                 $unsubscribeResult !== null,
+
             'unsubscribe_result' =>
                 $unsubscribeResult,
+
             'result' => $result,
         ];
     }

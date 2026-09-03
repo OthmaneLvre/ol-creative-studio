@@ -11,8 +11,13 @@ final class IncomingReplyProcessor
 
     public function process(
         array $incomingMessage,
-        array $matchedEmail
+        array $matchedEmail,
+        string $classification = 'unknown'
     ): array {
+        $classification =
+            $this->normalizeClassification(
+                $classification
+            );
         $messageId = $this->normalizeMessageId(
             $incomingMessage['message_id'] ?? null
         );
@@ -98,26 +103,35 @@ final class IncomingReplyProcessor
                 $senderEmail,
                 $messageId,
                 $incomingMessage,
-                $receivedAt
+                $receivedAt,
+                $classification
             );
 
             $previousStatus =
                 (string) $prospect['status'];
 
-            $prospectStatus = $this->resolveProspectStatusAfterReply(
-                $previousStatus
-            );
+            $prospectStatus =
+                $previousStatus;
 
-            $this->markProspectAsReplied(
-                $prospectId,
-                $prospectStatus,
-                $receivedAt
-            );
+            $cancelledFollowUps = 0;
 
-            $cancelledFollowUps =
-                $this->cancelPendingFollowUps(
-                    $prospectId
+            if ($classification !== 'automatic') {
+                $prospectStatus =
+                    $this->resolveProspectStatusAfterReply(
+                        $previousStatus
+                    );
+
+                $this->markProspectAsReplied(
+                    $prospectId,
+                    $prospectStatus,
+                    $receivedAt
                 );
+
+                $cancelledFollowUps =
+                    $this->cancelPendingFollowUps(
+                        $prospectId
+                    );
+            }
 
             $this->insertEvent(
                 $prospectId,
@@ -128,7 +142,8 @@ final class IncomingReplyProcessor
                 $messageId,
                 $senderEmail,
                 $receivedAt,
-                $cancelledFollowUps
+                $cancelledFollowUps,
+                $classification
             );
 
             $this->pdo->commit();
@@ -138,6 +153,7 @@ final class IncomingReplyProcessor
                 'duplicate' => false,
                 'reply_id' => $replyId,
                 'prospect_id' => $prospectId,
+                'classification' => $classification,
                 'previous_status' => $previousStatus,
                 'prospect_status' => $prospectStatus,
                 'cancelled_follow_ups' =>
@@ -214,7 +230,8 @@ final class IncomingReplyProcessor
         string $senderEmail,
         string $messageId,
         array $incomingMessage,
-        string $receivedAt
+        string $receivedAt,
+        string $classification
     ): int {
         $statement = $this->pdo->prepare(
             '
@@ -269,7 +286,7 @@ final class IncomingReplyProcessor
                     $incomingMessage['in_reply_to']
                         ?? null
                 ),
-            'classification' => 'unknown',
+            'classification' => $classification,
             'received_at' => $receivedAt,
         ]);
 
@@ -372,7 +389,8 @@ final class IncomingReplyProcessor
         string $messageId,
         string $senderEmail,
         string $receivedAt,
-        int $cancelledFollowUps
+        int $cancelledFollowUps,
+        string $classification
     ): void {
         $metadata = json_encode(
             [
@@ -384,6 +402,7 @@ final class IncomingReplyProcessor
                 'received_at' => $receivedAt,
                 'cancelled_follow_ups' =>
                     $cancelledFollowUps,
+                'classification' => $classification,
             ],
             JSON_UNESCAPED_UNICODE
             | JSON_UNESCAPED_SLASHES
@@ -413,14 +432,49 @@ final class IncomingReplyProcessor
         $statement->execute([
             'prospect_id' => $prospectId,
             'event_type' =>
-                'prospect_reply_received',
+                $classification === 'automatic'
+                    ? 'prospect_automatic_reply_received'
+                    : 'prospect_reply_received',
             'previous_status' =>
                 $previousStatus,
             'new_status' => $newStatus,
             'description' =>
-                'Réponse reçue par e-mail.',
+                $classification === 'automatic'
+                    ? 'Réponse automatique reçue par e-mail.'
+                    : 'Réponse reçue par e-mail.',
             'metadata' => $metadata,
         ]);
+    }
+
+    private function normalizeClassification(
+        string $classification
+    ): string {
+        $classification = strtolower(
+            trim($classification)
+        );
+
+        $allowed = [
+            'positive',
+            'negative',
+            'question',
+            'unsubscribed',
+            'automatic',
+            'unknown',
+        ];
+
+        if (
+            !in_array(
+                $classification,
+                $allowed,
+                true
+            )
+        ) {
+            throw new InvalidArgumentException(
+                'Classification de réponse invalide.'
+            );
+        }
+
+        return $classification;
     }
 
     private function normalizeMessageId(

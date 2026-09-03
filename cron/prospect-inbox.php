@@ -47,6 +47,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../php/prospection/UnsubscribeManager.php';
 
+require_once __DIR__
+    . '/../php/prospection/AutomaticReplyDetector.php';
+
 /*
 |--------------------------------------------------------------------------
 | Configuration
@@ -116,12 +119,16 @@ $contentExtractor =
 $unsubscribeManager =
     new UnsubscribeManager($pdo);
 
+$automaticReplyDetector =
+    new AutomaticReplyDetector();
+
 $handler =
     new IncomingReplyHandler(
         $matcher,
         $processor,
         $contentExtractor,
-        $unsubscribeManager
+        $unsubscribeManager,
+        $automaticReplyDetector
     );
 
 /*
@@ -462,6 +469,14 @@ try {
                 === true
             ) {
                 echo 'Désinscription : OUI'
+                    . PHP_EOL;
+            }
+
+            if (
+                ($result['automatic'] ?? false)
+                === true
+            ) {
+                echo 'Classification : AUTOMATIC'
                     . PHP_EOL;
             }
 
