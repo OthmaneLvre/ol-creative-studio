@@ -14,6 +14,12 @@ require_once __DIR__
 require_once __DIR__
     . '/../../php/prospection/IncomingReplyHandler.php';
 
+require_once __DIR__
+    . '/../../php/prospection/ReplyContentExtractor.php';
+
+require_once __DIR__
+    . '/../../php/prospection/UnsubscribeManager.php';
+
 echo "========================================\n";
 echo "TEST INCOMING REPLY HANDLER\n";
 echo "========================================\n\n";
@@ -119,9 +125,17 @@ try {
         $pdo
     );
 
+    $contentExtractor =
+        new ReplyContentExtractor();
+
+    $unsubscribeManager =
+        new UnsubscribeManager($pdo);
+
     $handler = new IncomingReplyHandler(
         $matcher,
-        $processor
+        $processor,
+        $contentExtractor,
+        $unsubscribeManager
     );
 
     /*

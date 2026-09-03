@@ -41,16 +41,22 @@ require_once __DIR__
 require_once __DIR__
     . '/../php/prospection/IncomingReplyHandler.php';
 
+require_once __DIR__
+    . '/../php/prospection/ReplyContentExtractor.php';
+
+require_once __DIR__
+    . '/../php/prospection/UnsubscribeManager.php';
+
 /*
 |--------------------------------------------------------------------------
 | Configuration
 |--------------------------------------------------------------------------
 */
 
-$prospectionConfig = require __DIR__
+$prospectionConfig = require_once __DIR__
     . '/../config/prospection.php';
 
-$inboxConfig = require __DIR__
+$inboxConfig = require_once __DIR__
     . '/../config/inbox.php';
 
 $timezone = new DateTimeZone(
@@ -104,10 +110,19 @@ $processor = new IncomingReplyProcessor(
     $pdo
 );
 
-$handler = new IncomingReplyHandler(
-    $matcher,
-    $processor
-);
+$contentExtractor =
+    new ReplyContentExtractor();
+
+$unsubscribeManager =
+    new UnsubscribeManager($pdo);
+
+$handler =
+    new IncomingReplyHandler(
+        $matcher,
+        $processor,
+        $contentExtractor,
+        $unsubscribeManager
+    );
 
 /*
 |--------------------------------------------------------------------------
@@ -441,6 +456,14 @@ try {
                         : 'inconnu'
                 )
                 . PHP_EOL;
+
+            if (
+                ($result['unsubscribed'] ?? false)
+                === true
+            ) {
+                echo 'Désinscription : OUI'
+                    . PHP_EOL;
+            }
 
             echo PHP_EOL;
 

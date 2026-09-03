@@ -6,7 +6,9 @@ final class IncomingReplyHandler
 {
     public function __construct(
         private readonly IncomingReplyMatcher $matcher,
-        private readonly IncomingReplyProcessor $processor
+        private readonly IncomingReplyProcessor $processor,
+        private readonly ReplyContentExtractor $contentExtractor,
+        private readonly UnsubscribeManager $unsubscribeManager
     ) {
     }
 
@@ -43,6 +45,59 @@ final class IncomingReplyHandler
             $match
         );
 
+        $unsubscribeResult = null;
+
+        if (
+            (bool) ($result['created'] ?? false)
+            && isset($result['reply_id'])
+            && isset($result['prospect_id'])
+        ) {
+            $replyContent =
+                $this->contentExtractor->extract(
+                    $incomingMessage
+                );
+
+            if (
+                $this->unsubscribeManager
+                    ->isUnsubscribeRequest(
+                        $replyContent
+                    )
+            ) {
+                $senderEmail =
+                    $this->nullableString(
+                        $incomingMessage[
+                            'sender_email'
+                        ] ?? null
+                    );
+
+                $receivedAt =
+                    $this->nullableString(
+                        $incomingMessage[
+                            'received_at'
+                        ] ?? null
+                    );
+
+                if (
+                    $senderEmail === null
+                    || $receivedAt === null
+                ) {
+                    throw new RuntimeException(
+                        'Données de désinscription incomplètes.'
+                    );
+                }
+
+                $unsubscribeResult =
+                    $this->unsubscribeManager
+                        ->unsubscribe(
+                            (int) $result['prospect_id'],
+                            (int) $result['reply_id'],
+                            $senderEmail,
+                            $replyContent,
+                            $receivedAt
+                        );
+            }
+        }
+
         return [
             'handled' => true,
             'matched' => true,
@@ -60,6 +115,10 @@ final class IncomingReplyHandler
                 isset($result['reply_id'])
                     ? (int) $result['reply_id']
                     : null,
+            'unsubscribed' =>
+                $unsubscribeResult !== null,
+            'unsubscribe_result' =>
+                $unsubscribeResult,
             'result' => $result,
         ];
     }
