@@ -9,7 +9,8 @@ final class IncomingReplyHandler
         private readonly IncomingReplyProcessor $processor,
         private readonly ReplyContentExtractor $contentExtractor,
         private readonly UnsubscribeManager $unsubscribeManager,
-        private readonly AutomaticReplyDetector $automaticReplyDetector
+        private readonly AutomaticReplyDetector $automaticReplyDetector,
+        private readonly HumanReplyClassifier $humanReplyClassifier
     ) {
     }
 
@@ -55,21 +56,22 @@ final class IncomingReplyHandler
          *
          * Pour le moment :
          * - automatic si une auto-réponse est détectée ;
-         * - unknown sinon.
-         *
-         * Les classifications positive / negative /
-         * question seront ajoutées plus tard.
+         * - unknown sinon
          */
         $classification = 'unknown';
 
         if (
-            $this->automaticReplyDetector
-                ->isAutomaticReply(
-                    $incomingMessage,
-                    $replyContent
-                )
+            $this->automaticReplyDetector->isAutomaticReply(
+                $incomingMessage,
+                $replyContent
+            )
         ) {
             $classification = 'automatic';
+        } else {
+            $classification =
+                $this->humanReplyClassifier->classify(
+                    $replyContent
+                );
         }
 
         /*

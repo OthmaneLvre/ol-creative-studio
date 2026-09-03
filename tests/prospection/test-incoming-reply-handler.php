@@ -23,6 +23,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../../php/prospection/AutomaticReplyDetector.php';
 
+require_once __DIR__
+    . '/../../php/prospection/HumanReplyClassifier.php';
+
 echo "========================================\n";
 echo "TEST INCOMING REPLY HANDLER\n";
 echo "========================================\n\n";
@@ -137,12 +140,16 @@ try {
 $automaticReplyDetector =
     new AutomaticReplyDetector();
 
+$humanReplyClassifier =
+    new HumanReplyClassifier();
+
 $handler = new IncomingReplyHandler(
     $matcher,
     $processor,
     $contentExtractor,
     $unsubscribeManager,
-    $automaticReplyDetector
+    $automaticReplyDetector,
+    $humanReplyClassifier
 );
 
     /*

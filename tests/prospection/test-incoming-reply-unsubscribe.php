@@ -23,6 +23,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../../php/prospection/AutomaticReplyDetector.php';
 
+require_once __DIR__
+    . '/../../php/prospection/HumanReplyClassifier.php';
+
 echo "========================================\n";
 echo "TEST INCOMING REPLY UNSUBSCRIBE\n";
 echo "========================================\n\n";
@@ -38,12 +41,16 @@ $unsubscribeManager = new UnsubscribeManager($pdo);
 $automaticReplyDetector =
     new AutomaticReplyDetector();
 
+$humanReplyClassifier =
+    new HumanReplyClassifier();
+
 $handler = new IncomingReplyHandler(
     $matcher,
     $processor,
     $contentExtractor,
     $unsubscribeManager,
-    $automaticReplyDetector
+    $automaticReplyDetector,
+    $humanReplyClassifier
 );
 
 function createFixture(
@@ -522,9 +529,29 @@ try {
         );
     }
 
-    if ($quotedClassification !== 'unknown') {
+    if ($quotedClassification === 'unsubscribed') {
         throw new RuntimeException(
             'La réponse normale ne devrait pas être désinscrite.'
+        );
+    }
+
+    $allowedHumanClassifications = [
+        'positive',
+        'negative',
+        'question',
+        'unknown',
+    ];
+
+    if (
+        !in_array(
+            $quotedClassification,
+            $allowedHumanClassifications,
+            true
+        )
+    ) {
+        throw new RuntimeException(
+            'Classification humaine inattendue : '
+            . (string) $quotedClassification
         );
     }
 

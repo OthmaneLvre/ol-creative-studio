@@ -50,6 +50,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../php/prospection/AutomaticReplyDetector.php';
 
+require_once __DIR__
+    . '/../php/prospection/HumanReplyClassifier.php';
+
 /*
 |--------------------------------------------------------------------------
 | Configuration
@@ -122,13 +125,17 @@ $unsubscribeManager =
 $automaticReplyDetector =
     new AutomaticReplyDetector();
 
+$humanReplyClassifier =
+    new HumanReplyClassifier();
+
 $handler =
     new IncomingReplyHandler(
         $matcher,
         $processor,
         $contentExtractor,
         $unsubscribeManager,
-        $automaticReplyDetector
+        $automaticReplyDetector,
+        $humanReplyClassifier
     );
 
 /*
