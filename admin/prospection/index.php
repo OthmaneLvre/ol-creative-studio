@@ -88,6 +88,20 @@ try {
 
 $recentProspects = [];
 
+$prospectStatusLabels = [
+    'discovered' => 'Détecté',
+    'analyzing' => 'En analyse',
+    'qualified' => 'Qualifié',
+    'pending_validation' => 'À valider',
+    'approved' => 'Validé',
+    'scheduled' => 'Programmé',
+    'contacted' => 'Contacté',
+    'replied' => 'Réponse reçue',
+    'converted' => 'Converti',
+    'rejected' => 'Rejeté',
+    'unsubscribed' => 'Désinscrit',
+];
+
 try {
     $recentProspectsStmt = $pdo->query(
         'SELECT
@@ -338,7 +352,6 @@ $maxDailySends = (int) prospection_config(
 
                     </article>
 
-
                     <article class="admin-stat-card">
 
                         <span class="admin-stat-card__label">
@@ -352,6 +365,14 @@ $maxDailySends = (int) prospection_config(
                         <span class="admin-stat-card__meta">
                             prospects ayant répondu
                         </span>
+
+                        <a
+                            href="/admin/prospection/replies.php"
+                            class="admin-stat-card__link"
+                        >
+                            Gérer les réponses
+                            <span aria-hidden="true">→</span>
+                        </a>
 
                     </article>
 
@@ -544,10 +565,10 @@ $maxDailySends = (int) prospection_config(
 
                                         </div>
 
-
                                         <span class="admin-badge">
                                             <?= htmlspecialchars(
-                                                $prospect['status'],
+                                                $prospectStatusLabels[$prospect['status']]
+                                                    ?? $prospect['status'],
                                                 ENT_QUOTES,
                                                 'UTF-8'
                                             ) ?>
@@ -558,14 +579,14 @@ $maxDailySends = (int) prospection_config(
 
                                     <div class="admin-project-row__actions">
 
-                                        <?php if ($prospect['score'] !== null): ?>
-
-                                            <span>
-                                                Score :
+                                        <span>
+                                            Score :
+                                            <?php if ($prospect['score'] !== null): ?>
                                                 <?= (int) $prospect['score'] ?>/100
-                                            </span>
-
-                                        <?php endif; ?>
+                                            <?php else: ?>
+                                                Non scoré
+                                            <?php endif; ?>
+                                        </span>
 
 
                                         <a
@@ -615,6 +636,19 @@ $maxDailySends = (int) prospection_config(
 
                         <strong>
                             Prospects à vérifier
+                        </strong>
+
+                        <span aria-hidden="true">↗</span>
+                    </a>
+
+                    <a
+                        href="/admin/prospection/replies.php"
+                        class="admin-quick-action"
+                    >
+                        <span>Réponses</span>
+
+                        <strong>
+                            Gérer les réponses reçues
                         </strong>
 
                         <span aria-hidden="true">↗</span>

@@ -3,16 +3,18 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/ReplyGeneratorInterface.php';
+require_once __DIR__ . '/ReplyContentExtractor.php';
 
 final class AiReplyDraftService
 {
     public function __construct(
         private readonly PDO $pdo,
-        private readonly ReplyGeneratorInterface $generator
+        private readonly ReplyGeneratorInterface $generator,
+        private readonly ReplyContentExtractor $contentExtractor
     ) {
     }
 
-    public function generateForReply(
+   public function generateForReply(
         int $replyId
     ): array {
         if ($replyId <= 0) {
@@ -21,26 +23,154 @@ final class AiReplyDraftService
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Lecture du contexte
+        |--------------------------------------------------------------------------
+        |
+        | Aucun verrou n'est conservé pendant l'appel à OpenAI.
+        |
+        */
+
+        $reply =
+            $this->loadReply(
+                $replyId
+            );
+
+        if ($reply === null) {
+            throw new RuntimeException(
+                'Réponse introuvable.'
+            );
+        }
+
+        $classification =
+            (string) $reply['classification'];
+
+        if (
+            !in_array(
+                $classification,
+                [
+                    'positive',
+                    'question',
+                ],
+                true
+            )
+        ) {
+            throw new RuntimeException(
+                'Cette réponse ne nécessite '
+                . 'pas de brouillon IA.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Idempotence avant génération
+        |--------------------------------------------------------------------------
+        */
+
+        $existingDraft =
+            $this->findExistingDraft(
+                $replyId
+            );
+
+        if ($existingDraft !== null) {
+            return $this->existingResult(
+                $existingDraft
+            );
+        }
+
+        $prospect =
+            $this->loadProspect(
+                (int) $reply['prospect_id']
+            );
+
+        if ($prospect === null) {
+            throw new RuntimeException(
+                'Prospect introuvable.'
+            );
+        }
+
+        $outboundEmail =
+            $this->loadOutboundEmail(
+                $reply
+            );
+
+        if ($outboundEmail === null) {
+            throw new RuntimeException(
+                'E-mail sortant d’origine introuvable.'
+            );
+        }
+
+        $cleanReplyContent =
+            $this->contentExtractor->extract([
+                'body_text' =>
+                    $reply['body_text'],
+            ]);
+
+        if ($cleanReplyContent === '') {
+            throw new RuntimeException(
+                'Le contenu exploitable de la réponse est vide.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Appel OpenAI
+        |--------------------------------------------------------------------------
+        |
+        | Important : aucune transaction SQL n'est ouverte ici.
+        |
+        */
+
+        $draft =
+            $this->generator->generate(
+                $prospect,
+                [
+                    'classification' =>
+                        $classification,
+
+                    'body_text' =>
+                        $cleanReplyContent,
+                ],
+                $outboundEmail
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Persistance atomique
+        |--------------------------------------------------------------------------
+        */
+
         $this->pdo->beginTransaction();
 
         try {
-            $reply =
+            /*
+            * On recharge et verrouille uniquement
+            * au moment de persister.
+            */
+            $lockedReply =
                 $this->loadReplyForUpdate(
                     $replyId
                 );
 
-            if ($reply === null) {
+            if ($lockedReply === null) {
                 throw new RuntimeException(
                     'Réponse introuvable.'
                 );
             }
 
-            $classification =
-                (string) $reply['classification'];
+            /*
+            * La classification a pu évoluer
+            * pendant l'appel OpenAI.
+            */
+            $lockedClassification =
+                (string) $lockedReply[
+                    'classification'
+                ];
 
             if (
                 !in_array(
-                    $classification,
+                    $lockedClassification,
                     [
                         'positive',
                         'question',
@@ -50,10 +180,14 @@ final class AiReplyDraftService
             ) {
                 throw new RuntimeException(
                     'Cette réponse ne nécessite '
-                    . 'pas de brouillon IA.'
+                    . 'plus de brouillon IA.'
                 );
             }
 
+            /*
+            * Un autre processus a éventuellement
+            * généré le brouillon entre-temps.
+            */
             $existingDraft =
                 $this->findExistingDraft(
                     $replyId
@@ -62,73 +196,24 @@ final class AiReplyDraftService
             if ($existingDraft !== null) {
                 $this->pdo->commit();
 
-                return [
-                    'created' =>
-                        false,
-
-                    'existing' =>
-                        true,
-
-                    'email_id' =>
-                        (int) $existingDraft['id'],
-
-                    'status' =>
-                        $existingDraft['status'],
-
-                    'subject' =>
-                        $existingDraft['subject'],
-
-                    'body_text' =>
-                        $existingDraft['body_text'],
-                ];
-            }
-
-            $prospect =
-                $this->loadProspect(
-                    (int) $reply['prospect_id']
-                );
-
-            if ($prospect === null) {
-                throw new RuntimeException(
-                    'Prospect introuvable.'
+                return $this->existingResult(
+                    $existingDraft
                 );
             }
-
-            $outboundEmail =
-                $this->loadOutboundEmail(
-                    $reply
-                );
-
-            if ($outboundEmail === null) {
-                throw new RuntimeException(
-                    'E-mail sortant d’origine introuvable.'
-                );
-            }
-
-            $draft =
-                $this->generator->generate(
-                    $prospect,
-                    [
-                        'classification' =>
-                            $classification,
-
-                        'body_text' =>
-                            $reply['body_text'],
-                    ],
-                    $outboundEmail
-                );
 
             $emailId =
                 $this->insertDraft(
-                    $reply,
+                    $lockedReply,
                     $draft
                 );
 
             $this->insertEvent(
-                (int) $reply['prospect_id'],
+                (int) $lockedReply[
+                    'prospect_id'
+                ],
                 $replyId,
                 $emailId,
-                $classification
+                $lockedClassification
             );
 
             $this->pdo->commit();
@@ -159,6 +244,63 @@ final class AiReplyDraftService
 
             throw $e;
         }
+    }
+
+    private function loadReply(
+        int $replyId
+    ): ?array {
+        $stmt =
+            $this->pdo->prepare(
+                "
+                SELECT
+                    id,
+                    prospect_id,
+                    prospect_email_id,
+                    sender_email,
+                    subject,
+                    body_text,
+                    classification,
+                    received_at
+                FROM prospect_replies
+                WHERE id = :id
+                LIMIT 1
+                "
+            );
+
+        $stmt->execute([
+            'id' => $replyId,
+        ]);
+
+        $row =
+            $stmt->fetch();
+
+        return $row === false
+            ? null
+            : $row;
+    }
+
+    private function existingResult(
+        array $existingDraft
+    ): array {
+        return [
+            'created' =>
+                false,
+
+            'existing' =>
+                true,
+
+            'email_id' =>
+                (int) $existingDraft['id'],
+
+            'status' =>
+                $existingDraft['status'],
+
+            'subject' =>
+                $existingDraft['subject'],
+
+            'body_text' =>
+                $existingDraft['body_text'],
+        ];
     }
 
     private function loadReplyForUpdate(

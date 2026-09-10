@@ -1,5 +1,5 @@
 /* =========================================================
-   OL CREATIVE STUDIO — ADMIN
+   OL CREATIVE STUDIO â€” ADMIN
    ========================================================= */
 
 @import url(
@@ -474,7 +474,7 @@ select:focus-visible {
 
 .admin-stats {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
 
     margin-bottom: 2rem;
@@ -519,6 +519,24 @@ select:focus-visible {
     font-size: 0.76rem;
 }
 
+.admin-stat-card__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+
+    margin-top: 0.75rem;
+
+    color: var(--admin-cyan-500);
+
+    font-size: 0.72rem;
+    font-weight: 700;
+
+    text-decoration: none;
+}
+
+.admin-stat-card__link:hover {
+    color: var(--admin-navy-900);
+}
 
 /* =========================================================
    PANEL
@@ -714,7 +732,7 @@ select:focus-visible {
 
 
 /* =========================================================
-   FORMS — BASE POUR LA SUITE
+   FORMS â€” BASE POUR LA SUITE
    ========================================================= */
 
 .admin-form {
@@ -794,11 +812,6 @@ select:focus-visible {
     .admin-stats {
         grid-template-columns: 1fr 1fr;
     }
-
-    .admin-stat-card:last-child {
-        grid-column: 1 / -1;
-    }
-
 }
 
 
@@ -1231,7 +1244,7 @@ select:focus-visible {
 
 
 /* =========================================================
-   RESPONSIVE — PORTFOLIO
+   RESPONSIVE â€” PORTFOLIO
    ========================================================= */
 
 @media (max-width: 1250px) {
@@ -1619,7 +1632,7 @@ select:focus-visible {
 
 
 /* =========================================================
-   RESPONSIVE — FORMS
+   RESPONSIVE â€” FORMS
    ========================================================= */
 
 @media (max-width: 800px) {
@@ -1849,7 +1862,7 @@ select:focus-visible {
 }
 
 
-/* Identité */
+/* IdentitÃ© */
 
 .admin-review-card__identity {
     min-width: 0;
@@ -1957,7 +1970,7 @@ select:focus-visible {
 
 
 /* =========================================================
-   RESPONSIVE — TABLETTE
+   RESPONSIVE â€” TABLETTE
    ========================================================= */
 
 @media (max-width: 1100px) {
@@ -1970,7 +1983,7 @@ select:focus-visible {
 
 
 /* =========================================================
-   RESPONSIVE — MOBILE
+   RESPONSIVE â€” MOBILE
    ========================================================= */
 
 @media (max-width: 700px) {
@@ -2081,12 +2094,12 @@ select:focus-visible {
 }
 
 /* =========================================================
-   DASHBOARD — ACTIVITY
+   DASHBOARD â€” ACTIVITY
    ========================================================= */
 
 .admin-activity__grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
 }
 
@@ -2126,7 +2139,7 @@ select:focus-visible {
     color: var(--admin-gray-500);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 1000px) {
 
     .admin-activity__grid {
         grid-template-columns: 1fr;
@@ -2258,7 +2271,7 @@ select:focus-visible {
 }
 
 /* =========================================================
-   PORTFOLIO — ORDER CONTROLS
+   PORTFOLIO â€” ORDER CONTROLS
    ========================================================= */
 
 .admin-order-controls {
@@ -2338,7 +2351,7 @@ select:focus-visible {
 }
 
 /* ============================================================
-   PROSPECTION — FILTRES
+   PROSPECTION â€” FILTRES
    ============================================================ */
 
 .admin-form {
@@ -2406,7 +2419,7 @@ select:focus-visible {
 
 
 /* ============================================================
-   PROSPECTION — RESPONSIVE FILTRES
+   PROSPECTION â€” RESPONSIVE FILTRES
    ============================================================ */
 
 @media (max-width: 1000px) {
@@ -2443,7 +2456,7 @@ select:focus-visible {
 }
 
 /* ============================================================
-   PROSPECTION — LISTE DES PROSPECTS
+   PROSPECTION â€” LISTE DES PROSPECTS
    ============================================================ */
 
 .prospect-row {
@@ -2537,7 +2550,7 @@ select:focus-visible {
 
 
 /* ============================================================
-   PROSPECTION — RESPONSIVE LISTE
+   PROSPECTION â€” RESPONSIVE LISTE
    ============================================================ */
 
 @media (max-width: 720px) {
@@ -2557,7 +2570,7 @@ select:focus-visible {
 }
 
 /* ============================================================
-   PROSPECTION — FICHE PROSPECT
+   PROSPECTION â€” FICHE PROSPECT
    ============================================================ */
 
 .prospect-detail__intro-actions {
@@ -2780,7 +2793,7 @@ select:focus-visible {
 
 
 /* ============================================================
-   PROSPECTION — RESPONSIVE FICHE
+   PROSPECTION â€” RESPONSIVE FICHE
    ============================================================ */
 
 @media (max-width: 900px) {
@@ -2825,7 +2838,7 @@ select:focus-visible {
 }
 
 /* ==========================================================================
-   Prospection — Éditeur d'e-mail
+   Prospection â€” Ã‰diteur d'e-mail
    ========================================================================== */
 
 .prospect-email-editor {
@@ -2869,4 +2882,200 @@ select:focus-visible {
     outline: 2px solid #1b9aaa;
     outline-offset: 2px;
     border-color: #1b9aaa;
+}
+
+/* ==========================================================================
+   Prospection â€” Reply draft
+   ========================================================================== */
+
+.prospect-reconciliation__details .admin-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.prospect-reconciliation__details .admin-form__field label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #718096;
+}
+
+.prospect-reconciliation__details .admin-form__field input,
+.prospect-reconciliation__details .admin-form__field textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #d9e0e6;
+    border-radius: 12px;
+    background: #fff;
+    color: #081525;
+    font: inherit;
+    line-height: 1.6;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.prospect-reconciliation__details .admin-form__field textarea {
+    min-height: 210px;
+    resize: vertical;
+}
+
+.prospect-reconciliation__details .admin-form__field input:focus,
+.prospect-reconciliation__details .admin-form__field textarea:focus {
+    outline: none;
+    border-color: #19a3b5;
+    box-shadow: 0 0 0 3px rgba(25, 163, 181, 0.12);
+}
+
+.prospect-reconciliation__details form .prospect-detail__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.prospect-reconciliation__details .prospect-detail__action-note {
+    margin-top: 14px;
+    font-size: 0.85rem;
+    color: #7a8795;
+}
+
+.prospect-reconciliation__details
+.prospect-reconciliation__details {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e8edf1;
+}
+
+/* ==========================================================================
+   Prospection â€” Dashboard fixes
+   ========================================================================== */
+
+.admin-project-row {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 22px 0;
+}
+
+.admin-project-row__content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    width: 100%;
+}
+
+.admin-project-row__content > div {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.admin-project-row__content h3 {
+    margin: 6px 0;
+    max-width: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.admin-project-row__content > .admin-badge {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+.admin-project-row__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 18px;
+    width: 100%;
+}
+
+.admin-project-row__actions > span,
+.admin-project-row__actions > a {
+    flex: 0 0 auto;
+}
+
+
+/* ==========================================================================
+   Prospection â€” Quick actions
+   ========================================================================== */
+
+.admin-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.admin-quick-action {
+    min-width: 0;
+}
+
+
+/* ==========================================================================
+   Prospection â€” Replies
+   ========================================================================== */
+
+.prospect-reconciliation__details {
+    min-width: 0;
+}
+
+.prospect-reconciliation__details
+.prospect-reconciliation__details {
+    margin-top: 28px;
+    padding-top: 28px;
+    border-top: 1px solid #e5ebef;
+}
+
+.prospect-reconciliation__details .admin-form__field {
+    width: 100%;
+}
+
+.prospect-reconciliation__details .admin-form__field input,
+.prospect-reconciliation__details .admin-form__field textarea {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+}
+
+.prospect-reconciliation__details .admin-form__field textarea {
+    min-height: 220px;
+    resize: vertical;
+}
+
+.prospect-reconciliation__details form .prospect-detail__actions {
+    margin-top: 16px;
+}
+
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 1100px) {
+    .admin-quick-actions {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .admin-quick-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-project-row__content {
+        flex-direction: column;
+    }
+
+    .admin-project-row__content > .admin-badge {
+        margin-left: 0;
+    }
+
+    .admin-project-row__actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
 }

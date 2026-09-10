@@ -11,6 +11,8 @@ require_once __DIR__
 require_once __DIR__
     . '/../../php/prospection/AiReplyDraftService.php';
 
+require_once __DIR__
+    . '/../../php/prospection/ReplyContentExtractor.php';
 
 final class FakeReplyGenerator implements ReplyGeneratorInterface
 {
@@ -339,10 +341,14 @@ function cleanupProspect(
 $generator =
     new FakeReplyGenerator();
 
+$contentExtractor =
+    new ReplyContentExtractor();
+
 $service =
     new AiReplyDraftService(
         $pdo,
-        $generator
+        $generator,
+        $contentExtractor
     );
 
 $prospectId = null;
