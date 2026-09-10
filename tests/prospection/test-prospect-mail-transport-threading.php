@@ -263,4 +263,3 @@ if ($failed > 0) {
 
 echo 'Prospect Mail Transport Threading : OK'
     . PHP_EOL;
-    

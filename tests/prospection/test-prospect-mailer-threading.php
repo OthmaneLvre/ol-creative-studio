@@ -312,4 +312,3 @@ if ($failed > 0) {
 
 echo 'Prospect Mailer Threading : OK'
     . PHP_EOL;
-    
