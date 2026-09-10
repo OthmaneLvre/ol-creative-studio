@@ -16,6 +16,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../../php/prospection/ReplyDraftManager.php';
 
+require_once __DIR__
+    . '/../../php/prospection/ReplyScheduler.php';
+
 /*
 |--------------------------------------------------------------------------
 | Configuration
@@ -265,6 +268,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'approved';
                 }
 
+                /*
+                |--------------------------------------------------------------------------
+                | Programmation de la reponse
+                |--------------------------------------------------------------------------
+                */
+
+                } elseif (
+                    $action === 'schedule_reply'
+                ) {
+                    $emailId =
+                        filter_input(
+                            INPUT_POST,
+                            'email_id',
+                            FILTER_VALIDATE_INT
+                        );
+
+                    if (
+                        !$emailId
+                        || $emailId < 1
+                    ) {
+                        throw new InvalidArgumentException(
+                            'Reponse a programmer invalide.'
+                        );
+                    }
+
+                    $prospectionConfig =
+                        require __DIR__
+                            . '/../../config/prospection.php';
+
+                    $timezoneName =
+                        (string) (
+                            $prospectionConfig['timezone']
+                            ?? 'Europe/Paris'
+                        );
+
+                    $timezone =
+                        new DateTimeZone(
+                            $timezoneName
+                        );
+
+                    $scheduledAt =
+                        new DateTimeImmutable(
+                            'now',
+                            $timezone
+                        );
+
+                    $scheduler =
+                        new ReplyScheduler(
+                            $pdo
+                        );
+
+                    $scheduler->schedule(
+                        (int) $emailId,
+                        $scheduledAt
+                    );
+
+                    $resultType =
+                        'scheduled';
+
             } else {
                 throw new InvalidArgumentException(
                     'Action inconnue.'
@@ -475,7 +537,10 @@ try {
                 AS draft_body_text,
 
             draft.approved_at
-                AS draft_approved_at
+                AS draft_approved_at,
+
+            draft.scheduled_at
+                AS draft_scheduled_at
 
         FROM prospect_replies r
 
@@ -651,6 +716,16 @@ try {
 
                     <div class="admin-alert admin-alert--success">
                         Réponse validée.
+                        Aucun e-mail n'a encore été envoyé.
+                    </div>
+
+                <?php elseif (
+                    isset($_GET['draft'])
+                    && $_GET['draft'] === 'scheduled'
+                ): ?>
+
+                    <div class="admin-alert admin-alert--success">
+                        Réponse programmée pour envoi.
                         Aucun e-mail n'a encore été envoyé.
                     </div>
 
@@ -1209,6 +1284,86 @@ try {
                                                                 ]
                                                             ) ?>.
                                                             Aucun e-mail n'a encore été envoyé.
+                                                        </p>
+
+                                                    <?php endif; ?>
+
+                                                    <?php if (
+                                                        $reply['draft_status']
+                                                        === 'approved'
+                                                    ): ?>
+
+                                                        <form method="post">
+
+                                                            <input
+                                                                type="hidden"
+                                                                name="csrf"
+                                                                value="<?= htmlspecialchars(
+                                                                    $_SESSION['csrf_token'],
+                                                                    ENT_QUOTES,
+                                                                    'UTF-8'
+                                                                ) ?>"
+                                                            >
+
+                                                            <input
+                                                                type="hidden"
+                                                                name="action"
+                                                                value="schedule_reply"
+                                                            >
+
+                                                            <input
+                                                                type="hidden"
+                                                                name="reply_id"
+                                                                value="<?= (int) $reply['reply_id'] ?>"
+                                                            >
+
+                                                            <input
+                                                                type="hidden"
+                                                                name="email_id"
+                                                                value="<?= (int) $reply['draft_email_id'] ?>"
+                                                            >
+
+                                                            <input
+                                                                type="hidden"
+                                                                name="classification"
+                                                                value="<?= htmlspecialchars(
+                                                                    $classification,
+                                                                    ENT_QUOTES,
+                                                                    'UTF-8'
+                                                                ) ?>"
+                                                            >
+
+                                                            <div class="prospect-detail__actions">
+
+                                                                <button
+                                                                    type="submit"
+                                                                    class="admin-button admin-button--primary"
+                                                                >
+                                                                    Programmer l'envoi
+                                                                </button>
+
+                                                            </div>
+
+                                                        </form>
+
+                                                        <p class="prospect-detail__action-note">
+                                                            La programmation ne déclenche aucun envoi immédiat.
+                                                        </p>
+
+                                                    <?php elseif (
+                                                        $reply['draft_status']
+                                                        === 'scheduled'
+                                                    ): ?>
+
+                                                        <p class="prospect-detail__action-note">
+                                                            Programmée le
+                                                            <?= replyDate(
+                                                                $reply[
+                                                                    'draft_scheduled_at'
+                                                                ]
+                                                                ?? null
+                                                            ) ?>.
+                                                            En attente d'envoi.
                                                         </p>
 
                                                     <?php endif; ?>
