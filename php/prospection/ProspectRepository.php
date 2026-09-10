@@ -3419,6 +3419,1392 @@ final class ProspectRepository
         }
     }
 
+    public function findDueScheduledReplyEmails(
+        DateTimeImmutable $now,
+        int $limit = 50
+    ): array {
+        if ($limit < 1 || $limit > 100) {
+            throw new InvalidArgumentException(
+                'Limite de recuperation invalide.'
+            );
+        }
+
+        $sql = <<<SQL
+            SELECT
+                e.id AS email_id,
+                e.prospect_id,
+                e.source_reply_id,
+                e.email_type,
+                e.recipient_email,
+                e.subject,
+                e.body_html,
+                e.body_text,
+                e.scheduled_at,
+                e.send_attempts,
+
+                p.company_name,
+                p.status AS prospect_status,
+
+                r.sender_email AS reply_sender_email,
+                r.classification AS reply_classification,
+                r.message_id AS reply_message_id,
+                r.in_reply_to AS reply_in_reply_to,
+
+                source_email.message_id
+                    AS source_message_id
+
+            FROM prospect_emails e
+
+            INNER JOIN prospects p
+                ON p.id = e.prospect_id
+
+            INNER JOIN prospect_replies r
+                ON r.id = e.source_reply_id
+                AND r.prospect_id = e.prospect_id
+
+            LEFT JOIN prospect_emails source_email
+                ON source_email.id =
+                    r.prospect_email_id
+
+            WHERE e.email_type = 'manual'
+            AND e.source_reply_id IS NOT NULL
+            AND e.status = 'scheduled'
+            AND e.scheduled_at IS NOT NULL
+            AND e.scheduled_at <= :now
+            AND e.sent_at IS NULL
+            AND p.status = 'replied'
+            AND r.classification IN (
+                'positive',
+                'question'
+            )
+
+            ORDER BY
+                e.scheduled_at ASC,
+                e.id ASC
+
+            LIMIT {$limit}
+        SQL;
+
+        $statement =
+            $this->pdo->prepare(
+                $sql
+            );
+
+        $statement->execute([
+            'now' =>
+                $now->format(
+                    'Y-m-d H:i:s'
+                ),
+        ]);
+
+        return $statement->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+    }
+
+    public function claimScheduledReplyEmail(
+        int $emailId,
+        string $messageId,
+        DateTimeImmutable $now,
+        int $maxAttempts = 3
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        $messageId =
+            trim(
+                $messageId
+            );
+
+        if ($messageId === '') {
+            throw new InvalidArgumentException(
+                'Message-ID invalide.'
+            );
+        }
+
+        if ($maxAttempts < 1) {
+            throw new InvalidArgumentException(
+                'Nombre maximal de tentatives invalide.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouillage de la reponse programmee
+            |--------------------------------------------------------------------------
+            */
+
+            $statement =
+                $this->pdo->prepare(
+                    '
+                    SELECT
+                        e.*,
+
+                        p.company_name,
+                        p.status
+                            AS prospect_status,
+
+                        r.sender_email
+                            AS reply_sender_email,
+
+                        r.classification
+                            AS reply_classification,
+
+                        r.message_id
+                            AS reply_message_id,
+
+                        r.in_reply_to
+                            AS reply_in_reply_to,
+
+                        source_email.message_id
+                            AS source_message_id
+
+                    FROM prospect_emails e
+
+                    INNER JOIN prospects p
+                        ON p.id = e.prospect_id
+
+                    INNER JOIN prospect_replies r
+                        ON r.id = e.source_reply_id
+                        AND r.prospect_id =
+                            e.prospect_id
+
+                    LEFT JOIN prospect_emails source_email
+                        ON source_email.id =
+                            r.prospect_email_id
+
+                    WHERE e.id = :email_id
+                    AND e.email_type = :email_type
+                    AND e.source_reply_id IS NOT NULL
+
+                    LIMIT 1
+                    FOR UPDATE
+                    '
+                );
+
+            $statement->execute([
+                'email_id' =>
+                    $emailId,
+
+                'email_type' =>
+                    'manual',
+            ]);
+
+            $email =
+                $statement->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Reponse e-mail introuvable.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Revalidation de l etat
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $email['status']
+                !== 'scheduled'
+            ) {
+                throw new RuntimeException(
+                    'Cette reponse n est plus programmee.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'replied'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n est plus en attente de reponse.'
+                );
+            }
+
+            if (
+                !in_array(
+                    (string) $email[
+                        'reply_classification'
+                    ],
+                    [
+                        'positive',
+                        'question',
+                    ],
+                    true
+                )
+            ) {
+                throw new RuntimeException(
+                    'La classification de la reponse interdit l envoi.'
+                );
+            }
+
+            if (
+                !empty(
+                    $email['sent_at']
+                )
+            ) {
+                throw new RuntimeException(
+                    'Cette reponse a deja ete envoyee.'
+                );
+            }
+
+            if (
+                empty(
+                    $email['scheduled_at']
+                )
+            ) {
+                throw new RuntimeException(
+                    'Date de programmation absente.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Destinataire
+            |--------------------------------------------------------------------------
+            */
+
+            $recipientEmail =
+                strtolower(
+                    trim(
+                        (string) $email[
+                            'recipient_email'
+                        ]
+                    )
+                );
+
+            $replySenderEmail =
+                strtolower(
+                    trim(
+                        (string) $email[
+                            'reply_sender_email'
+                        ]
+                    )
+                );
+
+            if (
+                !filter_var(
+                    $recipientEmail,
+                    FILTER_VALIDATE_EMAIL
+                )
+            ) {
+                throw new RuntimeException(
+                    'Destinataire invalide.'
+                );
+            }
+
+            if (
+                $replySenderEmail === ''
+                || !hash_equals(
+                    $replySenderEmail,
+                    $recipientEmail
+                )
+            ) {
+                throw new RuntimeException(
+                    'Le destinataire ne correspond pas a l expediteur de la reponse.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Echeance
+            |--------------------------------------------------------------------------
+            */
+
+            $scheduledAt =
+                new DateTimeImmutable(
+                    (string) $email[
+                        'scheduled_at'
+                    ]
+                );
+
+            if ($scheduledAt > $now) {
+                throw new RuntimeException(
+                    'Cette reponse n est pas encore arrivee a echeance.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Tentatives
+            |--------------------------------------------------------------------------
+            */
+
+            $sendAttempts =
+                (int) (
+                    $email[
+                        'send_attempts'
+                    ]
+                    ?? 0
+                );
+
+            if (
+                $sendAttempts
+                >= $maxAttempts
+            ) {
+                throw new RuntimeException(
+                    'Nombre maximal de tentatives atteint.'
+                );
+            }
+
+            $newAttemptCount =
+                $sendAttempts + 1;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Claim
+            |--------------------------------------------------------------------------
+            */
+
+            $update =
+                $this->pdo->prepare(
+                    '
+                    UPDATE prospect_emails
+                    SET
+                        status = :status,
+                        send_attempts =
+                            :send_attempts,
+                        message_id =
+                            :message_id,
+                        error_message = NULL,
+                        updated_at =
+                            CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                    '
+                );
+
+            $update->execute([
+                'status' =>
+                    'sending',
+
+                'send_attempts' =>
+                    $newAttemptCount,
+
+                'message_id' =>
+                    $messageId,
+
+                'email_id' =>
+                    $emailId,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Historique
+            |--------------------------------------------------------------------------
+            */
+
+            $this->addEvent(
+                (int) $email[
+                    'prospect_id'
+                ],
+                'prospect_reply_email_sending',
+                'replied',
+                'replied',
+                'Tentative d envoi d une reponse au prospect.',
+                [
+                    'reply_id' =>
+                        (int) $email[
+                            'source_reply_id'
+                        ],
+
+                    'email_id' =>
+                        $emailId,
+
+                    'send_attempt' =>
+                        $newAttemptCount,
+
+                    'message_id' =>
+                        $messageId,
+                ]
+            );
+
+            $this->pdo->commit();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Valeurs retournees
+            |--------------------------------------------------------------------------
+            */
+
+            $email['email_id'] =
+                (int) $email['id'];
+
+            $email['prospect_id'] =
+                (int) $email[
+                    'prospect_id'
+                ];
+
+            $email['source_reply_id'] =
+                (int) $email[
+                    'source_reply_id'
+                ];
+
+            $email['status'] =
+                'sending';
+
+            $email['send_attempts'] =
+                $newAttemptCount;
+
+            $email['message_id'] =
+                $messageId;
+
+            return $email;
+
+        } catch (Throwable $exception) {
+            if (
+                $this->pdo->inTransaction()
+            ) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function markReplyEmailSent(
+        int $emailId,
+        string $messageId
+    ): void {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        $messageId =
+            trim($messageId);
+
+        if ($messageId === '') {
+            throw new InvalidArgumentException(
+                'Message-ID obligatoire.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement =
+                $this->pdo->prepare(
+                    '
+                    SELECT
+                        e.id,
+                        e.prospect_id,
+                        e.source_reply_id,
+                        e.status,
+                        e.sent_at,
+                        e.message_id,
+
+                        p.status
+                            AS prospect_status,
+
+                        r.classification
+                            AS reply_classification
+
+                    FROM prospect_emails e
+
+                    INNER JOIN prospects p
+                        ON p.id = e.prospect_id
+
+                    INNER JOIN prospect_replies r
+                        ON r.id = e.source_reply_id
+                        AND r.prospect_id =
+                            e.prospect_id
+
+                    WHERE e.id = :email_id
+                    AND e.email_type = :email_type
+                    AND e.source_reply_id IS NOT NULL
+
+                    LIMIT 1
+                    FOR UPDATE
+                    '
+                );
+
+            $statement->execute([
+                'email_id' =>
+                    $emailId,
+
+                'email_type' =>
+                    'manual',
+            ]);
+
+            $email =
+                $statement->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Reponse e-mail introuvable.'
+                );
+            }
+
+            if (
+                $email['status']
+                !== 'sending'
+            ) {
+                throw new RuntimeException(
+                    'La reponse n est pas en cours d envoi.'
+                );
+            }
+
+            if (
+                !empty(
+                    $email['sent_at']
+                )
+            ) {
+                throw new RuntimeException(
+                    'La reponse est deja marquee comme envoyee.'
+                );
+            }
+
+            if (
+                empty(
+                    $email['message_id']
+                )
+            ) {
+                throw new RuntimeException(
+                    'Aucun Message-ID n a ete reserve avant l envoi.'
+                );
+            }
+
+            if (
+                !hash_equals(
+                    (string) $email[
+                        'message_id'
+                    ],
+                    $messageId
+                )
+            ) {
+                throw new RuntimeException(
+                    'Le Message-ID SMTP ne correspond pas au Message-ID reserve.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'replied'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n est plus en attente de reponse.'
+                );
+            }
+
+            if (
+                !in_array(
+                    (string) $email[
+                        'reply_classification'
+                    ],
+                    [
+                        'positive',
+                        'question',
+                    ],
+                    true
+                )
+            ) {
+                throw new RuntimeException(
+                    'La classification de la reponse interdit l envoi.'
+                );
+            }
+
+            $update =
+                $this->pdo->prepare(
+                    '
+                    UPDATE prospect_emails
+                    SET
+                        status = :status,
+                        sent_at = CURRENT_TIMESTAMP,
+                        message_id = :message_id,
+                        error_message = NULL,
+                        updated_at =
+                            CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                    '
+                );
+
+            $update->execute([
+                'status' =>
+                    'sent',
+
+                'message_id' =>
+                    $messageId,
+
+                'email_id' =>
+                    $emailId,
+            ]);
+
+            $this->addEvent(
+                (int) $email[
+                    'prospect_id'
+                ],
+                'prospect_reply_email_sent',
+                'replied',
+                'replied',
+                'Reponse envoyee au prospect.',
+                [
+                    'reply_id' =>
+                        (int) $email[
+                            'source_reply_id'
+                        ],
+
+                    'email_id' =>
+                        $emailId,
+
+                    'message_id' =>
+                        $messageId,
+                ]
+            );
+
+            $this->pdo->commit();
+
+        } catch (Throwable $exception) {
+            if (
+                $this->pdo->inTransaction()
+            ) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function markReplyEmailFailed(
+        int $emailId,
+        string $errorMessage,
+        int $maxAttempts = 3,
+        int $retryDelayMinutes = 30
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        if ($maxAttempts < 1) {
+            throw new InvalidArgumentException(
+                'Nombre maximal de tentatives invalide.'
+            );
+        }
+
+        if ($retryDelayMinutes < 1) {
+            throw new InvalidArgumentException(
+                'Delai de retry invalide.'
+            );
+        }
+
+        $errorMessage =
+            trim($errorMessage);
+
+        if ($errorMessage === '') {
+            $errorMessage =
+                'Erreur d envoi inconnue.';
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement =
+                $this->pdo->prepare(
+                    '
+                    SELECT
+                        e.id,
+                        e.prospect_id,
+                        e.source_reply_id,
+                        e.status,
+                        e.send_attempts,
+
+                        p.status
+                            AS prospect_status
+
+                    FROM prospect_emails e
+
+                    INNER JOIN prospects p
+                        ON p.id = e.prospect_id
+
+                    WHERE e.id = :email_id
+                    AND e.email_type = :email_type
+                    AND e.source_reply_id IS NOT NULL
+
+                    LIMIT 1
+                    FOR UPDATE
+                    '
+                );
+
+            $statement->execute([
+                'email_id' =>
+                    $emailId,
+
+                'email_type' =>
+                    'manual',
+            ]);
+
+            $email =
+                $statement->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Reponse e-mail introuvable.'
+                );
+            }
+
+            if (
+                $email['status']
+                !== 'sending'
+            ) {
+                throw new RuntimeException(
+                    'La reponse n est pas en cours d envoi.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'replied'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n est plus en attente de reponse.'
+                );
+            }
+
+            $sendAttempts =
+                (int) $email[
+                    'send_attempts'
+                ];
+
+            /*
+            |--------------------------------------------------------------------------
+            | Retry
+            |--------------------------------------------------------------------------
+            */
+
+            if ($sendAttempts < $maxAttempts) {
+                $retryAt =
+                    (new DateTimeImmutable())
+                        ->modify(
+                            '+'
+                            . $retryDelayMinutes
+                            . ' minutes'
+                        );
+
+                $retryAtSql =
+                    $retryAt->format(
+                        'Y-m-d H:i:s'
+                    );
+
+                $update =
+                    $this->pdo->prepare(
+                        '
+                        UPDATE prospect_emails
+                        SET
+                            status = :status,
+                            scheduled_at =
+                                :scheduled_at,
+                            error_message =
+                                :error_message,
+                            updated_at =
+                                CURRENT_TIMESTAMP
+                        WHERE id = :email_id
+                        '
+                    );
+
+                $update->execute([
+                    'status' =>
+                        'scheduled',
+
+                    'scheduled_at' =>
+                        $retryAtSql,
+
+                    'error_message' =>
+                        mb_substr(
+                            $errorMessage,
+                            0,
+                            5000
+                        ),
+
+                    'email_id' =>
+                        $emailId,
+                ]);
+
+                $this->addEvent(
+                    (int) $email[
+                        'prospect_id'
+                    ],
+                    'prospect_reply_email_retry_scheduled',
+                    'replied',
+                    'replied',
+                    'Nouvelle tentative d envoi de la reponse programmee.',
+                    [
+                        'reply_id' =>
+                            (int) $email[
+                                'source_reply_id'
+                            ],
+
+                        'email_id' =>
+                            $emailId,
+
+                        'send_attempts' =>
+                            $sendAttempts,
+
+                        'max_attempts' =>
+                            $maxAttempts,
+
+                        'retry_at' =>
+                            $retryAtSql,
+
+                        'error' =>
+                            mb_substr(
+                                $errorMessage,
+                                0,
+                                500
+                            ),
+                    ]
+                );
+
+                $this->pdo->commit();
+
+                return [
+                    'status' =>
+                        'scheduled',
+
+                    'retry_scheduled' =>
+                        true,
+
+                    'retry_at' =>
+                        $retryAtSql,
+
+                    'send_attempts' =>
+                        $sendAttempts,
+
+                    'max_attempts' =>
+                        $maxAttempts,
+                ];
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Echec definitif
+            |--------------------------------------------------------------------------
+            */
+
+            $update =
+                $this->pdo->prepare(
+                    '
+                    UPDATE prospect_emails
+                    SET
+                        status = :status,
+                        error_message =
+                            :error_message,
+                        updated_at =
+                            CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                    '
+                );
+
+            $update->execute([
+                'status' =>
+                    'failed',
+
+                'error_message' =>
+                    mb_substr(
+                        $errorMessage,
+                        0,
+                        5000
+                    ),
+
+                'email_id' =>
+                    $emailId,
+            ]);
+
+            $this->addEvent(
+                (int) $email[
+                    'prospect_id'
+                ],
+                'prospect_reply_email_failed',
+                'replied',
+                'replied',
+                'Echec definitif de l envoi de la reponse.',
+                [
+                    'reply_id' =>
+                        (int) $email[
+                            'source_reply_id'
+                        ],
+
+                    'email_id' =>
+                        $emailId,
+
+                    'send_attempts' =>
+                        $sendAttempts,
+
+                    'max_attempts' =>
+                        $maxAttempts,
+
+                    'error' =>
+                        mb_substr(
+                            $errorMessage,
+                            0,
+                            500
+                        ),
+                ]
+            );
+
+            $this->pdo->commit();
+
+            return [
+                'status' =>
+                    'failed',
+
+                'retry_scheduled' =>
+                    false,
+
+                'retry_at' =>
+                    null,
+
+                'send_attempts' =>
+                    $sendAttempts,
+
+                'max_attempts' =>
+                    $maxAttempts,
+            ];
+
+        } catch (Throwable $exception) {
+            if (
+                $this->pdo->inTransaction()
+            ) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function findStaleSendingReplyEmails(
+        DateTimeImmutable $now,
+        int $staleMinutes = 15
+    ): array {
+        if ($staleMinutes < 1) {
+            throw new InvalidArgumentException(
+                'Le delai de detection des envois bloques est invalide.'
+            );
+        }
+
+        $cutoff = $now
+            ->modify(
+                '-'
+                . $staleMinutes
+                . ' minutes'
+            )
+            ->format('Y-m-d H:i:s');
+
+        $statement =
+            $this->pdo->prepare(
+                '
+                SELECT
+                    e.id AS email_id,
+                    e.prospect_id,
+                    e.source_reply_id,
+                    e.recipient_email,
+                    e.subject,
+                    e.status,
+                    e.message_id,
+                    e.send_attempts,
+                    e.updated_at,
+
+                    p.company_name,
+                    p.status AS prospect_status,
+
+                    r.sender_email AS reply_sender_email,
+                    r.classification AS reply_classification
+
+                FROM prospect_emails e
+
+                INNER JOIN prospects p
+                    ON p.id = e.prospect_id
+
+                INNER JOIN prospect_replies r
+                    ON r.id = e.source_reply_id
+                    AND r.prospect_id =
+                        e.prospect_id
+
+                WHERE e.email_type = :email_type
+                AND e.source_reply_id IS NOT NULL
+                AND e.status = :status
+                AND e.sent_at IS NULL
+                AND e.updated_at <= :cutoff
+
+                ORDER BY
+                    e.updated_at ASC,
+                    e.id ASC
+                '
+            );
+
+        $statement->execute([
+            'email_type' =>
+                'manual',
+
+            'status' =>
+                'sending',
+
+            'cutoff' =>
+                $cutoff,
+        ]);
+
+        return $statement->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+    }
+
+    public function markStaleReplyEmailForReconciliation(
+        int $emailId,
+        DateTimeImmutable $now,
+        int $staleMinutes = 15
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        if ($staleMinutes < 1) {
+            throw new InvalidArgumentException(
+                'Le delai de detection des envois bloques est invalide.'
+            );
+        }
+
+        $cutoff =
+            $now->modify(
+                '-'
+                . $staleMinutes
+                . ' minutes'
+            );
+
+        try {
+            $this->pdo->beginTransaction();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouillage
+            |--------------------------------------------------------------------------
+            */
+
+            $statement =
+                $this->pdo->prepare(
+                    '
+                    SELECT
+                        e.id,
+                        e.prospect_id,
+                        e.source_reply_id,
+                        e.status,
+                        e.sent_at,
+                        e.message_id,
+                        e.send_attempts,
+                        e.updated_at,
+
+                        p.status
+                            AS prospect_status,
+
+                        r.classification
+                            AS reply_classification
+
+                    FROM prospect_emails e
+
+                    INNER JOIN prospects p
+                        ON p.id = e.prospect_id
+
+                    INNER JOIN prospect_replies r
+                        ON r.id = e.source_reply_id
+                        AND r.prospect_id =
+                            e.prospect_id
+
+                    WHERE e.id = :email_id
+                    AND e.email_type = :email_type
+                    AND e.source_reply_id IS NOT NULL
+
+                    LIMIT 1
+                    FOR UPDATE
+                    '
+                );
+
+            $statement->execute([
+                'email_id' =>
+                    $emailId,
+
+                'email_type' =>
+                    'manual',
+            ]);
+
+            $email =
+                $statement->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Reponse e-mail introuvable.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Revalidation
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $email['status']
+                !== 'sending'
+            ) {
+                throw new RuntimeException(
+                    'La reponse n est plus en cours d envoi.'
+                );
+            }
+
+            if (
+                !empty(
+                    $email['sent_at']
+                )
+            ) {
+                throw new RuntimeException(
+                    'La reponse est deja marquee comme envoyee.'
+                );
+            }
+
+            if (
+                empty(
+                    $email['message_id']
+                )
+            ) {
+                throw new RuntimeException(
+                    'Impossible de reconcilier un envoi sans Message-ID.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'replied'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n est plus en attente de reponse.'
+                );
+            }
+
+            if (
+                !in_array(
+                    (string) $email[
+                        'reply_classification'
+                    ],
+                    [
+                        'positive',
+                        'question',
+                    ],
+                    true
+                )
+            ) {
+                throw new RuntimeException(
+                    'La classification de la reponse interdit la reconciliation.'
+                );
+            }
+
+            $updatedAt =
+                new DateTimeImmutable(
+                    (string) $email[
+                        'updated_at'
+                    ]
+                );
+
+            if ($updatedAt > $cutoff) {
+                throw new RuntimeException(
+                    'L envoi n est pas suffisamment ancien pour etre reconcilie.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Mise en quarantaine
+            |--------------------------------------------------------------------------
+            */
+
+            $errorMessage =
+                'Etat SMTP inconnu apres interruption du processus. '
+                . 'Verification manuelle requise avant tout nouvel envoi.';
+
+            $update =
+                $this->pdo->prepare(
+                    '
+                    UPDATE prospect_emails
+                    SET
+                        status = :status,
+                        error_message =
+                            :error_message,
+                        updated_at =
+                            CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                    '
+                );
+
+            $update->execute([
+                'status' =>
+                    'reconciliation_required',
+
+                'error_message' =>
+                    $errorMessage,
+
+                'email_id' =>
+                    $emailId,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Journal
+            |--------------------------------------------------------------------------
+            */
+
+            $metadata =
+                json_encode(
+                    [
+                        'reply_id' =>
+                            (int) $email[
+                                'source_reply_id'
+                            ],
+
+                        'email_id' =>
+                            $emailId,
+
+                        'message_id' =>
+                            (string) $email[
+                                'message_id'
+                            ],
+
+                        'send_attempts' =>
+                            (int) $email[
+                                'send_attempts'
+                            ],
+
+                        'sending_updated_at' =>
+                            (string) $email[
+                                'updated_at'
+                            ],
+
+                        'stale_minutes' =>
+                            $staleMinutes,
+                    ],
+                    JSON_UNESCAPED_UNICODE
+                    | JSON_UNESCAPED_SLASHES
+                );
+
+            if ($metadata === false) {
+                throw new RuntimeException(
+                    'Impossible de serialiser les donnees de reconciliation.'
+                );
+            }
+
+            $event =
+                $this->pdo->prepare(
+                    '
+                    INSERT INTO prospect_events (
+                        prospect_id,
+                        event_type,
+                        previous_status,
+                        new_status,
+                        description,
+                        metadata,
+                        created_at
+                    ) VALUES (
+                        :prospect_id,
+                        :event_type,
+                        :previous_status,
+                        :new_status,
+                        :description,
+                        :metadata,
+                        CURRENT_TIMESTAMP
+                    )
+                    '
+                );
+
+            $event->execute([
+                'prospect_id' =>
+                    (int) $email[
+                        'prospect_id'
+                    ],
+
+                'event_type' =>
+                    'prospect_reply_email_reconciliation_required',
+
+                /*
+                * Ici previous/new concernent
+                * l e-mail, pas le prospect.
+                */
+                'previous_status' =>
+                    'sending',
+
+                'new_status' =>
+                    'reconciliation_required',
+
+                'description' =>
+                    $errorMessage,
+
+                'metadata' =>
+                    $metadata,
+            ]);
+
+            $this->pdo->commit();
+
+            return [
+                'email_id' =>
+                    $emailId,
+
+                'prospect_id' =>
+                    (int) $email[
+                        'prospect_id'
+                    ],
+
+                'reply_id' =>
+                    (int) $email[
+                        'source_reply_id'
+                    ],
+
+                'status' =>
+                    'reconciliation_required',
+
+                'prospect_status' =>
+                    (string) $email[
+                        'prospect_status'
+                    ],
+
+                'message_id' =>
+                    (string) $email[
+                        'message_id'
+                    ],
+
+                'send_attempts' =>
+                    (int) $email[
+                        'send_attempts'
+                    ],
+
+                'error_message' =>
+                    $errorMessage,
+            ];
+
+        } catch (Throwable $exception) {
+            if (
+                $this->pdo->inTransaction()
+            ) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
     public function findApprovedProspectsForScheduling(
         int $limit = 50
     ): array {
