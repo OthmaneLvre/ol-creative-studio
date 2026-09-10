@@ -605,6 +605,126 @@ try {
         'Programmation avant validation refusee'
     );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Destinataire different de l expediteur refuse
+        |--------------------------------------------------------------------------
+        */
+
+        $differentEmail =
+            'reply-scheduler-other-'
+            . $unique
+            . '@example.test';
+
+        $statement =
+            $pdo->prepare(
+                '
+                UPDATE prospect_emails
+                SET recipient_email = :recipient_email
+                WHERE id = :id
+                '
+            );
+
+        $statement->execute([
+            'recipient_email' =>
+                $differentEmail,
+
+            'id' =>
+                $emailId,
+        ]);
+
+        expectException(
+            fn () =>
+                $scheduler->schedule(
+                    $emailId,
+                    $scheduledAt
+                ),
+            'Destinataire different de la reponse source refuse'
+        );
+
+        /*
+        | Remise en etat du destinataire.
+        */
+
+        $statement->execute([
+            'recipient_email' =>
+                $emailAddress,
+
+            'id' =>
+                $emailId,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Adresse desinscrite refusee
+        |--------------------------------------------------------------------------
+        */
+
+        $statement =
+            $pdo->prepare(
+                '
+                INSERT INTO prospect_unsubscribes
+                (
+                    prospect_id,
+                    email,
+                    reason,
+                    source,
+                    unsubscribed_at,
+                    created_at
+                )
+                VALUES
+                (
+                    :prospect_id,
+                    :email,
+                    :reason,
+                    :source,
+                    NOW(),
+                    NOW()
+                )
+                '
+            );
+
+        $statement->execute([
+            'prospect_id' =>
+                $prospectId,
+
+            'email' =>
+                $emailAddress,
+
+            'reason' =>
+                'Test ReplyScheduler',
+
+            'source' =>
+                'reply',
+        ]);
+
+        expectException(
+            fn () =>
+                $scheduler->schedule(
+                    $emailId,
+                    $scheduledAt
+                ),
+            'Adresse desinscrite refusee'
+        );
+
+        /*
+        | Suppression de la desinscription de test
+        | pour poursuivre les autres scenarios.
+        */
+
+        $statement =
+            $pdo->prepare(
+                '
+                DELETE FROM prospect_unsubscribes
+                WHERE email = :email
+                '
+            );
+
+        $statement->execute([
+            'email' =>
+                $emailAddress,
+        ]);
+
     /*
     |--------------------------------------------------------------------------
     | Classification refusee
@@ -682,6 +802,19 @@ try {
         | Nettoyage
         |--------------------------------------------------------------------------
         */
+
+        $statement =
+            $pdo->prepare(
+                '
+                DELETE FROM prospect_unsubscribes
+                WHERE prospect_id = :prospect_id
+                '
+            );
+
+        $statement->execute([
+            'prospect_id' =>
+                $prospectId,
+        ]);
 
         $statement =
             $pdo->prepare(
@@ -779,6 +912,15 @@ try {
             && $prospectId > 0
         ) {
             try {
+                $pdo->prepare(
+                    '
+                    DELETE FROM prospect_unsubscribes
+                    WHERE prospect_id = ?
+                    '
+                )->execute([
+                    $prospectId,
+                ]);
+
                 $pdo->prepare(
                     '
                     DELETE FROM prospect_events

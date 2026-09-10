@@ -53,6 +53,61 @@ final class ReplyScheduler
                 );
             }
 
+            $recipientEmail =
+                strtolower(
+                    trim(
+                        (string) (
+                            $email['recipient_email']
+                            ?? ''
+                        )
+                    )
+                );
+
+            $replySenderEmail =
+                strtolower(
+                    trim(
+                        (string) (
+                            $email['reply_sender_email']
+                            ?? ''
+                        )
+                    )
+                );
+
+            if (
+                $recipientEmail === ''
+                || !filter_var(
+                    $recipientEmail,
+                    FILTER_VALIDATE_EMAIL
+                )
+            ) {
+                throw new RuntimeException(
+                    'Adresse destinataire invalide.'
+                );
+            }
+
+            if (
+                $replySenderEmail === ''
+                || !hash_equals(
+                    $replySenderEmail,
+                    $recipientEmail
+                )
+            ) {
+                throw new RuntimeException(
+                    'Le destinataire ne correspond pas '
+                    . 'a l expediteur de la reponse.'
+                );
+            }
+
+            if (
+                $this->isUnsubscribed(
+                    $recipientEmail
+                )
+            ) {
+                throw new RuntimeException(
+                    'Cette adresse est desinscrite.'
+                );
+            }
+
             if (
                 (string) $email['status']
                 !== 'approved'
@@ -199,11 +254,15 @@ final class ReplyScheduler
                     e.prospect_id,
                     e.source_reply_id,
                     e.email_type,
+                    e.recipient_email,
                     e.status,
                     e.approved_at,
                     e.scheduled_at,
 
                     p.status AS prospect_status,
+
+                    r.sender_email
+                        AS reply_sender_email,
 
                     r.classification
                         AS reply_classification
@@ -237,6 +296,28 @@ final class ReplyScheduler
         return $email !== false
             ? $email
             : null;
+    }
+
+    private function isUnsubscribed(
+        string $email
+    ): bool {
+        $statement =
+            $this->pdo->prepare(
+                '
+                SELECT 1
+                FROM prospect_unsubscribes
+                WHERE LOWER(email) = LOWER(:email)
+                LIMIT 1
+                '
+            );
+
+        $statement->execute([
+            'email' =>
+                $email,
+        ]);
+
+        return $statement->fetchColumn()
+            !== false;
     }
 
     private function insertEvent(
