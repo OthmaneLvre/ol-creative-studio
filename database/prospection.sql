@@ -2,15 +2,16 @@
 -- OL Creative Studio
 -- Module Prospection
 -- ============================================================
--- Ce fichier contient la structure SQL nécessaire au moteur de
--- prospection automatisée :
+-- Structure SQL du moteur de prospection automatisée :
 --
 -- - prospects ;
 -- - analyses ;
 -- - historique des événements ;
--- - messages et relances ;
+-- - e-mails et relances ;
 -- - réponses reçues ;
--- - désinscriptions.
+-- - lien entre réponse reçue et brouillon de réponse ;
+-- - désinscriptions ;
+-- - zones de prospection.
 -- ============================================================
 
 SET NAMES utf8mb4;
@@ -32,14 +33,18 @@ CREATE TABLE IF NOT EXISTS prospects (
     department VARCHAR(100) DEFAULT NULL,
 
     website_url VARCHAR(500) DEFAULT NULL,
+
     email VARCHAR(190) DEFAULT NULL,
     email_source_url VARCHAR(500) DEFAULT NULL,
+
     email_type ENUM(
         'generic',
         'personal',
         'unknown'
     ) DEFAULT NULL,
+
     email_confidence TINYINT UNSIGNED DEFAULT NULL,
+
     phone VARCHAR(50) DEFAULT NULL,
 
     source VARCHAR(100) DEFAULT NULL,
@@ -65,7 +70,9 @@ CREATE TABLE IF NOT EXISTS prospects (
 
     score SMALLINT UNSIGNED DEFAULT NULL,
 
-    discovered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    discovered_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
     analyzed_at DATETIME DEFAULT NULL,
     validated_at DATETIME DEFAULT NULL,
     scheduled_at DATETIME DEFAULT NULL,
@@ -73,22 +80,45 @@ CREATE TABLE IF NOT EXISTS prospects (
     replied_at DATETIME DEFAULT NULL,
     converted_at DATETIME DEFAULT NULL,
 
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
-    INDEX idx_prospects_status (status),
-    INDEX idx_prospects_score (score),
-    INDEX idx_prospects_city (city),
-    INDEX idx_prospects_email (email),
-    INDEX idx_prospects_scheduled_at (scheduled_at),
-    INDEX idx_prospects_contacted_at (contacted_at),
+    INDEX idx_prospects_status (
+        status
+    ),
+
+    INDEX idx_prospects_score (
+        score
+    ),
+
+    INDEX idx_prospects_city (
+        city
+    ),
+
+    INDEX idx_prospects_email (
+        email
+    ),
+
+    INDEX idx_prospects_scheduled_at (
+        scheduled_at
+    ),
+
+    INDEX idx_prospects_contacted_at (
+        contacted_at
+    ),
+
     INDEX idx_prospects_source_external (
         source,
         source_external_id
     ),
 
-    UNIQUE KEY uq_prospect_email (email),
+    UNIQUE KEY uq_prospect_email (
+        email
+    ),
 
     UNIQUE KEY uq_prospect_source_external (
         source,
@@ -118,19 +148,39 @@ CREATE TABLE IF NOT EXISTS prospect_analyses (
 
     detected_email VARCHAR(190) DEFAULT NULL,
 
-    commercial_potential_score SMALLINT UNSIGNED DEFAULT NULL,
-    website_gaps_score SMALLINT UNSIGNED DEFAULT NULL,
-    digital_presence_score SMALLINT UNSIGNED DEFAULT NULL,
-    business_fit_score SMALLINT UNSIGNED DEFAULT NULL,
-    contactability_score SMALLINT UNSIGNED DEFAULT NULL,
+    commercial_potential_score
+        SMALLINT UNSIGNED DEFAULT NULL,
 
-    performance_score SMALLINT UNSIGNED DEFAULT NULL,
-    seo_score SMALLINT UNSIGNED DEFAULT NULL,
-    design_score SMALLINT UNSIGNED DEFAULT NULL,
-    mobile_score SMALLINT UNSIGNED DEFAULT NULL,
-    technical_score SMALLINT UNSIGNED DEFAULT NULL,
+    website_gaps_score
+        SMALLINT UNSIGNED DEFAULT NULL,
 
-    overall_score SMALLINT UNSIGNED DEFAULT NULL,
+    digital_presence_score
+        SMALLINT UNSIGNED DEFAULT NULL,
+
+    business_fit_score
+        SMALLINT UNSIGNED DEFAULT NULL,
+
+    contactability_score
+        SMALLINT UNSIGNED DEFAULT NULL,
+
+    performance_score
+        SMALLINT UNSIGNED DEFAULT NULL,
+
+    seo_score
+        SMALLINT UNSIGNED DEFAULT NULL,
+
+    design_score
+        SMALLINT UNSIGNED DEFAULT NULL,
+
+    mobile_score
+        SMALLINT UNSIGNED DEFAULT NULL,
+
+    technical_score
+        SMALLINT UNSIGNED DEFAULT NULL,
+
+    overall_score
+        SMALLINT UNSIGNED DEFAULT NULL,
+
     scoring_details JSON DEFAULT NULL,
     ai_audit_details JSON DEFAULT NULL,
 
@@ -142,10 +192,14 @@ CREATE TABLE IF NOT EXISTS prospect_analyses (
 
     audit_text TEXT DEFAULT NULL,
 
-    analyzed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    analyzed_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
 
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_prospect_analyses_prospect
@@ -153,8 +207,13 @@ CREATE TABLE IF NOT EXISTS prospect_analyses (
         REFERENCES prospects(id)
         ON DELETE CASCADE,
 
-    INDEX idx_prospect_analyses_prospect (prospect_id),
-    INDEX idx_prospect_analyses_score (overall_score)
+    INDEX idx_prospect_analyses_prospect (
+        prospect_id
+    ),
+
+    INDEX idx_prospect_analyses_score (
+        overall_score
+    )
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
@@ -179,16 +238,25 @@ CREATE TABLE IF NOT EXISTS prospect_events (
 
     metadata JSON DEFAULT NULL,
 
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_prospect_events_prospect
         FOREIGN KEY (prospect_id)
         REFERENCES prospects(id)
         ON DELETE CASCADE,
 
-    INDEX idx_prospect_events_prospect (prospect_id),
-    INDEX idx_prospect_events_type (event_type),
-    INDEX idx_prospect_events_created_at (created_at)
+    INDEX idx_prospect_events_prospect (
+        prospect_id
+    ),
+
+    INDEX idx_prospect_events_type (
+        event_type
+    ),
+
+    INDEX idx_prospect_events_created_at (
+        created_at
+    )
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
@@ -198,11 +266,23 @@ CREATE TABLE IF NOT EXISTS prospect_events (
 -- ============================================================
 -- 4. EMAILS ET RELANCES
 -- ============================================================
+--
+-- source_reply_id permet de rattacher un e-mail manuel /
+-- brouillon de réponse à une réponse reçue.
+--
+-- La FK vers prospect_replies est ajoutée après la création
+-- de prospect_replies afin d'éviter la dépendance circulaire :
+--
+-- prospect_emails -> prospect_replies
+-- prospect_replies -> prospect_emails
+-- ============================================================
 
 CREATE TABLE IF NOT EXISTS prospect_emails (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     prospect_id INT UNSIGNED NOT NULL,
+
+    source_reply_id BIGINT UNSIGNED DEFAULT NULL,
 
     email_type ENUM(
         'initial',
@@ -236,12 +316,16 @@ CREATE TABLE IF NOT EXISTS prospect_emails (
 
     message_id VARCHAR(255) DEFAULT NULL,
 
-    send_attempts SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    send_attempts SMALLINT UNSIGNED NOT NULL
+        DEFAULT 0,
 
     error_message TEXT DEFAULT NULL,
 
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_prospect_emails_prospect
@@ -249,12 +333,33 @@ CREATE TABLE IF NOT EXISTS prospect_emails (
         REFERENCES prospects(id)
         ON DELETE CASCADE,
 
-    INDEX idx_prospect_emails_prospect (prospect_id),
-    INDEX idx_prospect_emails_status (status),
-    INDEX idx_prospect_emails_scheduled_at (scheduled_at),
-    INDEX idx_prospect_emails_sent_at (sent_at),
-    INDEX idx_prospect_emails_message_id (message_id),
-    INDEX idx_prospect_emails_recipient (recipient_email)
+    INDEX idx_prospect_emails_prospect (
+        prospect_id
+    ),
+
+    UNIQUE KEY uq_prospect_emails_source_reply (
+        source_reply_id
+    ),
+
+    INDEX idx_prospect_emails_status (
+        status
+    ),
+
+    INDEX idx_prospect_emails_scheduled_at (
+        scheduled_at
+    ),
+
+    INDEX idx_prospect_emails_sent_at (
+        sent_at
+    ),
+
+    INDEX idx_prospect_emails_message_id (
+        message_id
+    ),
+
+    INDEX idx_prospect_emails_recipient (
+        recipient_email
+    )
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
@@ -269,6 +374,7 @@ CREATE TABLE IF NOT EXISTS prospect_replies (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     prospect_id INT UNSIGNED NOT NULL,
+
     prospect_email_id BIGINT UNSIGNED DEFAULT NULL,
 
     sender_email VARCHAR(190) NOT NULL,
@@ -294,7 +400,8 @@ CREATE TABLE IF NOT EXISTS prospect_replies (
 
     received_at DATETIME NOT NULL,
 
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_prospect_replies_prospect
         FOREIGN KEY (prospect_id)
@@ -306,16 +413,71 @@ CREATE TABLE IF NOT EXISTS prospect_replies (
         REFERENCES prospect_emails(id)
         ON DELETE SET NULL,
 
-    UNIQUE KEY uq_prospect_replies_message_id (message_id),
+    UNIQUE KEY uq_prospect_replies_message_id (
+        message_id
+    ),
 
-    INDEX idx_prospect_replies_prospect (prospect_id),
-    INDEX idx_prospect_replies_classification (classification),
-    INDEX idx_prospect_replies_is_read (is_read),
-    INDEX idx_prospect_replies_received_at (received_at)
+    INDEX idx_prospect_replies_prospect (
+        prospect_id
+    ),
+
+    INDEX idx_prospect_replies_classification (
+        classification
+    ),
+
+    INDEX idx_prospect_replies_is_read (
+        is_read
+    ),
+
+    INDEX idx_prospect_replies_received_at (
+        received_at
+    )
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- 5.1 LIEN EMAIL DE RÉPONSE -> RÉPONSE REÇUE
+-- ============================================================
+--
+-- La contrainte est ajoutée ici car prospect_replies existe
+-- maintenant.
+--
+-- On vérifie d'abord si elle existe déjà afin que ce fichier
+-- reste réexécutable.
+-- ============================================================
+
+SET @source_reply_fk_exists = (
+    SELECT COUNT(*)
+    FROM information_schema.TABLE_CONSTRAINTS
+    WHERE
+        CONSTRAINT_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'prospect_emails'
+        AND CONSTRAINT_NAME =
+            'fk_prospect_emails_source_reply'
+        AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+);
+
+SET @source_reply_fk_sql = IF(
+    @source_reply_fk_exists = 0,
+
+    'ALTER TABLE prospect_emails
+        ADD CONSTRAINT fk_prospect_emails_source_reply
+        FOREIGN KEY (source_reply_id)
+        REFERENCES prospect_replies(id)
+        ON DELETE SET NULL',
+
+    'SELECT 1'
+);
+
+PREPARE source_reply_fk_statement
+FROM @source_reply_fk_sql;
+
+EXECUTE source_reply_fk_statement;
+
+DEALLOCATE PREPARE source_reply_fk_statement;
 
 
 -- ============================================================
@@ -338,19 +500,28 @@ CREATE TABLE IF NOT EXISTS prospect_unsubscribes (
         'admin'
     ) NOT NULL DEFAULT 'manual',
 
-    unsubscribed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    unsubscribed_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
 
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_prospect_unsubscribes_prospect
         FOREIGN KEY (prospect_id)
         REFERENCES prospects(id)
         ON DELETE SET NULL,
 
-    UNIQUE KEY uq_prospect_unsubscribe_email (email),
+    UNIQUE KEY uq_prospect_unsubscribe_email (
+        email
+    ),
 
-    INDEX idx_prospect_unsubscribes_prospect (prospect_id),
-    INDEX idx_prospect_unsubscribes_date (unsubscribed_at)
+    INDEX idx_prospect_unsubscribes_prospect (
+        prospect_id
+    ),
+
+    INDEX idx_prospect_unsubscribes_date (
+        unsubscribed_at
+    )
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
@@ -358,15 +529,16 @@ CREATE TABLE IF NOT EXISTS prospect_unsubscribes (
 
 
 -- ============================================================
--- PROSPECTING AREAS
--- Zones géographiques parcourues par le moteur de découverte
+-- 7. ZONES DE PROSPECTION
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS prospecting_areas (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
     city VARCHAR(120) NOT NULL,
+
     postal_code VARCHAR(10) DEFAULT NULL,
+
     department VARCHAR(120) DEFAULT NULL,
 
     latitude DECIMAL(10, 7) DEFAULT NULL,
@@ -376,8 +548,11 @@ CREATE TABLE IF NOT EXISTS prospecting_areas (
 
     last_scanned_at DATETIME DEFAULT NULL,
 
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
 
     UNIQUE KEY uq_prospecting_area_city_postal (
@@ -389,10 +564,10 @@ CREATE TABLE IF NOT EXISTS prospecting_areas (
         is_active,
         last_scanned_at
     )
-)
-ENGINE=InnoDB
-DEFAULT CHARSET=utf8mb4
-COLLATE=utf8mb4_unicode_ci;
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
 
 
 SET FOREIGN_KEY_CHECKS = 1;
