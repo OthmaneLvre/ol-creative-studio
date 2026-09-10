@@ -155,6 +155,62 @@ final class ProspectMailer
                 $senderEmail
             );
 
+        $inReplyTo =
+            $this->normalizeMessageId(
+                (string) (
+                    $email[
+                        'reply_message_id'
+                    ]
+                    ?? ''
+                )
+            );
+
+        $references = [];
+
+        $sourceMessageId =
+            $this->normalizeMessageId(
+                (string) (
+                    $email[
+                        'source_message_id'
+                    ]
+                    ?? ''
+                )
+            );
+
+        $replyInReplyTo =
+            $this->normalizeMessageId(
+                (string) (
+                    $email[
+                        'reply_in_reply_to'
+                    ]
+                    ?? ''
+                )
+            );
+
+        if ($sourceMessageId !== null) {
+            $references[] =
+                $sourceMessageId;
+        } elseif ($replyInReplyTo !== null) {
+            /*
+            * Fallback si le Message-ID de l e-mail source
+            * n est plus disponible en base.
+            */
+            $references[] =
+                $replyInReplyTo;
+        }
+
+        if (
+            $inReplyTo !== null
+            && !in_array(
+                $inReplyTo,
+                $references,
+                true
+            )
+        ) {
+            $references[] =
+                $inReplyTo;
+        }
+
         return [
             'email_id' =>
                 isset($email['email_id'])
@@ -197,6 +253,12 @@ final class ProspectMailer
 
             'message_id' =>
                 $messageId,
+
+            'in_reply_to' =>
+                $inReplyTo,
+
+            'references' =>
+                $references,
 
             'prepared_at' =>
                 (new DateTimeImmutable())
@@ -268,6 +330,28 @@ final class ProspectMailer
                 )
             )
             . '</div>';
+    }
+
+    private function normalizeMessageId(
+        string $messageId
+    ): ?string {
+        $messageId =
+            trim($messageId);
+
+        if ($messageId === '') {
+            return null;
+        }
+
+        if (
+            preg_match(
+                '/^<[^<>\s@]+@[^<>\s@]+>$/',
+                $messageId
+            ) !== 1
+        ) {
+            return null;
+        }
+
+        return $messageId;
     }
 
     private function generateMessageId(

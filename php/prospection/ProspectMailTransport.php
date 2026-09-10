@@ -116,6 +116,47 @@ final class ProspectMailTransport
             $mail->MessageID =
                 (string) $message['message_id'];
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | Threading
+            |--------------------------------------------------------------------------
+            */
+
+            $inReplyTo =
+                trim(
+                    (string) (
+                        $message[
+                            'in_reply_to'
+                        ]
+                        ?? ''
+                    )
+                );
+
+            if ($inReplyTo !== '') {
+                $mail->addCustomHeader(
+                    'In-Reply-To',
+                    $inReplyTo
+                );
+            }
+
+            $references =
+                $message['references']
+                ?? [];
+
+            if (
+                is_array($references)
+                && $references !== []
+            ) {
+                $mail->addCustomHeader(
+                    'References',
+                    implode(
+                        ' ',
+                        $references
+                    )
+                );
+            }
+
             /*
             |--------------------------------------------------------------------------
             | Contenu
@@ -255,6 +296,52 @@ final class ProspectMailTransport
             throw new InvalidArgumentException(
                 'Message-ID invalide.'
             );
+        }
+
+        $inReplyTo =
+            trim(
+                (string) (
+                    $message[
+                        'in_reply_to'
+                    ]
+                    ?? ''
+                )
+            );
+
+        if (
+            $inReplyTo !== ''
+            && preg_match(
+                '/^<[^<>\s@]+@[^<>\s@]+>$/',
+                $inReplyTo
+            ) !== 1
+        ) {
+            throw new InvalidArgumentException(
+                'In-Reply-To invalide.'
+            );
+        }
+
+        $references =
+            $message['references']
+            ?? [];
+
+        if (!is_array($references)) {
+            throw new InvalidArgumentException(
+                'References invalide.'
+            );
+        }
+
+        foreach ($references as $reference) {
+            if (
+                !is_string($reference)
+                || preg_match(
+                    '/^<[^<>\s@]+@[^<>\s@]+>$/',
+                    trim($reference)
+                ) !== 1
+            ) {
+                throw new InvalidArgumentException(
+                    'Message-ID invalide dans References.'
+                );
+            }
         }
     }
 }
