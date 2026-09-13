@@ -126,10 +126,10 @@ return [
 
         'enabled' => true,
 
-        // Délais exprimés en jours.
+        // Délais exprimés en jours ouvrés après le premier envoi.
         'delays' => [
-            'follow_up_1' => 4,
-            'follow_up_2' => 10,
+            'follow_up_1' => 5,
+            'follow_up_2' => 12,
         ],
 
         // Dès qu'une réponse est détectée, aucune relance ne doit partir.
