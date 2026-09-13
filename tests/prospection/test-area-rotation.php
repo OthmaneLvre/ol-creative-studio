@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../admin/prospection/includes/bootstrap.php';
-require_once __DIR__ . '/ProspectingAreaManager.php';
+require_once __DIR__
+    . '/../../php/prospection/ProspectingAreaManager.php';
 
 $areaManager = new ProspectingAreaManager($pdo);
 
