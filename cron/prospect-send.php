@@ -38,6 +38,9 @@ require_once __DIR__
     . '/../php/prospection/ProspectSendGuard.php';
 
 require_once __DIR__
+    . '/../php/prospection/ProspectReplySendGuard.php';
+
+require_once __DIR__
     . '/../php/prospection/ProspectMailer.php';
 
 require_once __DIR__
@@ -119,6 +122,12 @@ $sendGuard = new ProspectSendGuard(
     $pdo,
     $config
 );
+
+$replySendGuard =
+    new ProspectReplySendGuard(
+        $pdo,
+        $config
+    );
 
 $mailer = new ProspectMailer(
     $config
@@ -268,6 +277,71 @@ try {
 
     echo PHP_EOL;
 
+    /*
+    |--------------------------------------------------------------------------
+    | Détection des réponses stale
+    |--------------------------------------------------------------------------
+    |
+    | Une réponse restée "sending" trop longtemps peut avoir été
+    | acceptée par SMTP avant une interruption locale.
+    |
+    | Aucun retry automatique dans ce cas :
+    | elle passe en reconciliation_required.
+    |
+    */
+
+    $staleReplyEmails =
+        $repository
+            ->findStaleSendingReplyEmails(
+                $now,
+                $staleSendingMinutes
+            );
+
+    echo 'Réponses sending stale : '
+        . count($staleReplyEmails)
+        . PHP_EOL;
+
+    $replyReconciliationCount = 0;
+
+    foreach ($staleReplyEmails as $staleReplyEmail) {
+        $staleReplyEmailId =
+            (int) $staleReplyEmail['email_id'];
+
+        try {
+            $result =
+                $repository
+                    ->markStaleReplyEmailForReconciliation(
+                        $staleReplyEmailId,
+                        $now,
+                        $staleSendingMinutes
+                    );
+
+            $replyReconciliationCount++;
+
+            echo 'Réconciliation réponse requise : email #'
+                . $staleReplyEmailId
+                . ' / prospect #'
+                . (int) $result['prospect_id']
+                . PHP_EOL;
+        } catch (Throwable $exception) {
+            /*
+            * L'état a pu changer entre la détection
+            * et le verrou FOR UPDATE.
+            */
+
+            echo 'Réponse stale ignorée : email #'
+                . $staleReplyEmailId
+                . ' - '
+                . $exception->getMessage()
+                . PHP_EOL;
+        }
+    }
+
+    echo 'Réponses placées en réconciliation : '
+        . $replyReconciliationCount
+        . PHP_EOL;
+
+    echo PHP_EOL;
 
     /*
     |--------------------------------------------------------------------------
@@ -298,10 +372,13 @@ try {
     echo PHP_EOL;
 
     if ($remaining <= 0) {
-        echo 'Limite quotidienne atteinte.'
+        echo 'Limite quotidienne des premiers contacts atteinte.'
             . PHP_EOL;
 
-        exit(0);
+        echo 'Les reponses programmees restent eligibles.'
+            . PHP_EOL;
+
+        echo PHP_EOL;
     }
 
     /*
@@ -310,12 +387,16 @@ try {
     |--------------------------------------------------------------------------
     */
 
-    $emails =
-        $repository
-            ->findDueScheduledInitialEmails(
-                $now,
-                $remaining
-            );
+    $emails = [];
+
+    if ($remaining > 0) {
+        $emails =
+            $repository
+                ->findDueScheduledInitialEmails(
+                    $now,
+                    $remaining
+                );
+    }
 
     echo 'E-mails arrivés à échéance : '
         . count($emails)
@@ -324,10 +405,10 @@ try {
     echo PHP_EOL;
 
     if ($emails === []) {
-        echo 'Aucun e-mail à envoyer.'
+        echo 'Aucun premier contact a envoyer.'
             . PHP_EOL;
 
-        exit(0);
+        echo PHP_EOL;
     }
 
     /*
@@ -771,6 +852,467 @@ try {
         echo PHP_EOL;
     }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Réponses programmées
+        |--------------------------------------------------------------------------
+        |
+        | Les réponses validées manuellement utilisent le même verrou global
+        | que les premiers contacts, mais ne consomment pas leur quota quotidien.
+        |
+        */
+
+        echo '========================================'
+            . PHP_EOL;
+
+        echo 'Réponses programmées'
+            . PHP_EOL;
+
+        echo '========================================'
+            . PHP_EOL;
+
+        $replyEmails =
+            $repository
+                ->findDueScheduledReplyEmails(
+                    $now,
+                    50
+                );
+
+        echo 'Réponses arrivées à échéance : '
+            . count($replyEmails)
+            . PHP_EOL;
+
+        echo PHP_EOL;
+
+        $replySentCount = 0;
+        $replyFailedCount = 0;
+        $replyRetryCount = 0;
+        $replyBlockedCount = 0;
+
+        if ($replyEmails === []) {
+            echo 'Aucune réponse à envoyer.'
+                . PHP_EOL;
+
+            echo PHP_EOL;
+        }
+
+        foreach ($replyEmails as $email) {
+            $emailId =
+                (int) $email['email_id'];
+
+            $prospectId =
+                (int) $email['prospect_id'];
+
+            echo '----------------------------------------'
+                . PHP_EOL;
+
+            echo 'Email réponse ID : '
+                . $emailId
+                . PHP_EOL;
+
+            echo 'Prospect ID : '
+                . $prospectId
+                . PHP_EOL;
+
+            echo 'Entreprise : '
+                . (string) $email['company_name']
+                . PHP_EOL;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Premier contrôle
+            |--------------------------------------------------------------------------
+            */
+
+            $guardResult =
+                $replySendGuard->evaluate(
+                    $email
+                );
+
+            if (!$guardResult['allowed']) {
+                $replyBlockedCount++;
+
+                echo 'Résultat : BLOCKED'
+                    . PHP_EOL;
+
+                foreach (
+                    $guardResult['reasons']
+                    as $reason
+                ) {
+                    echo '- '
+                        . $reason
+                        . PHP_EOL;
+                }
+
+                echo PHP_EOL;
+
+                continue;
+            }
+
+            echo 'Guard réponse : OK'
+                . PHP_EOL;
+
+            echo 'Destinataire réel : '
+                . (string) $guardResult[
+                    'recipient_email'
+                ]
+                . PHP_EOL;
+
+            echo 'Destinataire effectif : '
+                . (string) $guardResult[
+                    'effective_recipient_email'
+                ]
+                . PHP_EOL;
+
+            echo 'Mode : '
+                . (
+                    $guardResult['redirected']
+                        ? 'REDIRECTED'
+                        : 'DIRECT'
+                )
+                . PHP_EOL;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Préparation du message
+            |--------------------------------------------------------------------------
+            |
+            | ProspectMailer génère ici :
+            | - le nouveau Message-ID ;
+            | - In-Reply-To ;
+            | - References.
+            |
+            */
+
+            try {
+                $message =
+                    $mailer->prepare(
+                        $email,
+                        $guardResult
+                    );
+            } catch (Throwable $exception) {
+                $replyBlockedCount++;
+
+                echo 'Préparation réponse : ERREUR'
+                    . PHP_EOL;
+
+                echo $exception->getMessage()
+                    . PHP_EOL;
+
+                echo PHP_EOL;
+
+                continue;
+            }
+
+            $messageId =
+                (string) $message['message_id'];
+
+            echo 'Message-ID : '
+                . $messageId
+                . PHP_EOL;
+
+            echo 'In-Reply-To : '
+                . (
+                    $message['in_reply_to']
+                        ?? 'aucun'
+                )
+                . PHP_EOL;
+
+            $references =
+                $message['references']
+                ?? [];
+
+            echo 'References : '
+                . (
+                    is_array($references)
+                    && $references !== []
+                        ? implode(
+                            ' ',
+                            $references
+                        )
+                        : 'aucune'
+                )
+                . PHP_EOL;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Claim atomique
+            |--------------------------------------------------------------------------
+            */
+
+            try {
+                $repository
+                    ->claimScheduledReplyEmail(
+                        $emailId,
+                        $messageId,
+                        $now,
+                        $maxAttempts
+                    );
+            } catch (Throwable $exception) {
+                $replyBlockedCount++;
+
+                echo 'Claim réponse : REFUSÉ'
+                    . PHP_EOL;
+
+                echo $exception->getMessage()
+                    . PHP_EOL;
+
+                echo PHP_EOL;
+
+                continue;
+            }
+
+            echo 'Claim réponse : OK'
+                . PHP_EOL;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Dernière barrière avant SMTP
+            |--------------------------------------------------------------------------
+            */
+
+            $claimedEmail = $email;
+
+            $claimedEmail['email_status'] =
+                'sending';
+
+            $claimedEmail['status'] =
+                'sending';
+
+            $claimedEmail['send_attempts'] =
+                (int) $email['send_attempts']
+                + 1;
+
+            $finalGuard =
+                $replySendGuard->evaluate(
+                    $claimedEmail
+                );
+
+            if (!$finalGuard['allowed']) {
+                $errorMessage =
+                    'Envoi réponse bloqué après claim : '
+                    . implode(
+                        ' | ',
+                        $finalGuard['reasons']
+                    );
+
+                $failure =
+                    $repository
+                        ->markReplyEmailFailed(
+                            $emailId,
+                            $errorMessage,
+                            $maxAttempts,
+                            $retryDelayMinutes
+                        );
+
+                if (
+                    $failure[
+                        'retry_scheduled'
+                    ]
+                ) {
+                    $replyRetryCount++;
+
+                    echo 'Résultat : RETRY'
+                        . PHP_EOL;
+
+                    echo 'Nouvelle tentative : '
+                        . (string) $failure[
+                            'retry_at'
+                        ]
+                        . PHP_EOL;
+                } else {
+                    $replyFailedCount++;
+
+                    echo 'Résultat : FAILED'
+                        . PHP_EOL;
+                }
+
+                echo $errorMessage
+                    . PHP_EOL;
+
+                echo PHP_EOL;
+
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Envoi SMTP
+            |--------------------------------------------------------------------------
+            */
+
+            try {
+                $transportResult =
+                    $transport->send(
+                        $message
+                    );
+            } catch (Throwable $exception) {
+                $transportResult = [
+                    'success' => false,
+                    'message_id' => null,
+                    'error' =>
+                        $exception->getMessage(),
+                ];
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Échec SMTP
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                ($transportResult['success'] ?? false)
+                !== true
+            ) {
+                $errorMessage = trim(
+                    (string) (
+                        $transportResult['error']
+                        ?? 'Échec SMTP inconnu.'
+                    )
+                );
+
+                if ($errorMessage === '') {
+                    $errorMessage =
+                        'Échec SMTP inconnu.';
+                }
+
+                $failure =
+                    $repository
+                        ->markReplyEmailFailed(
+                            $emailId,
+                            $errorMessage,
+                            $maxAttempts,
+                            $retryDelayMinutes
+                        );
+
+                if (
+                    $failure[
+                        'retry_scheduled'
+                    ]
+                ) {
+                    $replyRetryCount++;
+
+                    echo 'SMTP réponse : ÉCHEC'
+                        . PHP_EOL;
+
+                    echo 'Résultat : RETRY'
+                        . PHP_EOL;
+
+                    echo 'Nouvelle tentative : '
+                        . (string) $failure[
+                            'retry_at'
+                        ]
+                        . PHP_EOL;
+                } else {
+                    $replyFailedCount++;
+
+                    echo 'SMTP réponse : ÉCHEC'
+                        . PHP_EOL;
+
+                    echo 'Résultat : FAILED'
+                        . PHP_EOL;
+                }
+
+                echo 'Erreur : '
+                    . $errorMessage
+                    . PHP_EOL;
+
+                echo PHP_EOL;
+
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Vérification du Message-ID SMTP
+            |--------------------------------------------------------------------------
+            */
+
+            $smtpMessageId = trim(
+                (string) (
+                    $transportResult[
+                        'message_id'
+                    ]
+                    ?? ''
+                )
+            );
+
+            if (
+                $smtpMessageId === ''
+                || $smtpMessageId !== $messageId
+            ) {
+                /*
+                * Le serveur SMTP peut déjà avoir accepté
+                * le message.
+                *
+                * Aucun retry automatique.
+                * L'e-mail reste en sending et sera placé
+                * en reconciliation_required par le contrôle stale.
+                */
+
+                echo 'SMTP réponse : ACCEPTÉ'
+                    . PHP_EOL;
+
+                echo 'État local : À RÉCONCILIER'
+                    . PHP_EOL;
+
+                echo 'Erreur : Message-ID SMTP différent '
+                    . 'du Message-ID réservé.'
+                    . PHP_EOL;
+
+                echo PHP_EOL;
+
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Persistance du succès
+            |--------------------------------------------------------------------------
+            */
+
+            try {
+                $repository
+                    ->markReplyEmailSent(
+                        $emailId,
+                        $messageId
+                    );
+            } catch (Throwable $exception) {
+                /*
+                * SMTP a déjà accepté le message.
+                * Aucun retry automatique ici.
+                */
+
+                echo 'SMTP réponse : ACCEPTÉ'
+                    . PHP_EOL;
+
+                echo 'Persistance locale : ERREUR'
+                    . PHP_EOL;
+
+                echo 'État : À RÉCONCILIER'
+                    . PHP_EOL;
+
+                echo 'Erreur : '
+                    . $exception->getMessage()
+                    . PHP_EOL;
+
+                echo PHP_EOL;
+
+                continue;
+            }
+
+            $replySentCount++;
+
+            echo 'SMTP réponse : OK'
+                . PHP_EOL;
+
+            echo 'Résultat : SENT'
+                . PHP_EOL;
+
+            echo PHP_EOL;
+        }
+
     /*
     |--------------------------------------------------------------------------
     | Résumé
@@ -786,24 +1328,44 @@ try {
     echo '========================================'
         . PHP_EOL;
 
-    echo 'Réconciliations requises : '
+    echo 'Réconciliations premiers contacts : '
         . $reconciliationCount
         . PHP_EOL;
 
-    echo 'Envoyés : '
+    echo 'Réconciliations réponses : '
+        . $replyReconciliationCount
+        . PHP_EOL;
+
+    echo 'Premiers contacts envoyés : '
         . $sentCount
         . PHP_EOL;
 
-    echo 'Retries programmés : '
+    echo 'Premiers contacts en retry : '
         . $retryCount
         . PHP_EOL;
 
-    echo 'Échecs définitifs : '
+    echo 'Premiers contacts échoués : '
         . $failedCount
         . PHP_EOL;
 
-    echo 'Bloqués : '
+    echo 'Premiers contacts bloqués : '
         . $blockedCount
+        . PHP_EOL;
+
+    echo 'Réponses envoyées : '
+        . $replySentCount
+        . PHP_EOL;
+
+    echo 'Réponses en retry : '
+        . $replyRetryCount
+        . PHP_EOL;
+
+    echo 'Réponses échouées : '
+        . $replyFailedCount
+        . PHP_EOL;
+
+    echo 'Réponses bloquées : '
+        . $replyBlockedCount
         . PHP_EOL;
 
     echo PHP_EOL;

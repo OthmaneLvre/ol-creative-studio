@@ -14,6 +14,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../../php/prospection/ProspectMailer.php';
 
+require_once __DIR__
+    . '/../../php/prospection/ProspectReplySendGuard.php';
+
 /*
 |--------------------------------------------------------------------------
 | Transport SMTP simulé
@@ -82,6 +85,12 @@ $repository =
 
 $sendGuard =
     new ProspectSendGuard(
+        $pdo,
+        $config
+    );
+
+$replySendGuard =
+    new ProspectReplySendGuard(
         $pdo,
         $config
     );
@@ -253,6 +262,320 @@ function createFixture(
 
         'email_id' =>
             (int) $pdo->lastInsertId(),
+    ];
+}
+
+function createReplyFixture(
+    PDO $pdo,
+    string $suffix
+): array {
+    $scheduledAt =
+        (new DateTimeImmutable('-5 minutes'))
+            ->format('Y-m-d H:i:s');
+
+    $senderEmail =
+        'reply-orchestrator-'
+        . $suffix
+        . '@example.test';
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prospect
+    |--------------------------------------------------------------------------
+    */
+
+    $statement = $pdo->prepare(
+        '
+        INSERT INTO prospects (
+            company_name,
+            activity,
+            city,
+            postal_code,
+            email,
+            email_source_url,
+            email_type,
+            email_confidence,
+            source,
+            source_external_id,
+            status,
+            replied_at
+        ) VALUES (
+            :company_name,
+            :activity,
+            :city,
+            :postal_code,
+            :email,
+            :email_source_url,
+            :email_type,
+            :email_confidence,
+            :source,
+            :source_external_id,
+            :status,
+            NOW()
+        )
+        '
+    );
+
+    $statement->execute([
+        'company_name' =>
+            'TEST REPLY ORCHESTRATOR '
+            . strtoupper($suffix),
+
+        'activity' =>
+            'TEST',
+
+        'city' =>
+            'Ceret',
+
+        'postal_code' =>
+            '66400',
+
+        'email' =>
+            $senderEmail,
+
+        'email_source_url' =>
+            'https://example.test/contact',
+
+        'email_type' =>
+            'generic',
+
+        'email_confidence' =>
+            100,
+
+        'source' =>
+            'reply_orchestrator_test',
+
+        'source_external_id' =>
+            'reply-orchestrator-'
+            . $suffix
+            . '-'
+            . bin2hex(random_bytes(8)),
+
+        'status' =>
+            'replied',
+    ]);
+
+    $prospectId =
+        (int) $pdo->lastInsertId();
+
+    /*
+    |--------------------------------------------------------------------------
+    | E-mail initial déjà envoyé
+    |--------------------------------------------------------------------------
+    */
+
+    $sourceMessageId =
+        '<reply-orchestrator-source-'
+        . $suffix
+        . '@example.test>';
+
+    $statement = $pdo->prepare(
+        '
+        INSERT INTO prospect_emails (
+            prospect_id,
+            email_type,
+            recipient_email,
+            subject,
+            body_html,
+            body_text,
+            status,
+            approved_at,
+            scheduled_at,
+            sent_at,
+            message_id,
+            send_attempts
+        ) VALUES (
+            :prospect_id,
+            :email_type,
+            :recipient_email,
+            :subject,
+            :body_html,
+            :body_text,
+            :status,
+            NOW(),
+            NOW(),
+            NOW(),
+            :message_id,
+            1
+        )
+        '
+    );
+
+    $statement->execute([
+        'prospect_id' =>
+            $prospectId,
+
+        'email_type' =>
+            'initial',
+
+        'recipient_email' =>
+            $senderEmail,
+
+        'subject' =>
+            'Test conversation',
+
+        'body_html' =>
+            '<p>Message initial</p>',
+
+        'body_text' =>
+            'Message initial',
+
+        'status' =>
+            'sent',
+
+        'message_id' =>
+            $sourceMessageId,
+    ]);
+
+    $sourceEmailId =
+        (int) $pdo->lastInsertId();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Réponse entrante
+    |--------------------------------------------------------------------------
+    */
+
+    $replyMessageId =
+        '<reply-orchestrator-incoming-'
+        . $suffix
+        . '@example.test>';
+
+    $statement = $pdo->prepare(
+        '
+        INSERT INTO prospect_replies (
+            prospect_id,
+            prospect_email_id,
+            sender_email,
+            subject,
+            body_text,
+            message_id,
+            in_reply_to,
+            classification,
+            received_at
+        ) VALUES (
+            :prospect_id,
+            :prospect_email_id,
+            :sender_email,
+            :subject,
+            :body_text,
+            :message_id,
+            :in_reply_to,
+            :classification,
+            NOW()
+        )
+        '
+    );
+
+    $statement->execute([
+        'prospect_id' =>
+            $prospectId,
+
+        'prospect_email_id' =>
+            $sourceEmailId,
+
+        'sender_email' =>
+            $senderEmail,
+
+        'subject' =>
+            'Re: Test conversation',
+
+        'body_text' =>
+            'Bonjour, je suis interesse.',
+
+        'message_id' =>
+            $replyMessageId,
+
+        'in_reply_to' =>
+            $sourceMessageId,
+
+        'classification' =>
+            'positive',
+    ]);
+
+    $replyId =
+        (int) $pdo->lastInsertId();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Réponse sortante programmée
+    |--------------------------------------------------------------------------
+    */
+
+    $statement = $pdo->prepare(
+        '
+        INSERT INTO prospect_emails (
+            prospect_id,
+            source_reply_id,
+            email_type,
+            recipient_email,
+            subject,
+            body_html,
+            body_text,
+            status,
+            approved_at,
+            scheduled_at,
+            send_attempts
+        ) VALUES (
+            :prospect_id,
+            :source_reply_id,
+            :email_type,
+            :recipient_email,
+            :subject,
+            :body_html,
+            :body_text,
+            :status,
+            NOW(),
+            :scheduled_at,
+            0
+        )
+        '
+    );
+
+    $statement->execute([
+        'prospect_id' =>
+            $prospectId,
+
+        'source_reply_id' =>
+            $replyId,
+
+        'email_type' =>
+            'manual',
+
+        'recipient_email' =>
+            $senderEmail,
+
+        'subject' =>
+            'Re: Test conversation',
+
+        'body_html' =>
+            '<p>Merci pour votre retour.</p>',
+
+        'body_text' =>
+            'Merci pour votre retour.',
+
+        'status' =>
+            'scheduled',
+
+        'scheduled_at' =>
+            $scheduledAt,
+    ]);
+
+    return [
+        'prospect_id' =>
+            $prospectId,
+
+        'email_id' =>
+            (int) $pdo->lastInsertId(),
+
+        'reply_id' =>
+            $replyId,
+
+        'source_message_id' =>
+            $sourceMessageId,
+
+        'reply_message_id' =>
+            $replyMessageId,
     ];
 }
 
@@ -764,6 +1087,311 @@ try {
 
     echo PHP_EOL;
 
+    /*
+    |--------------------------------------------------------------------------
+    | Scénario 3 : réponse programmée avec threading
+    |--------------------------------------------------------------------------
+    */
+
+    $replyFixture =
+        createReplyFixture(
+            $pdo,
+            'success'
+        );
+
+    $prospectIds[] =
+        $replyFixture['prospect_id'];
+
+    $now =
+        new DateTimeImmutable();
+
+    $dueReplies =
+        $repository
+            ->findDueScheduledReplyEmails(
+                $now,
+                50
+            );
+
+    $replyEmail = null;
+
+    foreach ($dueReplies as $email) {
+        if (
+            (int) $email['email_id']
+            === $replyFixture['email_id']
+        ) {
+            $replyEmail = $email;
+
+            break;
+        }
+    }
+
+    if ($replyEmail === null) {
+        throw new RuntimeException(
+            'Fixture réponse introuvable parmi les réponses dues.'
+        );
+    }
+
+    echo 'Fixture réponse détectée : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Guard réponse
+    |--------------------------------------------------------------------------
+    */
+
+    $replyGuardResult =
+        $replySendGuard->evaluate(
+            $replyEmail
+        );
+
+    if (!$replyGuardResult['allowed']) {
+        throw new RuntimeException(
+            'Le ReplySendGuard a refusé la réponse : '
+            . implode(
+                ' | ',
+                $replyGuardResult['reasons']
+            )
+        );
+    }
+
+    echo 'Guard réponse : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Préparation + threading
+    |--------------------------------------------------------------------------
+    */
+
+    $replyMessage =
+        $mailer->prepare(
+            $replyEmail,
+            $replyGuardResult
+        );
+
+    if (
+        $replyMessage['in_reply_to']
+        !== $replyFixture['reply_message_id']
+    ) {
+        throw new RuntimeException(
+            'In-Reply-To incorrect.'
+        );
+    }
+
+    $expectedReferences = [
+        $replyFixture['source_message_id'],
+        $replyFixture['reply_message_id'],
+    ];
+
+    if (
+        $replyMessage['references']
+        !== $expectedReferences
+    ) {
+        throw new RuntimeException(
+            'References incorrectes.'
+        );
+    }
+
+    echo 'Threading réponse : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Claim réponse
+    |--------------------------------------------------------------------------
+    */
+
+    $claimedReply =
+        $repository
+            ->claimScheduledReplyEmail(
+                $replyFixture['email_id'],
+                (string) $replyMessage['message_id'],
+                $now,
+                3
+            );
+
+    if (
+        $claimedReply['status']
+        !== 'sending'
+    ) {
+        throw new RuntimeException(
+            'La réponse devrait être sending.'
+        );
+    }
+
+    echo 'Claim réponse : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Guard final réponse
+    |--------------------------------------------------------------------------
+    */
+
+    $claimedReplyForGuard =
+        $replyEmail;
+
+    $claimedReplyForGuard['email_status'] =
+        'sending';
+
+    $claimedReplyForGuard['status'] =
+        'sending';
+
+    $claimedReplyForGuard['send_attempts'] =
+        (int) $replyEmail['send_attempts']
+        + 1;
+
+    $finalReplyGuard =
+        $replySendGuard->evaluate(
+            $claimedReplyForGuard
+        );
+
+    if (!$finalReplyGuard['allowed']) {
+        throw new RuntimeException(
+            'Le ReplySendGuard final a refusé la réponse : '
+            . implode(
+                ' | ',
+                $finalReplyGuard['reasons']
+            )
+        );
+    }
+
+    echo 'Guard final réponse : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fake SMTP réponse
+    |--------------------------------------------------------------------------
+    */
+
+    $replyTransport =
+        new FakeProspectMailTransport(
+            true
+        );
+
+    $replyTransportResult =
+        $replyTransport->send(
+            $replyMessage
+        );
+
+    if (
+        $replyTransportResult['success']
+        !== true
+    ) {
+        throw new RuntimeException(
+            'Le faux SMTP réponse aurait dû réussir.'
+        );
+    }
+
+    if (
+        $replyTransportResult['message_id']
+        !== $replyMessage['message_id']
+    ) {
+        throw new RuntimeException(
+            'Le Message-ID réponse a été modifié.'
+        );
+    }
+
+    echo 'Fake SMTP réponse : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Persistance réponse
+    |--------------------------------------------------------------------------
+    */
+
+    $repository
+        ->markReplyEmailSent(
+            $replyFixture['email_id'],
+            (string) $replyMessage['message_id']
+        );
+
+    $statement = $pdo->prepare(
+        '
+        SELECT
+            e.status AS email_status,
+            e.sent_at,
+            e.send_attempts,
+            e.message_id,
+            p.status AS prospect_status
+        FROM prospect_emails e
+        INNER JOIN prospects p
+            ON p.id = e.prospect_id
+        WHERE e.id = :email_id
+        '
+    );
+
+    $statement->execute([
+        'email_id' =>
+            $replyFixture['email_id'],
+    ]);
+
+    $replyState =
+        $statement->fetch(
+            PDO::FETCH_ASSOC
+        );
+
+    if ($replyState === false) {
+        throw new RuntimeException(
+            'État réponse introuvable.'
+        );
+    }
+
+    if (
+        $replyState['email_status']
+        !== 'sent'
+    ) {
+        throw new RuntimeException(
+            'La réponse devrait être sent.'
+        );
+    }
+
+    if (
+        $replyState['prospect_status']
+        !== 'replied'
+    ) {
+        throw new RuntimeException(
+            'Le prospect doit rester replied.'
+        );
+    }
+
+    if (
+        (int) $replyState['send_attempts']
+        !== 1
+    ) {
+        throw new RuntimeException(
+            'Une seule tentative réponse était attendue.'
+        );
+    }
+
+    if (
+        empty($replyState['sent_at'])
+    ) {
+        throw new RuntimeException(
+            'sent_at réponse absent.'
+        );
+    }
+
+    if (
+        $replyState['message_id']
+        !== $replyMessage['message_id']
+    ) {
+        throw new RuntimeException(
+            'Message-ID réponse incorrect.'
+        );
+    }
+
+    echo 'Persistance réponse sent : OK'
+        . PHP_EOL;
+
+    echo 'Prospect reste replied : OK'
+        . PHP_EOL;
+
+    echo PHP_EOL;
+
     echo 'Orchestration SMTP simulée : OK'
         . PHP_EOL;
 
@@ -778,6 +1406,18 @@ try {
         $statement = $pdo->prepare(
             '
             DELETE FROM prospect_events
+            WHERE prospect_id = :prospect_id
+            '
+        );
+
+        $statement->execute([
+            'prospect_id' =>
+                $prospectId,
+        ]);
+
+        $statement = $pdo->prepare(
+            '
+            DELETE FROM prospect_replies
             WHERE prospect_id = :prospect_id
             '
         );

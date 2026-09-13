@@ -3439,6 +3439,7 @@ final class ProspectRepository
                 e.subject,
                 e.body_html,
                 e.body_text,
+                e.status AS email_status,
                 e.scheduled_at,
                 e.send_attempts,
 
