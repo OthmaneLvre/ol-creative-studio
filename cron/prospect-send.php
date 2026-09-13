@@ -58,6 +58,37 @@ $config = require __DIR__
 $mailConfig = require __DIR__
     . '/../config/mail.php';
 
+$testEmailId = null;
+
+$rawTestEmailId =
+    trim(
+        (string) (
+            $_ENV['PROSPECTION_TEST_EMAIL_ID']
+            ?? getenv('PROSPECTION_TEST_EMAIL_ID')
+            ?: ''
+        )
+    );
+
+if ($rawTestEmailId !== '') {
+    if (
+        filter_var(
+            $rawTestEmailId,
+            FILTER_VALIDATE_INT,
+            [
+                'options' => [
+                    'min_range' => 1,
+                ],
+            ]
+        ) === false
+    ) {
+        throw new RuntimeException(
+            'PROSPECTION_TEST_EMAIL_ID invalide.'
+        );
+    }
+
+    $testEmailId = (int) $rawTestEmailId;
+}
+
 $timezone = new DateTimeZone(
     (string) (
         $config['timezone']
@@ -169,6 +200,12 @@ echo 'Kill switch : '
 echo 'Limite quotidienne : '
     . $maxDailySends
     . PHP_EOL;
+
+if ($testEmailId !== null) {
+    echo 'Mode test ciblé : email #'
+        . $testEmailId
+        . PHP_EOL;
+}
 
 echo PHP_EOL;
 
@@ -429,6 +466,19 @@ try {
     */
 
     foreach ($emails as $email) {
+        /*
+        |--------------------------------------------------------------------------
+        | Filtre de test ciblé
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $testEmailId !== null
+            && (int) $email['email_id'] !== $testEmailId
+        ) {
+            continue;
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Protection supplémentaire du quota
@@ -897,6 +947,19 @@ try {
         }
 
         foreach ($replyEmails as $email) {
+            /*
+            |--------------------------------------------------------------------------
+            | Filtre de test ciblé
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $testEmailId !== null
+                && (int) $email['email_id'] !== $testEmailId
+            ) {
+                continue;
+            }
+
             $emailId =
                 (int) $email['email_id'];
 
