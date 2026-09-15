@@ -18,8 +18,8 @@ final class ProspectMailer
             || $guardResult['allowed'] !== true
         ) {
             throw new RuntimeException(
-                'Le message ne peut pas être préparé : '
-                . 'le SendGuard ne l’a pas autorisé.'
+                'Le message ne peut pas Ãªtre prÃ©parÃ© : '
+                . 'le SendGuard ne lâ€™a pas autorisÃ©.'
             );
         }
 
@@ -41,7 +41,7 @@ final class ProspectMailer
             ) === false
         ) {
             throw new RuntimeException(
-                'Adresse expéditeur invalide.'
+                'Adresse expÃ©diteur invalide.'
             );
         }
 
@@ -56,7 +56,7 @@ final class ProspectMailer
 
         if ($senderName === '') {
             throw new RuntimeException(
-                'Nom expéditeur invalide.'
+                'Nom expÃ©diteur invalide.'
             );
         }
 
@@ -155,60 +155,165 @@ final class ProspectMailer
                 $senderEmail
             );
 
-        $inReplyTo =
-            $this->normalizeMessageId(
-                (string) (
-                    $email[
-                        'reply_message_id'
-                    ]
-                    ?? ''
-                )
-            );
+        /*
+        |--------------------------------------------------------------------------
+        | Threading
+        |--------------------------------------------------------------------------
+        |
+        | RÃ©ponse manuelle :
+        |   In-Reply-To = Message-ID du message entrant
+        |   References  = message source + message entrant
+        |
+        | Follow-up 1 :
+        |   In-Reply-To = Message-ID initial
+        |   References  = message initial
+        |
+        | Follow-up 2 :
+        |   In-Reply-To = Message-ID follow-up 1
+        |   References  = message initial + follow-up 1
+        |
+        */
 
+        $emailType = trim(
+            (string) (
+                $email['email_type']
+                ?? ''
+            )
+        );
+
+        $inReplyTo = null;
         $references = [];
 
-        $sourceMessageId =
-            $this->normalizeMessageId(
-                (string) (
-                    $email[
-                        'source_message_id'
-                    ]
-                    ?? ''
-                )
-            );
-
-        $replyInReplyTo =
-            $this->normalizeMessageId(
-                (string) (
-                    $email[
-                        'reply_in_reply_to'
-                    ]
-                    ?? ''
-                )
-            );
-
-        if ($sourceMessageId !== null) {
-            $references[] =
-                $sourceMessageId;
-        } elseif ($replyInReplyTo !== null) {
-            /*
-            * Fallback si le Message-ID de l e-mail source
-            * n est plus disponible en base.
-            */
-            $references[] =
-                $replyInReplyTo;
-        }
-
         if (
-            $inReplyTo !== null
-            && !in_array(
-                $inReplyTo,
-                $references,
-                true
-            )
+            $emailType === 'follow_up_1'
+            || $emailType === 'follow_up_2'
         ) {
-            $references[] =
-                $inReplyTo;
+            $initialMessageId =
+                $this->normalizeMessageId(
+                    (string) (
+                        $email[
+                            'initial_message_id'
+                        ]
+                        ?? ''
+                    )
+                );
+
+            $followUp1MessageId =
+                $this->normalizeMessageId(
+                    (string) (
+                        $email[
+                            'follow_up_1_message_id'
+                        ]
+                        ?? ''
+                    )
+                );
+
+            if ($emailType === 'follow_up_1') {
+                if ($initialMessageId === null) {
+                    throw new RuntimeException(
+                        'Message-ID initial absent ou invalide '
+                        . 'pour la relance 1.'
+                    );
+                }
+
+                $inReplyTo =
+                    $initialMessageId;
+
+                $references[] =
+                    $initialMessageId;
+            } else {
+                if ($initialMessageId === null) {
+                    throw new RuntimeException(
+                        'Message-ID initial absent ou invalide '
+                        . 'pour la relance 2.'
+                    );
+                }
+
+                if ($followUp1MessageId === null) {
+                    throw new RuntimeException(
+                        'Message-ID de la relance 1 absent '
+                        . 'ou invalide pour la relance 2.'
+                    );
+                }
+
+                $inReplyTo =
+                    $followUp1MessageId;
+
+                $references[] =
+                    $initialMessageId;
+
+                if (
+                    !in_array(
+                        $followUp1MessageId,
+                        $references,
+                        true
+                    )
+                ) {
+                    $references[] =
+                        $followUp1MessageId;
+                }
+            }
+        } else {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Threading des rÃ©ponses
+            |--------------------------------------------------------------------------
+            */
+
+            $inReplyTo =
+                $this->normalizeMessageId(
+                    (string) (
+                        $email[
+                            'reply_message_id'
+                        ]
+                        ?? ''
+                    )
+                );
+
+            $sourceMessageId =
+                $this->normalizeMessageId(
+                    (string) (
+                        $email[
+                            'source_message_id'
+                        ]
+                        ?? ''
+                    )
+                );
+
+            $replyInReplyTo =
+                $this->normalizeMessageId(
+                    (string) (
+                        $email[
+                            'reply_in_reply_to'
+                        ]
+                        ?? ''
+                    )
+                );
+
+            if ($sourceMessageId !== null) {
+                $references[] =
+                    $sourceMessageId;
+            } elseif ($replyInReplyTo !== null) {
+                /*
+                * Fallback si le Message-ID de l'e-mail source
+                * n'est plus disponible en base.
+                */
+                $references[] =
+                    $replyInReplyTo;
+            }
+
+            if (
+                $inReplyTo !== null
+                && !in_array(
+                    $inReplyTo,
+                    $references,
+                    true
+                )
+            ) {
+                $references[] =
+                    $inReplyTo;
+            }
         }
 
         return [
@@ -277,11 +382,11 @@ final class ProspectMailer
             [
                 '---',
                 'OL Creative Studio',
-                'Développeur web & graphiste freelance',
+                'DÃ©veloppeur web & graphiste freelance',
                 '',
                 'Vous recevez ce message dans un contexte professionnel.',
                 'Si vous ne souhaitez plus recevoir de messages de ma part,',
-                'répondez simplement « STOP » à cet e-mail.',
+                'rÃ©pondez simplement Â« STOP Â» Ã  cet e-mail.',
             ]
         );
 
@@ -304,12 +409,12 @@ final class ProspectMailer
                 color:#6b7280;
             ">
                 <strong>OL Creative Studio</strong><br>
-                Développeur web &amp; graphiste freelance<br><br>
+                DÃ©veloppeur web &amp; graphiste freelance<br><br>
 
                 Vous recevez ce message dans un contexte professionnel.<br>
 
                 Si vous ne souhaitez plus recevoir de messages de ma part,
-                répondez simplement <strong>STOP</strong> à cet e-mail.
+                rÃ©pondez simplement <strong>STOP</strong> Ã  cet e-mail.
             </div>
         ';
 
@@ -367,7 +472,7 @@ final class ProspectMailer
 
         if ($domain === '') {
             throw new RuntimeException(
-                'Impossible de déterminer '
+                'Impossible de dÃ©terminer '
                 . 'le domaine du Message-ID.'
             );
         }

@@ -17,6 +17,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../../php/prospection/ProspectReplySendGuard.php';
 
+require_once __DIR__
+    . '/../../php/prospection/ProspectFollowUpSendGuard.php';
+
 /*
 |--------------------------------------------------------------------------
 | Transport SMTP simulé
@@ -80,6 +83,9 @@ $config['sending']['max_attempts'] =
 $config['sending']['retry_delay_minutes'] =
     30;
 
+$config['follow_up']['enabled'] =
+    true;
+
 $repository =
     new ProspectRepository($pdo);
 
@@ -91,6 +97,12 @@ $sendGuard =
 
 $replySendGuard =
     new ProspectReplySendGuard(
+        $pdo,
+        $config
+    );
+
+$followUpSendGuard =
+    new ProspectFollowUpSendGuard(
         $pdo,
         $config
     );
@@ -576,6 +588,247 @@ function createReplyFixture(
 
         'reply_message_id' =>
             $replyMessageId,
+    ];
+}
+
+function createFollowUpFixture(
+    PDO $pdo,
+    string $suffix
+): array {
+    $recipientEmail =
+        'orchestrator-follow-up-'
+        . $suffix
+        . '@example.test';
+
+    $initialMessageId =
+        '<follow-up-initial-'
+        . $suffix
+        . '@example.test>';
+
+    $scheduledAt =
+        (new DateTimeImmutable('-5 minutes'))
+            ->format('Y-m-d H:i:s');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prospect
+    |--------------------------------------------------------------------------
+    */
+
+    $statement = $pdo->prepare(
+        '
+        INSERT INTO prospects (
+            company_name,
+            activity,
+            city,
+            postal_code,
+            email,
+            email_source_url,
+            email_type,
+            email_confidence,
+            source,
+            source_external_id,
+            status
+        ) VALUES (
+            :company_name,
+            :activity,
+            :city,
+            :postal_code,
+            :email,
+            :email_source_url,
+            :email_type,
+            :email_confidence,
+            :source,
+            :source_external_id,
+            :status
+        )
+        '
+    );
+
+    $statement->execute([
+        'company_name' =>
+            'TEST FOLLOW UP '
+            . strtoupper($suffix),
+
+        'activity' =>
+            'TEST',
+
+        'city' =>
+            'Ceret',
+
+        'postal_code' =>
+            '66400',
+
+        'email' =>
+            $recipientEmail,
+
+        'email_source_url' =>
+            'https://example.test/contact',
+
+        'email_type' =>
+            'generic',
+
+        'email_confidence' =>
+            100,
+
+        'source' =>
+            'orchestrator_test',
+
+        'source_external_id' =>
+            'follow-up-orchestrator-'
+            . $suffix
+            . '-'
+            . bin2hex(random_bytes(8)),
+
+        'status' =>
+            'follow_up',
+    ]);
+
+    $prospectId =
+        (int) $pdo->lastInsertId();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Premier contact deja envoye
+    |--------------------------------------------------------------------------
+    */
+
+    $statement = $pdo->prepare(
+        '
+        INSERT INTO prospect_emails (
+            prospect_id,
+            email_type,
+            recipient_email,
+            subject,
+            body_html,
+            body_text,
+            status,
+            sent_at,
+            send_attempts,
+            message_id
+        ) VALUES (
+            :prospect_id,
+            :email_type,
+            :recipient_email,
+            :subject,
+            :body_html,
+            :body_text,
+            :status,
+            NOW(),
+            1,
+            :message_id
+        )
+        '
+    );
+
+    $statement->execute([
+        'prospect_id' =>
+            $prospectId,
+
+        'email_type' =>
+            'initial',
+
+        'recipient_email' =>
+            $recipientEmail,
+
+        'subject' =>
+            'Test follow-up',
+
+        'body_html' =>
+            '<p>Premier contact</p>',
+
+        'body_text' =>
+            'Premier contact',
+
+        'status' =>
+            'sent',
+
+        'message_id' =>
+            $initialMessageId,
+    ]);
+
+    $initialEmailId =
+        (int) $pdo->lastInsertId();
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU1 due
+    |--------------------------------------------------------------------------
+    */
+
+    $statement = $pdo->prepare(
+        '
+        INSERT INTO prospect_emails (
+            prospect_id,
+            email_type,
+            recipient_email,
+            subject,
+            body_html,
+            body_text,
+            status,
+            scheduled_at,
+            send_attempts
+        ) VALUES (
+            :prospect_id,
+            :email_type,
+            :recipient_email,
+            :subject,
+            :body_html,
+            :body_text,
+            :status,
+            :scheduled_at,
+            0
+        )
+        '
+    );
+
+    $statement->execute([
+        'prospect_id' =>
+            $prospectId,
+
+        'email_type' =>
+            'follow_up_1',
+
+        'recipient_email' =>
+            $recipientEmail,
+
+        'subject' =>
+            'Re: Test follow-up',
+
+        'body_html' =>
+            '<p>Relance 1</p>',
+
+        'body_text' =>
+            'Relance 1',
+
+        'status' =>
+            'scheduled',
+
+        'scheduled_at' =>
+            $scheduledAt,
+    ]);
+
+    $followUp1EmailId =
+        (int) $pdo->lastInsertId();
+
+    return [
+        'prospect_id' =>
+            $prospectId,
+
+        'initial_email_id' =>
+            $initialEmailId,
+
+        'follow_up_1_email_id' =>
+            $followUp1EmailId,
+
+        'recipient_email' =>
+            $recipientEmail,
+
+        'initial_message_id' =>
+            $initialMessageId,
+
+        'scheduled_at' =>
+            $scheduledAt,
     ];
 }
 
@@ -1388,6 +1641,592 @@ try {
         . PHP_EOL;
 
     echo 'Prospect reste replied : OK'
+        . PHP_EOL;
+
+    echo PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scenario 4 : follow-up 1 puis follow-up 2
+    |--------------------------------------------------------------------------
+    */
+
+    $followUpFixture =
+        createFollowUpFixture(
+            $pdo,
+            'success'
+        );
+
+    $prospectIds[] =
+        $followUpFixture['prospect_id'];
+
+    $now =
+        new DateTimeImmutable();
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU1 : selection
+    |--------------------------------------------------------------------------
+    */
+
+    $dueFollowUps =
+        $repository
+            ->findDueScheduledFollowUpEmails(
+                $now,
+                50
+            );
+
+    $followUp1Email = null;
+
+    foreach ($dueFollowUps as $email) {
+        if (
+            (int) $email['email_id']
+            === $followUpFixture[
+                'follow_up_1_email_id'
+            ]
+        ) {
+            $followUp1Email = $email;
+
+            break;
+        }
+    }
+
+    if ($followUp1Email === null) {
+        throw new RuntimeException(
+            'Fixture FU1 introuvable parmi les relances dues.'
+        );
+    }
+
+    echo 'Fixture FU1 detectee : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU1 : guard
+    |--------------------------------------------------------------------------
+    */
+
+    $followUp1Guard =
+        $followUpSendGuard->evaluate(
+            $followUp1Email
+        );
+
+    if (!$followUp1Guard['allowed']) {
+        throw new RuntimeException(
+            'FollowUpSendGuard FU1 refuse : '
+            . implode(
+                ' | ',
+                $followUp1Guard['reasons']
+            )
+        );
+    }
+
+    echo 'Guard FU1 : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU1 : preparation + threading
+    |--------------------------------------------------------------------------
+    */
+
+    $followUp1Message =
+        $mailer->prepare(
+            $followUp1Email,
+            $followUp1Guard
+        );
+
+    if (
+        $followUp1Message['in_reply_to']
+        !== $followUpFixture[
+            'initial_message_id'
+        ]
+    ) {
+        throw new RuntimeException(
+            'In-Reply-To FU1 incorrect.'
+        );
+    }
+
+    if (
+        $followUp1Message['references']
+        !== [
+            $followUpFixture[
+                'initial_message_id'
+            ],
+        ]
+    ) {
+        throw new RuntimeException(
+            'References FU1 incorrectes.'
+        );
+    }
+
+    echo 'Threading FU1 : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU1 : claim
+    |--------------------------------------------------------------------------
+    */
+
+    $claimedFollowUp1 =
+        $repository
+            ->claimScheduledFollowUpEmail(
+                $followUpFixture[
+                    'follow_up_1_email_id'
+                ],
+                (string) $followUp1Message[
+                    'message_id'
+                ],
+                $now,
+                3
+            );
+
+    if (
+        $claimedFollowUp1['status']
+        !== 'sending'
+    ) {
+        throw new RuntimeException(
+            'FU1 devrait etre sending.'
+        );
+    }
+
+    echo 'Claim FU1 : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU1 : guard final
+    |--------------------------------------------------------------------------
+    */
+
+    $claimedFollowUp1ForGuard =
+        $followUp1Email;
+
+    $claimedFollowUp1ForGuard[
+        'email_status'
+    ] = 'sending';
+
+    $claimedFollowUp1ForGuard[
+        'status'
+    ] = 'sending';
+
+    $claimedFollowUp1ForGuard[
+        'send_attempts'
+    ] =
+        (int) $followUp1Email[
+            'send_attempts'
+        ] + 1;
+
+    $finalFollowUp1Guard =
+        $followUpSendGuard->evaluate(
+            $claimedFollowUp1ForGuard
+        );
+
+    if (!$finalFollowUp1Guard['allowed']) {
+        throw new RuntimeException(
+            'FollowUpSendGuard final FU1 refuse : '
+            . implode(
+                ' | ',
+                $finalFollowUp1Guard['reasons']
+            )
+        );
+    }
+
+    echo 'Guard final FU1 : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU1 : fake SMTP
+    |--------------------------------------------------------------------------
+    */
+
+    $followUpTransport =
+        new FakeProspectMailTransport(
+            true
+        );
+
+    $followUp1TransportResult =
+        $followUpTransport->send(
+            $followUp1Message
+        );
+
+    if (
+        $followUp1TransportResult['success']
+        !== true
+        || $followUp1TransportResult[
+            'message_id'
+        ] !== $followUp1Message['message_id']
+    ) {
+        throw new RuntimeException(
+            'Fake SMTP FU1 incorrect.'
+        );
+    }
+
+    echo 'Fake SMTP FU1 : OK'
+        . PHP_EOL;
+
+    $repository
+        ->markFollowUpEmailSent(
+            $followUpFixture[
+                'follow_up_1_email_id'
+            ],
+            (string) $followUp1Message[
+                'message_id'
+            ]
+        );
+
+    echo 'Persistance FU1 sent : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Creation de FU2 apres FU1 sent
+    |--------------------------------------------------------------------------
+    */
+
+    $statement = $pdo->prepare(
+        '
+        INSERT INTO prospect_emails (
+            prospect_id,
+            email_type,
+            recipient_email,
+            subject,
+            body_html,
+            body_text,
+            status,
+            scheduled_at,
+            send_attempts
+        ) VALUES (
+            :prospect_id,
+            :email_type,
+            :recipient_email,
+            :subject,
+            :body_html,
+            :body_text,
+            :status,
+            :scheduled_at,
+            0
+        )
+        '
+    );
+
+    $statement->execute([
+        'prospect_id' =>
+            $followUpFixture[
+                'prospect_id'
+            ],
+
+        'email_type' =>
+            'follow_up_2',
+
+        'recipient_email' =>
+            $followUpFixture[
+                'recipient_email'
+            ],
+
+        'subject' =>
+            'Re: Test follow-up',
+
+        'body_html' =>
+            '<p>Relance 2</p>',
+
+        'body_text' =>
+            'Relance 2',
+
+        'status' =>
+            'scheduled',
+
+        'scheduled_at' =>
+            $followUpFixture[
+                'scheduled_at'
+            ],
+    ]);
+
+    $followUp2EmailId =
+        (int) $pdo->lastInsertId();
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU2 : selection
+    |--------------------------------------------------------------------------
+    */
+
+    $dueFollowUps =
+        $repository
+            ->findDueScheduledFollowUpEmails(
+                new DateTimeImmutable(),
+                50
+            );
+
+    $followUp2Email = null;
+
+    foreach ($dueFollowUps as $email) {
+        if (
+            (int) $email['email_id']
+            === $followUp2EmailId
+        ) {
+            $followUp2Email = $email;
+
+            break;
+        }
+    }
+
+    if ($followUp2Email === null) {
+        throw new RuntimeException(
+            'Fixture FU2 introuvable parmi les relances dues.'
+        );
+    }
+
+    echo 'Fixture FU2 detectee : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU2 : guard + threading
+    |--------------------------------------------------------------------------
+    */
+
+    $followUp2Guard =
+        $followUpSendGuard->evaluate(
+            $followUp2Email
+        );
+
+    if (!$followUp2Guard['allowed']) {
+        throw new RuntimeException(
+            'FollowUpSendGuard FU2 refuse : '
+            . implode(
+                ' | ',
+                $followUp2Guard['reasons']
+            )
+        );
+    }
+
+    echo 'Guard FU2 : OK'
+        . PHP_EOL;
+
+    $followUp2Message =
+        $mailer->prepare(
+            $followUp2Email,
+            $followUp2Guard
+        );
+
+    if (
+        $followUp2Message['in_reply_to']
+        !== $followUp1Message['message_id']
+    ) {
+        throw new RuntimeException(
+            'In-Reply-To FU2 incorrect.'
+        );
+    }
+
+    if (
+        $followUp2Message['references']
+        !== [
+            $followUpFixture[
+                'initial_message_id'
+            ],
+            $followUp1Message[
+                'message_id'
+            ],
+        ]
+    ) {
+        throw new RuntimeException(
+            'References FU2 incorrectes.'
+        );
+    }
+
+    echo 'Threading FU2 : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU2 : claim + guard final
+    |--------------------------------------------------------------------------
+    */
+
+    $claimedFollowUp2 =
+        $repository
+            ->claimScheduledFollowUpEmail(
+                $followUp2EmailId,
+                (string) $followUp2Message[
+                    'message_id'
+                ],
+                new DateTimeImmutable(),
+                3
+            );
+
+    if (
+        $claimedFollowUp2['status']
+        !== 'sending'
+    ) {
+        throw new RuntimeException(
+            'FU2 devrait etre sending.'
+        );
+    }
+
+    echo 'Claim FU2 : OK'
+        . PHP_EOL;
+
+    $claimedFollowUp2ForGuard =
+        $followUp2Email;
+
+    $claimedFollowUp2ForGuard[
+        'email_status'
+    ] = 'sending';
+
+    $claimedFollowUp2ForGuard[
+        'status'
+    ] = 'sending';
+
+    $claimedFollowUp2ForGuard[
+        'send_attempts'
+    ] =
+        (int) $followUp2Email[
+            'send_attempts'
+        ] + 1;
+
+    $finalFollowUp2Guard =
+        $followUpSendGuard->evaluate(
+            $claimedFollowUp2ForGuard
+        );
+
+    if (!$finalFollowUp2Guard['allowed']) {
+        throw new RuntimeException(
+            'FollowUpSendGuard final FU2 refuse : '
+            . implode(
+                ' | ',
+                $finalFollowUp2Guard['reasons']
+            )
+        );
+    }
+
+    echo 'Guard final FU2 : OK'
+        . PHP_EOL;
+
+    /*
+    |--------------------------------------------------------------------------
+    | FU2 : fake SMTP + persistence
+    |--------------------------------------------------------------------------
+    */
+
+    $followUp2TransportResult =
+        $followUpTransport->send(
+            $followUp2Message
+        );
+
+    if (
+        $followUp2TransportResult['success']
+        !== true
+        || $followUp2TransportResult[
+            'message_id'
+        ] !== $followUp2Message['message_id']
+    ) {
+        throw new RuntimeException(
+            'Fake SMTP FU2 incorrect.'
+        );
+    }
+
+    echo 'Fake SMTP FU2 : OK'
+        . PHP_EOL;
+
+    $repository
+        ->markFollowUpEmailSent(
+            $followUp2EmailId,
+            (string) $followUp2Message[
+                'message_id'
+            ]
+        );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Etat final
+    |--------------------------------------------------------------------------
+    */
+
+    $statement = $pdo->prepare(
+        '
+        SELECT
+            e.status AS email_status,
+            e.sent_at,
+            e.send_attempts,
+            e.message_id,
+            p.status AS prospect_status
+        FROM prospect_emails e
+        INNER JOIN prospects p
+            ON p.id = e.prospect_id
+        WHERE e.id = :email_id
+        '
+    );
+
+    $statement->execute([
+        'email_id' =>
+            $followUp2EmailId,
+    ]);
+
+    $followUp2State =
+        $statement->fetch(
+            PDO::FETCH_ASSOC
+        );
+
+    if ($followUp2State === false) {
+        throw new RuntimeException(
+            'Etat FU2 introuvable.'
+        );
+    }
+
+    if (
+        $followUp2State['email_status']
+        !== 'sent'
+    ) {
+        throw new RuntimeException(
+            'FU2 devrait etre sent.'
+        );
+    }
+
+    if (
+        $followUp2State['prospect_status']
+        !== 'follow_up'
+    ) {
+        throw new RuntimeException(
+            'Le prospect doit rester follow_up.'
+        );
+    }
+
+    if (
+        (int) $followUp2State[
+            'send_attempts'
+        ] !== 1
+    ) {
+        throw new RuntimeException(
+            'FU2 devrait avoir une seule tentative.'
+        );
+    }
+
+    if (
+        empty($followUp2State['sent_at'])
+    ) {
+        throw new RuntimeException(
+            'sent_at FU2 absent.'
+        );
+    }
+
+    if (
+        $followUp2State['message_id']
+        !== $followUp2Message[
+            'message_id'
+        ]
+    ) {
+        throw new RuntimeException(
+            'Message-ID FU2 incorrect.'
+        );
+    }
+
+    echo 'Persistance FU2 sent : OK'
+        . PHP_EOL;
+
+    echo 'Prospect reste follow_up : OK'
         . PHP_EOL;
 
     echo PHP_EOL;
