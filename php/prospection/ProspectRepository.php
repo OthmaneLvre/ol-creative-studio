@@ -3419,6 +3419,1448 @@ final class ProspectRepository
         }
     }
 
+    public function findDueScheduledFollowUpEmails(
+        DateTimeImmutable $now,
+        int $limit = 50
+    ): array {
+        if ($limit < 1 || $limit > 100) {
+            throw new InvalidArgumentException(
+                'Limite de recuperation invalide.'
+            );
+        }
+
+        $sql = <<<SQL
+            SELECT
+                e.id AS email_id,
+                e.prospect_id,
+                e.email_type,
+                e.recipient_email,
+                e.subject,
+                e.body_html,
+                e.body_text,
+                e.status AS email_status,
+                e.scheduled_at,
+                e.send_attempts,
+
+                p.company_name,
+                p.status AS prospect_status,
+
+                initial_email.message_id
+                    AS initial_message_id,
+
+                follow_up_1.message_id
+                    AS follow_up_1_message_id
+
+            FROM prospect_emails e
+
+            INNER JOIN prospects p
+                ON p.id = e.prospect_id
+
+            INNER JOIN prospect_emails initial_email
+                ON initial_email.prospect_id =
+                    e.prospect_id
+                AND initial_email.email_type =
+                    'initial'
+                AND initial_email.status =
+                    'sent'
+                AND initial_email.sent_at
+                    IS NOT NULL
+
+            LEFT JOIN prospect_emails follow_up_1
+                ON follow_up_1.prospect_id =
+                    e.prospect_id
+                AND follow_up_1.email_type =
+                    'follow_up_1'
+                AND follow_up_1.status =
+                    'sent'
+                AND follow_up_1.sent_at
+                    IS NOT NULL
+
+            WHERE e.email_type IN (
+                'follow_up_1',
+                'follow_up_2'
+            )
+
+            AND e.status = 'scheduled'
+            AND e.scheduled_at IS NOT NULL
+            AND e.scheduled_at <= :now
+            AND e.sent_at IS NULL
+
+            AND p.status = 'follow_up'
+
+            AND NOT EXISTS (
+                SELECT 1
+                FROM prospect_replies r
+                WHERE r.prospect_id =
+                    e.prospect_id
+                AND r.classification
+                    <> 'automatic'
+            )
+
+            AND NOT EXISTS (
+                SELECT 1
+                FROM prospect_unsubscribes u
+                WHERE LOWER(u.email) =
+                    LOWER(e.recipient_email)
+            )
+
+            AND (
+                e.email_type = 'follow_up_1'
+
+                OR (
+                    e.email_type = 'follow_up_2'
+                    AND follow_up_1.id
+                        IS NOT NULL
+                )
+            )
+
+            ORDER BY
+                e.scheduled_at ASC,
+                e.id ASC
+
+            LIMIT {$limit}
+        SQL;
+
+        $statement =
+            $this->pdo->prepare($sql);
+
+        $statement->execute([
+            'now' =>
+                $now->format(
+                    'Y-m-d H:i:s'
+                ),
+        ]);
+
+        return $statement->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+    }
+
+    public function claimScheduledFollowUpEmail(
+        int $emailId,
+        string $messageId,
+        DateTimeImmutable $now,
+        int $maxAttempts = 3
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        $messageId = trim($messageId);
+
+        if ($messageId === '') {
+            throw new InvalidArgumentException(
+                'Message-ID invalide.'
+            );
+        }
+
+        if ($maxAttempts < 1) {
+            throw new InvalidArgumentException(
+                'Nombre maximal de tentatives invalide.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouillage de la relance
+            |--------------------------------------------------------------------------
+            */
+
+            $statement =
+                $this->pdo->prepare(
+                    "
+                    SELECT
+                        e.*,
+
+                        p.company_name,
+                        p.status
+                            AS prospect_status,
+
+                        initial_email.message_id
+                            AS initial_message_id,
+
+                        follow_up_1.id
+                            AS follow_up_1_id,
+
+                        follow_up_1.status
+                            AS follow_up_1_status,
+
+                        follow_up_1.sent_at
+                            AS follow_up_1_sent_at,
+
+                        follow_up_1.message_id
+                            AS follow_up_1_message_id
+
+                    FROM prospect_emails e
+
+                    INNER JOIN prospects p
+                        ON p.id = e.prospect_id
+
+                    INNER JOIN prospect_emails initial_email
+                        ON initial_email.prospect_id =
+                            e.prospect_id
+                        AND initial_email.email_type =
+                            'initial'
+                        AND initial_email.status =
+                            'sent'
+                        AND initial_email.sent_at
+                            IS NOT NULL
+
+                    LEFT JOIN prospect_emails follow_up_1
+                        ON follow_up_1.prospect_id =
+                            e.prospect_id
+                        AND follow_up_1.email_type =
+                            'follow_up_1'
+
+                    WHERE e.id = :email_id
+
+                    AND e.email_type IN (
+                        'follow_up_1',
+                        'follow_up_2'
+                    )
+
+                    LIMIT 1
+                    FOR UPDATE
+                    "
+                );
+
+            $statement->execute([
+                'email_id' => $emailId,
+            ]);
+
+            $email =
+                $statement->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Relance e-mail introuvable.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Revalidation
+            |--------------------------------------------------------------------------
+            */
+
+            if ($email['status'] !== 'scheduled') {
+                throw new RuntimeException(
+                    'Cette relance n est plus programmee.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'follow_up'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n est plus en phase de relance.'
+                );
+            }
+
+            if (!empty($email['sent_at'])) {
+                throw new RuntimeException(
+                    'Cette relance a deja ete envoyee.'
+                );
+            }
+
+            if (empty($email['scheduled_at'])) {
+                throw new RuntimeException(
+                    'Date de programmation absente.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Echeance
+            |--------------------------------------------------------------------------
+            */
+
+            $scheduledAt =
+                new DateTimeImmutable(
+                    (string) $email[
+                        'scheduled_at'
+                    ]
+                );
+
+            if ($scheduledAt > $now) {
+                throw new RuntimeException(
+                    'Cette relance n est pas encore arrivee a echeance.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Destinataire
+            |--------------------------------------------------------------------------
+            */
+
+            $recipientEmail =
+                strtolower(
+                    trim(
+                        (string) $email[
+                            'recipient_email'
+                        ]
+                    )
+                );
+
+            if (
+                filter_var(
+                    $recipientEmail,
+                    FILTER_VALIDATE_EMAIL
+                ) === false
+            ) {
+                throw new RuntimeException(
+                    'Destinataire invalide.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | STOP : reponse humaine
+            |--------------------------------------------------------------------------
+            */
+
+            $replyStatement =
+                $this->pdo->prepare(
+                    "
+                    SELECT 1
+                    FROM prospect_replies
+                    WHERE prospect_id =
+                        :prospect_id
+                    AND classification
+                        <> 'automatic'
+                    LIMIT 1
+                    "
+                );
+
+            $replyStatement->execute([
+                'prospect_id' =>
+                    (int) $email[
+                        'prospect_id'
+                    ],
+            ]);
+
+            if (
+                $replyStatement->fetchColumn()
+                !== false
+            ) {
+                throw new RuntimeException(
+                    'Une reponse du prospect a ete detectee.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | STOP : desinscription
+            |--------------------------------------------------------------------------
+            */
+
+            $unsubscribeStatement =
+                $this->pdo->prepare(
+                    '
+                    SELECT 1
+                    FROM prospect_unsubscribes
+                    WHERE LOWER(email) =
+                        LOWER(:email)
+                    LIMIT 1
+                    '
+                );
+
+            $unsubscribeStatement->execute([
+                'email' =>
+                    $recipientEmail,
+            ]);
+
+            if (
+                $unsubscribeStatement
+                    ->fetchColumn()
+                !== false
+            ) {
+                throw new RuntimeException(
+                    'Adresse desinscrite.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Sequence FU1 -> FU2
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $email['email_type']
+                === 'follow_up_2'
+            ) {
+                if (
+                    empty(
+                        $email[
+                            'follow_up_1_id'
+                        ]
+                    )
+                    || $email[
+                        'follow_up_1_status'
+                    ] !== 'sent'
+                    || empty(
+                        $email[
+                            'follow_up_1_sent_at'
+                        ]
+                    )
+                ) {
+                    throw new RuntimeException(
+                        'La premiere relance n a pas ete envoyee.'
+                    );
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Tentatives
+            |--------------------------------------------------------------------------
+            */
+
+            $sendAttempts =
+                (int) (
+                    $email[
+                        'send_attempts'
+                    ]
+                    ?? 0
+                );
+
+            if ($sendAttempts >= $maxAttempts) {
+                throw new RuntimeException(
+                    'Nombre maximal de tentatives atteint.'
+                );
+            }
+
+            $newAttemptCount =
+                $sendAttempts + 1;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Claim
+            |--------------------------------------------------------------------------
+            */
+
+            $update =
+                $this->pdo->prepare(
+                    '
+                    UPDATE prospect_emails
+                    SET
+                        status = :status,
+                        send_attempts =
+                            :send_attempts,
+                        message_id =
+                            :message_id,
+                        error_message = NULL,
+                        updated_at =
+                            CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                    '
+                );
+
+            $update->execute([
+                'status' =>
+                    'sending',
+
+                'send_attempts' =>
+                    $newAttemptCount,
+
+                'message_id' =>
+                    $messageId,
+
+                'email_id' =>
+                    $emailId,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Historique
+            |--------------------------------------------------------------------------
+            */
+
+            $this->addEvent(
+                (int) $email[
+                    'prospect_id'
+                ],
+                'prospect_follow_up_email_sending',
+                'follow_up',
+                'follow_up',
+                'Tentative d envoi d une relance au prospect.',
+                [
+                    'email_id' =>
+                        $emailId,
+
+                    'email_type' =>
+                        (string) $email[
+                            'email_type'
+                        ],
+
+                    'send_attempt' =>
+                        $newAttemptCount,
+
+                    'message_id' =>
+                        $messageId,
+                ]
+            );
+
+            $this->pdo->commit();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Retour
+            |--------------------------------------------------------------------------
+            */
+
+            $email['email_id'] =
+                (int) $email['id'];
+
+            $email['prospect_id'] =
+                (int) $email[
+                    'prospect_id'
+                ];
+
+            $email['status'] =
+                'sending';
+
+            $email['email_status'] =
+                'sending';
+
+            $email['send_attempts'] =
+                $newAttemptCount;
+
+            $email['message_id'] =
+                $messageId;
+
+            return $email;
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function markFollowUpEmailSent(
+        int $emailId,
+        string $messageId
+    ): void {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        $messageId = trim($messageId);
+
+        if ($messageId === '') {
+            throw new InvalidArgumentException(
+                'Message-ID obligatoire.'
+            );
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement =
+                $this->pdo->prepare(
+                    "
+                    SELECT
+                        e.id,
+                        e.prospect_id,
+                        e.email_type,
+                        e.status,
+                        e.sent_at,
+                        e.message_id,
+
+                        p.status
+                            AS prospect_status
+
+                    FROM prospect_emails e
+
+                    INNER JOIN prospects p
+                        ON p.id = e.prospect_id
+
+                    WHERE e.id = :email_id
+
+                    AND e.email_type IN (
+                        'follow_up_1',
+                        'follow_up_2'
+                    )
+
+                    LIMIT 1
+                    FOR UPDATE
+                    "
+                );
+
+            $statement->execute([
+                'email_id' => $emailId,
+            ]);
+
+            $email =
+                $statement->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Relance e-mail introuvable.'
+                );
+            }
+
+            if ($email['status'] !== 'sending') {
+                throw new RuntimeException(
+                    'La relance n est pas en cours d envoi.'
+                );
+            }
+
+            if (!empty($email['sent_at'])) {
+                throw new RuntimeException(
+                    'La relance est deja marquee comme envoyee.'
+                );
+            }
+
+            if (empty($email['message_id'])) {
+                throw new RuntimeException(
+                    'Aucun Message-ID n a ete reserve avant l envoi.'
+                );
+            }
+
+            if (
+                !hash_equals(
+                    (string) $email['message_id'],
+                    $messageId
+                )
+            ) {
+                throw new RuntimeException(
+                    'Le Message-ID SMTP ne correspond pas au Message-ID reserve.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'follow_up'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n est plus en phase de relance.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Dernier STOP avant persistance
+            |--------------------------------------------------------------------------
+            */
+
+            $reply =
+                $this->pdo->prepare(
+                    "
+                    SELECT 1
+                    FROM prospect_replies
+                    WHERE prospect_id = :prospect_id
+                    AND classification <> 'automatic'
+                    LIMIT 1
+                    "
+                );
+
+            $reply->execute([
+                'prospect_id' =>
+                    (int) $email['prospect_id'],
+            ]);
+
+            if ($reply->fetchColumn() !== false) {
+                throw new RuntimeException(
+                    'Une reponse du prospect a ete detectee.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Marquage sent
+            |--------------------------------------------------------------------------
+            */
+
+            $update =
+                $this->pdo->prepare(
+                    '
+                    UPDATE prospect_emails
+                    SET
+                        status = :status,
+                        sent_at = CURRENT_TIMESTAMP,
+                        message_id = :message_id,
+                        error_message = NULL,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                    '
+                );
+
+            $update->execute([
+                'status' => 'sent',
+                'message_id' => $messageId,
+                'email_id' => $emailId,
+            ]);
+
+            $this->addEvent(
+                (int) $email['prospect_id'],
+                'prospect_follow_up_email_sent',
+                'follow_up',
+                'follow_up',
+                'Relance envoyee au prospect.',
+                [
+                    'email_id' =>
+                        $emailId,
+
+                    'email_type' =>
+                        (string) $email[
+                            'email_type'
+                        ],
+
+                    'message_id' =>
+                        $messageId,
+                ]
+            );
+
+            $this->pdo->commit();
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function markFollowUpEmailFailed(
+        int $emailId,
+        string $errorMessage,
+        int $maxAttempts = 3,
+        int $retryDelayMinutes = 30
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        if ($maxAttempts < 1) {
+            throw new InvalidArgumentException(
+                'Nombre maximal de tentatives invalide.'
+            );
+        }
+
+        if ($retryDelayMinutes < 1) {
+            throw new InvalidArgumentException(
+                'Delai de retry invalide.'
+            );
+        }
+
+        $errorMessage = trim($errorMessage);
+
+        if ($errorMessage === '') {
+            $errorMessage =
+                'Erreur d envoi inconnue.';
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement =
+                $this->pdo->prepare(
+                    "
+                    SELECT
+                        e.id,
+                        e.prospect_id,
+                        e.email_type,
+                        e.status,
+                        e.send_attempts,
+
+                        p.status
+                            AS prospect_status
+
+                    FROM prospect_emails e
+
+                    INNER JOIN prospects p
+                        ON p.id = e.prospect_id
+
+                    WHERE e.id = :email_id
+
+                    AND e.email_type IN (
+                        'follow_up_1',
+                        'follow_up_2'
+                    )
+
+                    LIMIT 1
+                    FOR UPDATE
+                    "
+                );
+
+            $statement->execute([
+                'email_id' => $emailId,
+            ]);
+
+            $email =
+                $statement->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Relance e-mail introuvable.'
+                );
+            }
+
+            if ($email['status'] !== 'sending') {
+                throw new RuntimeException(
+                    'La relance n est pas en cours d envoi.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'follow_up'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n est plus en phase de relance.'
+                );
+            }
+
+            $sendAttempts =
+                (int) $email['send_attempts'];
+
+            /*
+            |--------------------------------------------------------------------------
+            | Retry
+            |--------------------------------------------------------------------------
+            */
+
+            if ($sendAttempts < $maxAttempts) {
+                $retryAt =
+                    (new DateTimeImmutable())
+                        ->modify(
+                            '+'
+                            . $retryDelayMinutes
+                            . ' minutes'
+                        );
+
+                $retryAtSql =
+                    $retryAt->format(
+                        'Y-m-d H:i:s'
+                    );
+
+                $update =
+                    $this->pdo->prepare(
+                        '
+                        UPDATE prospect_emails
+                        SET
+                            status = :status,
+                            scheduled_at =
+                                :scheduled_at,
+                            error_message =
+                                :error_message,
+                            updated_at =
+                                CURRENT_TIMESTAMP
+                        WHERE id = :email_id
+                        '
+                    );
+
+                $update->execute([
+                    'status' =>
+                        'scheduled',
+
+                    'scheduled_at' =>
+                        $retryAtSql,
+
+                    'error_message' =>
+                        mb_substr(
+                            $errorMessage,
+                            0,
+                            5000
+                        ),
+
+                    'email_id' =>
+                        $emailId,
+                ]);
+
+                $this->addEvent(
+                    (int) $email['prospect_id'],
+                    'prospect_follow_up_email_retry_scheduled',
+                    'follow_up',
+                    'follow_up',
+                    'Nouvelle tentative d envoi de la relance programmee.',
+                    [
+                        'email_id' =>
+                            $emailId,
+
+                        'email_type' =>
+                            (string) $email[
+                                'email_type'
+                            ],
+
+                        'send_attempts' =>
+                            $sendAttempts,
+
+                        'max_attempts' =>
+                            $maxAttempts,
+
+                        'retry_at' =>
+                            $retryAtSql,
+
+                        'error' =>
+                            mb_substr(
+                                $errorMessage,
+                                0,
+                                500
+                            ),
+                    ]
+                );
+
+                $this->pdo->commit();
+
+                return [
+                    'status' =>
+                        'scheduled',
+
+                    'retry_scheduled' =>
+                        true,
+
+                    'retry_at' =>
+                        $retryAtSql,
+
+                    'send_attempts' =>
+                        $sendAttempts,
+
+                    'max_attempts' =>
+                        $maxAttempts,
+                ];
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Echec definitif
+            |--------------------------------------------------------------------------
+            */
+
+            $update =
+                $this->pdo->prepare(
+                    '
+                    UPDATE prospect_emails
+                    SET
+                        status = :status,
+                        error_message =
+                            :error_message,
+                        updated_at =
+                            CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                    '
+                );
+
+            $update->execute([
+                'status' =>
+                    'failed',
+
+                'error_message' =>
+                    mb_substr(
+                        $errorMessage,
+                        0,
+                        5000
+                    ),
+
+                'email_id' =>
+                    $emailId,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | FU1 definitivement echouee -> aucune FU2
+            |--------------------------------------------------------------------------
+            */
+
+            $cancelledFollowUp2 = 0;
+
+            if (
+                $email['email_type']
+                === 'follow_up_1'
+            ) {
+                $cancel =
+                    $this->pdo->prepare(
+                        "
+                        UPDATE prospect_emails
+                        SET
+                            status = 'cancelled',
+                            error_message =
+                                :error_message,
+                            updated_at =
+                                CURRENT_TIMESTAMP
+                        WHERE prospect_id =
+                            :prospect_id
+                        AND email_type =
+                            'follow_up_2'
+                        AND status IN (
+                            'draft',
+                            'pending_validation',
+                            'approved',
+                            'scheduled'
+                        )
+                        AND sent_at IS NULL
+                        "
+                    );
+
+                $cancel->execute([
+                    'error_message' =>
+                        'Relance 2 annulee : '
+                        . 'echec definitif de la relance 1.',
+
+                    'prospect_id' =>
+                        (int) $email[
+                            'prospect_id'
+                        ],
+                ]);
+
+                $cancelledFollowUp2 =
+                    $cancel->rowCount();
+            }
+
+            $this->addEvent(
+                (int) $email['prospect_id'],
+                'prospect_follow_up_email_failed',
+                'follow_up',
+                'follow_up',
+                'Echec definitif de l envoi de la relance.',
+                [
+                    'email_id' =>
+                        $emailId,
+
+                    'email_type' =>
+                        (string) $email[
+                            'email_type'
+                        ],
+
+                    'send_attempts' =>
+                        $sendAttempts,
+
+                    'max_attempts' =>
+                        $maxAttempts,
+
+                    'cancelled_follow_up_2' =>
+                        $cancelledFollowUp2,
+
+                    'error' =>
+                        mb_substr(
+                            $errorMessage,
+                            0,
+                            500
+                        ),
+                ]
+            );
+
+            $this->pdo->commit();
+
+            return [
+                'status' =>
+                    'failed',
+
+                'retry_scheduled' =>
+                    false,
+
+                'retry_at' =>
+                    null,
+
+                'send_attempts' =>
+                    $sendAttempts,
+
+                'max_attempts' =>
+                    $maxAttempts,
+
+                'cancelled_follow_up_2' =>
+                    $cancelledFollowUp2,
+            ];
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
+    public function findStaleSendingFollowUpEmails(
+        DateTimeImmutable $now,
+        int $staleMinutes = 15,
+        int $limit = 50
+    ): array {
+        if ($staleMinutes < 1) {
+            throw new InvalidArgumentException(
+                'Le delai de detection des envois bloques est invalide.'
+            );
+        }
+
+        if ($limit < 1 || $limit > 100) {
+            throw new InvalidArgumentException(
+                'Limite de recuperation invalide.'
+            );
+        }
+
+        $cutoff =
+            $now->modify(
+                '-'
+                . $staleMinutes
+                . ' minutes'
+            );
+
+        $sql = <<<SQL
+            SELECT
+                e.id AS email_id,
+                e.prospect_id,
+                e.email_type,
+                e.recipient_email,
+                e.subject,
+                e.status AS email_status,
+                e.message_id,
+                e.send_attempts,
+                e.updated_at,
+
+                p.company_name,
+                p.status AS prospect_status
+
+            FROM prospect_emails e
+
+            INNER JOIN prospects p
+                ON p.id = e.prospect_id
+
+            WHERE e.email_type IN (
+                'follow_up_1',
+                'follow_up_2'
+            )
+
+            AND e.status = 'sending'
+            AND e.sent_at IS NULL
+            AND e.message_id IS NOT NULL
+            AND e.message_id <> ''
+            AND e.updated_at <= :cutoff
+
+            ORDER BY
+                e.updated_at ASC,
+                e.id ASC
+
+            LIMIT {$limit}
+        SQL;
+
+        $statement =
+            $this->pdo->prepare($sql);
+
+        $statement->execute([
+            'cutoff' =>
+                $cutoff->format(
+                    'Y-m-d H:i:s'
+                ),
+        ]);
+
+        return $statement->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+    }
+
+    public function markStaleFollowUpEmailForReconciliation(
+        int $emailId,
+        DateTimeImmutable $now,
+        int $staleMinutes = 15
+    ): array {
+        if ($emailId <= 0) {
+            throw new InvalidArgumentException(
+                'Identifiant e-mail invalide.'
+            );
+        }
+
+        if ($staleMinutes < 1) {
+            throw new InvalidArgumentException(
+                'Le delai de detection des envois bloques est invalide.'
+            );
+        }
+
+        $cutoff =
+            $now->modify(
+                '-'
+                . $staleMinutes
+                . ' minutes'
+            );
+
+        try {
+            $this->pdo->beginTransaction();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Verrouillage
+            |--------------------------------------------------------------------------
+            */
+
+            $statement =
+                $this->pdo->prepare(
+                    "
+                    SELECT
+                        e.id,
+                        e.prospect_id,
+                        e.email_type,
+                        e.status,
+                        e.sent_at,
+                        e.message_id,
+                        e.send_attempts,
+                        e.updated_at,
+
+                        p.status
+                            AS prospect_status
+
+                    FROM prospect_emails e
+
+                    INNER JOIN prospects p
+                        ON p.id = e.prospect_id
+
+                    WHERE e.id = :email_id
+
+                    AND e.email_type IN (
+                        'follow_up_1',
+                        'follow_up_2'
+                    )
+
+                    LIMIT 1
+                    FOR UPDATE
+                    "
+                );
+
+            $statement->execute([
+                'email_id' => $emailId,
+            ]);
+
+            $email =
+                $statement->fetch(
+                    PDO::FETCH_ASSOC
+                );
+
+            if ($email === false) {
+                throw new RuntimeException(
+                    'Relance e-mail introuvable.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Revalidation
+            |--------------------------------------------------------------------------
+            */
+
+            if ($email['status'] !== 'sending') {
+                throw new RuntimeException(
+                    'La relance n est plus en cours d envoi.'
+                );
+            }
+
+            if (!empty($email['sent_at'])) {
+                throw new RuntimeException(
+                    'La relance est deja marquee comme envoyee.'
+                );
+            }
+
+            if (empty($email['message_id'])) {
+                throw new RuntimeException(
+                    'Impossible de reconcilier un envoi sans Message-ID.'
+                );
+            }
+
+            if (
+                $email['prospect_status']
+                !== 'follow_up'
+            ) {
+                throw new RuntimeException(
+                    'Le prospect n est plus en phase de relance.'
+                );
+            }
+
+            $updatedAt =
+                new DateTimeImmutable(
+                    (string) $email['updated_at']
+                );
+
+            if ($updatedAt > $cutoff) {
+                throw new RuntimeException(
+                    'L envoi n est pas suffisamment ancien pour etre reconcilie.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Quarantaine
+            |--------------------------------------------------------------------------
+            */
+
+            $errorMessage =
+                'Etat SMTP inconnu apres interruption du processus. '
+                . 'Verification manuelle requise avant tout nouvel envoi.';
+
+            $update =
+                $this->pdo->prepare(
+                    '
+                    UPDATE prospect_emails
+                    SET
+                        status = :status,
+                        error_message =
+                            :error_message,
+                        updated_at =
+                            CURRENT_TIMESTAMP
+                    WHERE id = :email_id
+                    '
+                );
+
+            $update->execute([
+                'status' =>
+                    'reconciliation_required',
+
+                'error_message' =>
+                    $errorMessage,
+
+                'email_id' =>
+                    $emailId,
+            ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | FU1 incertaine => aucune FU2 automatique
+            |--------------------------------------------------------------------------
+            */
+
+            $cancelledFollowUp2 = 0;
+
+            if (
+                $email['email_type']
+                === 'follow_up_1'
+            ) {
+                $cancel =
+                    $this->pdo->prepare(
+                        "
+                        UPDATE prospect_emails
+                        SET
+                            status = 'cancelled',
+                            error_message =
+                                :error_message,
+                            updated_at =
+                                CURRENT_TIMESTAMP
+                        WHERE prospect_id =
+                            :prospect_id
+                        AND email_type =
+                            'follow_up_2'
+                        AND status IN (
+                            'draft',
+                            'pending_validation',
+                            'approved',
+                            'scheduled'
+                        )
+                        AND sent_at IS NULL
+                        "
+                    );
+
+                $cancel->execute([
+                    'error_message' =>
+                        'Relance 2 annulee : '
+                        . 'etat SMTP de la relance 1 a reconcilier.',
+
+                    'prospect_id' =>
+                        (int) $email[
+                            'prospect_id'
+                        ],
+                ]);
+
+                $cancelledFollowUp2 =
+                    $cancel->rowCount();
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Historique
+            |--------------------------------------------------------------------------
+            */
+
+            $this->addEvent(
+                (int) $email['prospect_id'],
+                'prospect_follow_up_email_reconciliation_required',
+                'follow_up',
+                'follow_up',
+                $errorMessage,
+                [
+                    'email_id' =>
+                        $emailId,
+
+                    'email_type' =>
+                        (string) $email[
+                            'email_type'
+                        ],
+
+                    'message_id' =>
+                        (string) $email[
+                            'message_id'
+                        ],
+
+                    'send_attempts' =>
+                        (int) $email[
+                            'send_attempts'
+                        ],
+
+                    'sending_updated_at' =>
+                        (string) $email[
+                            'updated_at'
+                        ],
+
+                    'stale_minutes' =>
+                        $staleMinutes,
+
+                    'cancelled_follow_up_2' =>
+                        $cancelledFollowUp2,
+                ]
+            );
+
+            $this->pdo->commit();
+
+            return [
+                'email_id' =>
+                    $emailId,
+
+                'prospect_id' =>
+                    (int) $email[
+                        'prospect_id'
+                    ],
+
+                'email_type' =>
+                    (string) $email[
+                        'email_type'
+                    ],
+
+                'status' =>
+                    'reconciliation_required',
+
+                'prospect_status' =>
+                    'follow_up',
+
+                'cancelled_follow_up_2' =>
+                    $cancelledFollowUp2,
+            ];
+
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $exception;
+        }
+    }
+
     public function findDueScheduledReplyEmails(
         DateTimeImmutable $now,
         int $limit = 50

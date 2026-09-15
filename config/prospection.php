@@ -126,11 +126,21 @@ return [
 
         'enabled' => true,
 
+        'dry_run' => filter_var(
+            $_ENV['PROSPECTION_FOLLOW_UP_DRY_RUN']
+                ?? true,
+            FILTER_VALIDATE_BOOL
+        ),
+
+        'batch_limit' => 100,
+
         // Délais exprimés en jours ouvrés après le premier envoi.
         'delays' => [
             'follow_up_1' => 5,
             'follow_up_2' => 12,
         ],
+
+        'business_days_only' => true,
 
         // Dès qu'une réponse est détectée, aucune relance ne doit partir.
         'stop_on_reply' => true,
