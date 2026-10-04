@@ -124,7 +124,11 @@ return [
 
     'follow_up' => [
 
-        'enabled' => true,
+        'enabled' => filter_var(
+            $_ENV['PROSPECTION_FOLLOW_UP_ENABLED']
+                ?? true,
+            FILTER_VALIDATE_BOOL
+        ),
 
         'dry_run' => filter_var(
             $_ENV['PROSPECTION_FOLLOW_UP_DRY_RUN']

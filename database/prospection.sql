@@ -569,5 +569,81 @@ CREATE TABLE IF NOT EXISTS prospecting_areas (
   DEFAULT CHARSET=utf8mb4
   COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================
+-- 8. LOGS TECHNIQUES DE PROSPECTION
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS prospecting_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    run_id VARCHAR(100) DEFAULT NULL,
+
+    channel VARCHAR(50) NOT NULL,
+
+    level ENUM(
+        'debug',
+        'info',
+        'warning',
+        'error',
+        'critical'
+    ) NOT NULL DEFAULT 'info',
+
+    event_type VARCHAR(100) NOT NULL,
+
+    message VARCHAR(1000) NOT NULL,
+
+    prospect_id INT UNSIGNED DEFAULT NULL,
+
+    email_id BIGINT UNSIGNED DEFAULT NULL,
+
+    context JSON DEFAULT NULL,
+
+    created_at DATETIME NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_prospecting_logs_prospect
+        FOREIGN KEY (prospect_id)
+        REFERENCES prospects(id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_prospecting_logs_email
+        FOREIGN KEY (email_id)
+        REFERENCES prospect_emails(id)
+        ON DELETE SET NULL,
+
+    INDEX idx_prospecting_logs_run (
+        run_id
+    ),
+
+    INDEX idx_prospecting_logs_channel_date (
+        channel,
+        created_at
+    ),
+
+    INDEX idx_prospecting_logs_level_date (
+        level,
+        created_at
+    ),
+
+    INDEX idx_prospecting_logs_event (
+        event_type
+    ),
+
+    INDEX idx_prospecting_logs_prospect (
+        prospect_id
+    ),
+
+    INDEX idx_prospecting_logs_email (
+        email_id
+    ),
+
+    INDEX idx_prospecting_logs_created (
+        created_at
+    )
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+
 
 SET FOREIGN_KEY_CHECKS = 1;

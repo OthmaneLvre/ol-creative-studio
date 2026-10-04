@@ -13,10 +13,11 @@ declare(strict_types=1);
 | - garantir une seule execution concurrente ;
 | - respecter le kill switch ;
 | - permettre un DRY-RUN sans mutation ;
-| - creer les relances de maniere idempotente.
+| - creer les relances de maniere idempotente ;
+| - journaliser les executions techniques.
 |
 | Ce cron ne realise aucun envoi SMTP.
-| L'envoi sera gere par prospect-send.php.
+| L'envoi est gere par prospect-send.php.
 |
 */
 
@@ -33,6 +34,9 @@ require_once __DIR__
 
 require_once __DIR__
     . '/../php/prospection/FollowUpManager.php';
+
+require_once __DIR__
+    . '/../php/prospection/ProspectingLogger.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +62,8 @@ $now = new DateTimeImmutable(
     'now',
     $timezone
 );
+
+$startedAt = microtime(true);
 
 $enabled = (bool) (
     $followUpConfig['enabled']
@@ -85,6 +91,30 @@ if (
 
 /*
 |--------------------------------------------------------------------------
+| Logger
+|--------------------------------------------------------------------------
+*/
+
+$logger =
+    new ProspectingLogger(
+        $pdo,
+        'follow_up'
+    );
+
+$logger->info(
+    'cron_started',
+    'Demarrage du planificateur de relances.',
+    [
+        'enabled' => $enabled,
+        'dry_run' => $dryRun,
+        'batch_limit' => $batchLimit,
+        'started_at' =>
+            $now->format('Y-m-d H:i:s'),
+    ]
+);
+
+/*
+|--------------------------------------------------------------------------
 | En-tete
 |--------------------------------------------------------------------------
 */
@@ -98,6 +128,10 @@ echo 'OL Creative Studio - Follow-ups'
     . PHP_EOL;
 
 echo '========================================'
+    . PHP_EOL;
+
+echo 'Run ID : '
+    . $logger->getRunId()
     . PHP_EOL;
 
 echo 'Date : '
@@ -133,6 +167,33 @@ echo PHP_EOL;
 */
 
 if (!$enabled) {
+    $logger->warning(
+        'cron_disabled',
+        'Planificateur de relances desactive.',
+        [
+            'duration_ms' =>
+                (int) round(
+                    (microtime(true) - $startedAt)
+                    * 1000
+                ),
+        ]
+    );
+
+    $logger->info(
+        'cron_completed',
+        'Execution du planificateur terminee.',
+        [
+            'duration_ms' =>
+                (int) round(
+                    (microtime(true) - $startedAt)
+                    * 1000
+                ),
+
+            'reason' =>
+                'disabled',
+        ]
+    );
+
     echo 'Relances desactivees.'
         . PHP_EOL;
 
@@ -169,13 +230,34 @@ try {
         === 1;
 
     if (!$lockAcquired) {
+        $logger->warning(
+            'lock_unavailable',
+            'Une autre execution du planificateur est deja en cours.',
+            [
+                'lock_name' => $lockName,
+                'duration_ms' =>
+                    (int) round(
+                        (microtime(true) - $startedAt)
+                        * 1000
+                    ),
+            ]
+        );
+
         echo 'Une autre execution est deja en cours.'
             . PHP_EOL;
 
         echo PHP_EOL;
 
-        exit(0);
+        return;
     }
+
+    $logger->info(
+        'lock_acquired',
+        'Verrou global du planificateur acquis.',
+        [
+            'lock_name' => $lockName,
+        ]
+    );
 
     echo 'Verrou global : ACQUIS'
         . PHP_EOL;
@@ -206,6 +288,24 @@ try {
                 $now,
                 $batchLimit
             );
+
+        $logger->info(
+            'dry_run_completed',
+            'Simulation des relances terminee.',
+            [
+                'eligible_count' =>
+                    count($dueItems),
+
+                'batch_limit' =>
+                    $batchLimit,
+
+                'duration_ms' =>
+                    (int) round(
+                        (microtime(true) - $startedAt)
+                        * 1000
+                    ),
+            ]
+        );
 
         echo '=== RELANCES ELIGIBLES ==='
             . PHP_EOL;
@@ -254,82 +354,122 @@ try {
             . PHP_EOL;
 
         echo PHP_EOL;
+    } else {
+        /*
+        |--------------------------------------------------------------------------
+        | LIVE
+        |--------------------------------------------------------------------------
+        */
 
-        exit(0);
-    }
+        $result =
+            $manager->createDueFollowUps(
+                $now,
+                $batchLimit
+            );
 
-    /*
-    |--------------------------------------------------------------------------
-    | LIVE
-    |--------------------------------------------------------------------------
-    */
+        $logger->info(
+            'processing_completed',
+            'Traitement des relances termine.',
+            [
+                'found' =>
+                    (int) $result['found'],
 
-    $result =
-        $manager->createDueFollowUps(
-            $now,
-            $batchLimit
+                'created' =>
+                    (int) $result['created'],
+
+                'skipped' =>
+                    (int) $result['skipped'],
+
+                'batch_limit' =>
+                    $batchLimit,
+
+                'duration_ms' =>
+                    (int) round(
+                        (microtime(true) - $startedAt)
+                        * 1000
+                    ),
+            ]
         );
 
-    echo '=== RESULTAT ==='
-        . PHP_EOL;
-
-    echo 'Eligibles : '
-        . (int) $result['found']
-        . PHP_EOL;
-
-    echo 'Creees : '
-        . (int) $result['created']
-        . PHP_EOL;
-
-    echo 'Ignores : '
-        . (int) $result['skipped']
-        . PHP_EOL;
-
-    foreach ($result['items'] as $item) {
-        echo PHP_EOL;
-
-        echo 'Prospect #'
-            . (int) $item['prospect_id']
-            . ' - '
-            . (string) $item[
-                'follow_up_type'
-            ]
-            . ' : ';
-
-        if (
-            (bool) (
-                $item['created']
-                ?? false
-            )
-        ) {
-            echo 'CREATED'
-                . PHP_EOL;
-
-            continue;
-        }
-
-        echo 'SKIPPED'
+        echo '=== RESULTAT ==='
             . PHP_EOL;
 
-        if (
-            isset($item['error'])
-            && trim(
-                (string) $item['error']
-            ) !== ''
-        ) {
-            echo 'Erreur : '
-                . (string) $item['error']
+        echo 'Eligibles : '
+            . (int) $result['found']
+            . PHP_EOL;
+
+        echo 'Creees : '
+            . (int) $result['created']
+            . PHP_EOL;
+
+        echo 'Ignores : '
+            . (int) $result['skipped']
+            . PHP_EOL;
+
+        foreach ($result['items'] as $item) {
+            echo PHP_EOL;
+
+            echo 'Prospect #'
+                . (int) $item['prospect_id']
+                . ' - '
+                . (string) $item[
+                    'follow_up_type'
+                ]
+                . ' : ';
+
+            if (
+                (bool) (
+                    $item['created']
+                    ?? false
+                )
+            ) {
+                echo 'CREATED'
+                    . PHP_EOL;
+
+                continue;
+            }
+
+            echo 'SKIPPED'
                 . PHP_EOL;
+
+            if (
+                isset($item['error'])
+                && trim(
+                    (string) $item['error']
+                ) !== ''
+            ) {
+                echo 'Erreur : '
+                    . (string) $item['error']
+                    . PHP_EOL;
+            }
         }
+
+        echo PHP_EOL;
+
+        echo 'Orchestrateur termine.'
+            . PHP_EOL;
+
+        echo PHP_EOL;
     }
-
-    echo PHP_EOL;
-
-    echo 'Orchestrateur termine.'
-        . PHP_EOL;
-
-    echo PHP_EOL;
 } catch (Throwable $exception) {
+    $logger->error(
+        'cron_failed',
+        'Echec du planificateur de relances.',
+        [
+            'exception' =>
+                get_class($exception),
+
+            'error' =>
+                $exception->getMessage(),
+
+            'duration_ms' =>
+                (int) round(
+                    (microtime(true) - $startedAt)
+                    * 1000
+                ),
+        ]
+    );
+
     fwrite(
         STDERR,
         'ERREUR : '
@@ -348,8 +488,42 @@ try {
             $statement->execute([
                 'lock_name' => $lockName,
             ]);
-        } catch (Throwable) {
-            // Le processus se termine de toute facon.
+
+            $logger->info(
+                'lock_released',
+                'Verrou global du planificateur libere.',
+                [
+                    'lock_name' =>
+                        $lockName,
+                ]
+            );
+        } catch (Throwable $exception) {
+            $logger->warning(
+                'lock_release_failed',
+                'Impossible de confirmer la liberation du verrou.',
+                [
+                    'lock_name' =>
+                        $lockName,
+
+                    'exception' =>
+                        get_class($exception),
+
+                    'error' =>
+                        $exception->getMessage(),
+                ]
+            );
         }
     }
+
+    $logger->info(
+        'cron_completed',
+        'Execution du planificateur terminee.',
+        [
+            'duration_ms' =>
+                (int) round(
+                    (microtime(true) - $startedAt)
+                    * 1000
+                ),
+        ]
+    );
 }

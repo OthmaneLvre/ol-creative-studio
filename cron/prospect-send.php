@@ -49,6 +49,9 @@ require_once __DIR__
 require_once __DIR__
     . '/../php/prospection/ProspectMailTransport.php';
 
+require_once __DIR__
+    . '/../php/prospection/ProspectingLogger.php';
+
 /*
 |--------------------------------------------------------------------------
 | Configuration
@@ -104,6 +107,15 @@ $now = new DateTimeImmutable(
     $timezone
 );
 
+$startedAt = microtime(true);
+
+$logger = new ProspectingLogger(
+    $pdo,
+    'sending'
+);
+
+$runId = $logger->getRunId();
+
 $maxDailySends = (int) (
     $config['sending']['max_daily_sends']
     ?? 5
@@ -141,6 +153,27 @@ if ($retryDelayMinutes < 1) {
         'Le délai de retry est invalide.'
     );
 }
+
+$logger->info(
+    'cron_started',
+    'Demarrage de l orchestrateur SMTP.',
+    [
+        'sending_enabled' =>
+            $sendingEnabled,
+
+        'max_daily_sends' =>
+            $maxDailySends,
+
+        'max_attempts' =>
+            $maxAttempts,
+
+        'retry_delay_minutes' =>
+            $retryDelayMinutes,
+
+        'test_email_id' =>
+            $testEmailId,
+    ]
+);
 
 /*
 |--------------------------------------------------------------------------
@@ -194,6 +227,10 @@ echo 'OL Creative Studio - Prospection SMTP'
 echo '========================================'
     . PHP_EOL;
 
+echo 'Run ID : '
+    . $runId
+    . PHP_EOL;
+
 echo 'Date : '
     . $now->format('Y-m-d H:i:s')
     . PHP_EOL;
@@ -229,20 +266,31 @@ echo PHP_EOL;
 */
 
 $lockAcquired = false;
+$exitCode = 0;
 
 try {
     $lockAcquired =
         $repository->acquireMailerLock(0);
 
     if (!$lockAcquired) {
+        $logger->warning(
+            'lock_unavailable',
+            'Une autre execution de l orchestrateur SMTP est deja en cours.'
+        );
+
         echo 'Orchestrateur déjà en cours d’exécution.'
             . PHP_EOL;
 
-        exit(0);
+        return;
     }
 
     echo 'Verrou mailer : acquis'
         . PHP_EOL;
+
+    $logger->info(
+        'lock_acquired',
+        'Verrou global de l orchestrateur SMTP acquis.'
+    );
 
     /*
     |--------------------------------------------------------------------------
@@ -2055,6 +2103,67 @@ try {
 
     echo PHP_EOL;
 
+    $logger->info(
+        'processing_completed',
+        'Traitement SMTP termine.',
+        [
+            'initial' => [
+                'sent' => $sentCount,
+                'retry' => $retryCount,
+                'failed' => $failedCount,
+                'blocked' => $blockedCount,
+                'reconciliation' =>
+                    $reconciliationCount,
+            ],
+
+            'follow_up' => [
+                'sent' => $followUpSentCount,
+                'retry' => $followUpRetryCount,
+                'failed' => $followUpFailedCount,
+                'blocked' => $followUpBlockedCount,
+                'reconciliation' =>
+                    $followUpReconciliationCount,
+            ],
+
+            'reply' => [
+                'sent' => $replySentCount,
+                'retry' => $replyRetryCount,
+                'failed' => $replyFailedCount,
+                'blocked' => $replyBlockedCount,
+                'reconciliation' =>
+                    $replyReconciliationCount,
+            ],
+
+            'quota' => [
+                'sent_today' => $sentToday,
+                'remaining' => $remaining,
+                'max_daily_sends' =>
+                    $maxDailySends,
+            ],
+
+            'duration_ms' => (int) round(
+                (microtime(true) - $startedAt) * 1000
+            ),
+        ]
+    );
+
+} catch (Throwable $exception) {
+    $logger->error(
+        'cron_failed',
+        'Echec de l orchestrateur SMTP.',
+        [
+            'exception_class' =>
+                $exception::class,
+        ]
+    );
+
+    error_log(
+        '[PROSPECTION] Echec orchestrateur SMTP : '
+        . $exception->getMessage()
+    );
+
+    $exitCode = 1;
+
 } finally {
     /*
     |--------------------------------------------------------------------------
@@ -2069,7 +2178,21 @@ try {
 
             echo 'Verrou mailer : libéré'
                 . PHP_EOL;
+
+            $logger->info(
+                'lock_released',
+                'Verrou global de l orchestrateur SMTP libere.'
+            );
         } catch (Throwable $exception) {
+            $logger->error(
+                'lock_release_failed',
+                'Impossible de liberer le verrou global de l orchestrateur SMTP.',
+                [
+                    'exception_class' =>
+                        $exception::class,
+                ]
+            );
+
             error_log(
                 '[PROSPECTION] Impossible de libérer '
                 . 'le verrou mailer : '
@@ -2077,9 +2200,23 @@ try {
             );
         }
     }
+
+    $logger->info(
+        'cron_completed',
+        'Orchestrateur SMTP termine.',
+        [
+            'duration_ms' => (int) round(
+                (microtime(true) - $startedAt) * 1000
+            ),
+        ]
+    );
 }
 
 echo 'Orchestrateur terminé.'
     . PHP_EOL;
 
 echo PHP_EOL;
+
+if ($exitCode !== 0) {
+    exit($exitCode);
+}
