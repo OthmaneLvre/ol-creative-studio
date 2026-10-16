@@ -36,7 +36,7 @@
         $finalOgImage =
             $pageOgImage
             ?? $siteUrl
-                . '/assets/logo/logo_olCreativeStudio_1600.webp';
+                . '/assets/images/og/og-cover.jpg';
 
         // Titre et description par défaut optimisés SEO local
         $defaultTitle = "Développeur Web Freelance à Céret | OL Creative Studio";
@@ -91,6 +91,22 @@
         property="og:image"
         content="<?= htmlspecialchars($finalOgImage) ?>"
     >
+
+    <meta
+        property="og:site_name"
+        content="OL Creative Studio"
+    >
+
+    <meta
+        property="og:locale"
+        content="fr_FR"
+    >
+
+    <?php if (empty($pageOgImage)): ?>
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:type" content="image/jpeg">
+    <?php endif; ?>
 
     <!-- Twitter -->
     <meta
@@ -255,9 +271,9 @@
 
         "url": "https://olcreativestudio.fr",
 
-        "logo": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
+        "logo": "https://olcreativestudio.fr/assets/logo/favicon/web-app-manifest-512x512.png",
 
-        "image": "https://olcreativestudio.fr/assets/logo/logo_olCreativeStudio_1600.webp",
+        "image": "https://olcreativestudio.fr/assets/images/og/og-cover.jpg",
 
         "telephone": "+33767841013",
 
