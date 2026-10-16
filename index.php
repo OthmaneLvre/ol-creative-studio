@@ -1132,10 +1132,10 @@ include_once __DIR__ . '/partials/header.php';
                     </a>
 
                     <a
-                        href="mailto:contact@olcreativestudio.com"
+                        href="mailto:contact@olcreativestudio.fr"
                         class="home-cta__email"
                     >
-                        contact@olcreativestudio.com
+                        contact@olcreativestudio.fr
                     </a>
 
                 </div>
