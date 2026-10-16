@@ -228,7 +228,7 @@ include_once __DIR__ . '/partials/header.php';
                         aria-label="Parler d'un projet de site vitrine"
                     >
                         <span>Découvrir</span>
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </article>
@@ -272,7 +272,7 @@ include_once __DIR__ . '/partials/header.php';
                         aria-label="Parler d'un projet e-commerce"
                     >
                         <span>Découvrir</span>
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </article>
@@ -316,7 +316,7 @@ include_once __DIR__ . '/partials/header.php';
                         aria-label="Parler d'un projet d'identité visuelle"
                     >
                         <span>Découvrir</span>
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </article>
@@ -360,7 +360,7 @@ include_once __DIR__ . '/partials/header.php';
                         aria-label="Parler d'un besoin de maintenance ou de SEO"
                     >
                         <span>Découvrir</span>
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </article>
@@ -404,7 +404,7 @@ include_once __DIR__ . '/partials/header.php';
                         aria-label="Parler d'un projet d'automatisation ou d'IA"
                     >
                         <span>Découvrir</span>
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </article>

@@ -116,11 +116,11 @@ if (
 }
 
 $categories = [
-    'figma'       => 'Maquettes Figma',
-    'vitrine'     => 'Sites vitrines',
-    'ecommerce'   => 'Boutiques en ligne',
-    'application' => 'Applications web',
-    'identite'    => 'Identités visuelles',
+    'figma'       => 'Maquette Figma',
+    'vitrine'     => 'Site vitrine',
+    'ecommerce'   => 'E-commerce',
+    'application' => 'Application web',
+    'identite'    => 'Identité visuelle',
     'landing'     => 'Landing pages',
     'refonte'     => 'Refontes de sites',
     'seo'         => 'SEO & optimisation',
@@ -408,7 +408,7 @@ include_once __DIR__ . '/partials/header.php';
                     rel="noopener noreferrer"
                 >
                     Voir le site
-                    <span aria-hidden="true">↗</span>
+                    <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                 </a>
             <?php endif; ?>
 
@@ -694,7 +694,7 @@ include_once __DIR__ . '/partials/header.php';
                 </h2>
 
                 <span class="project-next__arrow" aria-hidden="true">
-                    ↗
+                    <?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?>
                 </span>
 
             </div>

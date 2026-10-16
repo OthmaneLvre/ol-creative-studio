@@ -233,7 +233,7 @@ include_once __DIR__ . '/partials/header.php';
                         class="home-service__link"
                         aria-label="Découvrir le service création de sites web"
                     >
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </article>
@@ -281,7 +281,7 @@ include_once __DIR__ . '/partials/header.php';
                         class="home-service__link"
                         aria-label="Découvrir le service e-commerce"
                     >
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </article>
@@ -329,7 +329,7 @@ include_once __DIR__ . '/partials/header.php';
                         class="home-service__link"
                         aria-label="Découvrir le service identité visuelle"
                     >
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </article>
@@ -349,7 +349,7 @@ include_once __DIR__ . '/partials/header.php';
                         class="button__icon"
                         aria-hidden="true"
                     >
-                        ↗
+                        <?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?>
                     </span>
                 </a>
 
@@ -645,7 +645,7 @@ include_once __DIR__ . '/partials/header.php';
                             class="button__icon"
                             aria-hidden="true"
                         >
-                            ↗
+                            <?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?>
                         </span>
                     </a>
 
@@ -707,7 +707,7 @@ include_once __DIR__ . '/partials/header.php';
                         class="home-about__link"
                     >
                         Travailler ensemble
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </div>
@@ -832,7 +832,7 @@ include_once __DIR__ . '/partials/header.php';
                         class="home-portfolio__all-link"
                     >
                         Voir tous les projets
-                        <span aria-hidden="true">↗</span>
+                        <span aria-hidden="true"><?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?></span>
                     </a>
 
                 </div>
@@ -881,7 +881,7 @@ include_once __DIR__ . '/partials/header.php';
                                         class="home-project__arrow"
                                         aria-hidden="true"
                                     >
-                                        ↗
+                                        <?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?>
                                     </div>
 
                                 </div>
@@ -934,7 +934,7 @@ include_once __DIR__ . '/partials/header.php';
                         class="button__icon"
                         aria-hidden="true"
                     >
-                        ↗
+                        <?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?>
                     </span>
                 </a>
 
@@ -1127,7 +1127,7 @@ include_once __DIR__ . '/partials/header.php';
                             class="button__icon"
                             aria-hidden="true"
                         >
-                            ↗
+                            <?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?>
                         </span>
                     </a>
 

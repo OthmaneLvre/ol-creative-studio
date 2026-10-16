@@ -460,7 +460,7 @@ function isActivePage(string $page, string $currentPage): string
                         class="button__icon"
                         aria-hidden="true"
                     >
-                        ↗
+                        <?php require_once __DIR__ . '/icons/arrow-up-right.php'; ?>
                     </span>
                 </a>
 

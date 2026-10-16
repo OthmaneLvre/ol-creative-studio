@@ -91,7 +91,7 @@
                         class="button__icon"
                         aria-hidden="true"
                     >
-                        ↗
+                        <?php require __DIR__ . '/icons/arrow-up-right.php'; ?>
                     </span>
                 </a>
 
@@ -221,7 +221,7 @@
                             rel="noopener noreferrer"
                         >
                             <span>GitHub</span>
-                            <span aria-hidden="true">↗</span>
+                            <span aria-hidden="true"><?php require __DIR__ . '/icons/arrow-up-right.php'; ?></span>
                         </a>
 
                         <a
@@ -230,7 +230,7 @@
                             rel="noopener noreferrer"
                         >
                             <span>LinkedIn</span>
-                            <span aria-hidden="true">↗</span>
+                            <span aria-hidden="true"><?php require __DIR__ . '/icons/arrow-up-right.php'; ?></span>
                         </a>
 
                         <a
@@ -239,7 +239,7 @@
                             rel="noopener noreferrer"
                         >
                             <span>Instagram</span>
-                            <span aria-hidden="true">↗</span>
+                            <span aria-hidden="true"><?php require __DIR__ . '/icons/arrow-up-right.php'; ?></span>
                         </a>
 
                         <a
@@ -248,7 +248,7 @@
                             rel="noopener noreferrer"
                         >
                             <span>Upwork</span>
-                            <span aria-hidden="true">↗</span>
+                            <span aria-hidden="true"><?php require __DIR__ . '/icons/arrow-up-right.php'; ?></span>
                         </a>
 
                     </div>

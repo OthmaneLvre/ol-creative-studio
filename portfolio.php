@@ -88,11 +88,11 @@ require_once __DIR__ . '/php/db.php';
     $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $categoryLabels = [
-    'figma'       => 'Maquettes Figma',
-    'vitrine'     => 'Sites vitrines',
-    'ecommerce'   => 'Boutiques en ligne',
-    'application' => 'Applications web',
-    'identite'    => 'Identités visuelles',
+    'figma'       => 'Maquette Figma',
+    'vitrine'     => 'Site vitrine',
+    'ecommerce'   => 'E-commerce',
+    'application' => 'Application web',
+    'identite'    => 'Identité visuelle',
     'landing'     => 'Landing pages',
     'refonte'     => 'Refontes de sites',
     'seo'         => 'SEO & optimisation',
@@ -260,7 +260,7 @@ $categoryLabels = [
                                         class="portfolio-project__arrow"
                                         aria-hidden="true"
                                     >
-                                        ↗
+                                        <?php require __DIR__ . '/partials/icons/arrow-up-right.php'; ?>
                                     </div>
 
                                 </div>
